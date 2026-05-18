@@ -1,0 +1,29 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #001529 0%, #003366 100%);
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.appName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #001529;
+  margin-top: 12px;
+  margin-bottom: 0;
+}
