@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
-import AppBreadcrumb from './components/Breadcrumb'
+// import AppBreadcrumb from './components/Breadcrumb'
 import { useUiStore } from '@/stores/ui.store'
 import { ROUTES } from '@/router/routes'
 
@@ -56,7 +56,7 @@ const MainLayout = () => {
             minHeight: 'calc(100vh - 64px - 48px)',
           }}
         >
-          <AppBreadcrumb />
+          {/* <AppBreadcrumb /> */}
           <Outlet />
         </Content>
       </Layout>
