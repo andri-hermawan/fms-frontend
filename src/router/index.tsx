@@ -94,6 +94,10 @@ const router = createBrowserRouter([
     path: '*',
     element: <Navigate to={ROUTES.TRACKING} replace />,
   },
-])
+],
+  {
+    basename: '/fms',
+  }
+)
 
 export default router

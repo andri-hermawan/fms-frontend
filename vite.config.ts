@@ -11,7 +11,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 8880,
+    host: '0.0.0.0',
+    port: 8881,
     proxy: {
       'fms/api': {
         target: process.env.VITE_API_URL || 'http://localhost:3346',
