@@ -10,6 +10,7 @@ export const ROUTES = {
   DISTRIBUTION_MAP: '/distribution-maps',
   POSITION_HISTORY: '/position-history',
   FUEL: '/fuel',
+  SPEED_PER_SEGMENT: '/speed-per-segment',
 
   // Master
   USER: '/master/user',
@@ -35,6 +36,12 @@ export const ROUTES = {
 
   // Report
   REPORT: '/report',
+  REPORT_A: '/report/a',
+  REPORT_B: '/report/b',
+  REPORT_C: '/report/c',
+  REPORT_D: '/report/d',
+  REPORT_E: '/report/e',
+  REPORT_F: '/report/f',
 } as const
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES]

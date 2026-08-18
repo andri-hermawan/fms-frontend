@@ -20,6 +20,12 @@ const GeofencePage      = lazy(() => import('@/pages/geofence/GeofencePage'))
 const GraphicPage       = lazy(() => import('@/pages/graphic/GraphicPage'))
 const DistributionMapPage = lazy(() => import('@/pages/distribution-maps/DistributionMapPage'))
 const ReportPage        = lazy(() => import('@/pages/report/ReportPage'))
+const ReportAPage       = lazy(() => import('@/pages/report/ReportAPage'))
+const ReportBPage       = lazy(() => import('@/pages/report/ReportBPage'))
+const ReportCPage       = lazy(() => import('@/pages/report/ReportCPage'))
+const ReportDPage       = lazy(() => import('@/pages/report/ReportDPage'))
+const ReportEPage       = lazy(() => import('@/pages/report/ReportEPage'))
+const ReportFPage       = lazy(() => import('@/pages/report/ReportFPage'))
 
 const UserListPage      = lazy(() => import('@/pages/master/user/UserListPage'))
 const CompanyListPage      = lazy(() => import('@/pages/master/company/CompanyListPage'))
@@ -33,6 +39,7 @@ const StatusBreakdownPage = lazy(() => import('@/pages/upload-data/status-breakd
 const WeighbridgePage = lazy(() => import('@/pages/upload-data/weighbridge/WeighbridgePage'))
 const FuelCalibrationPage = lazy(() => import('@/pages/fuel-calibration/FuelCalibrationPage'))
 const FuelPage = lazy(() => import('@/pages/fuel/FuelPage'))
+const SpeedPerSegmentPage = lazy(() => import('@/pages/speed-per-segment/SpeedPerSegmentPage'))
 const PositionHistoryPage = lazy(() => import('@/pages/position-history/PositionHistoryPage'))
 
 
@@ -83,6 +90,7 @@ const router = createBrowserRouter([
               { path: ROUTES.FUEL_CALIBRATION, element: withSuspense(FuelCalibrationPage) },
               { path: ROUTES.STATUS_BREAKDOWN, element: withSuspense(StatusBreakdownPage) },
               { path: ROUTES.WEIGHBRIDGE, element: withSuspense(WeighbridgePage) },
+              { path: ROUTES.SPEED_PER_SEGMENT, element: withSuspense(SpeedPerSegmentPage) },
 
             ],
           },
@@ -106,8 +114,15 @@ const router = createBrowserRouter([
           { path: ROUTES.GRAPHIC,   element: withSuspense(GraphicPage) },
           { path: ROUTES.DISTRIBUTION_MAP,   element: withSuspense(DistributionMapPage) },
           { path: ROUTES.REPORT,    element: withSuspense(ReportPage) },
+          { path: ROUTES.REPORT_A,  element: withSuspense(ReportAPage) },
+          { path: ROUTES.REPORT_B,  element: withSuspense(ReportBPage) },
+          { path: ROUTES.REPORT_C,  element: withSuspense(ReportCPage) },
+          { path: ROUTES.REPORT_D,  element: withSuspense(ReportDPage) },
+          { path: ROUTES.REPORT_E,  element: withSuspense(ReportEPage) },
+          { path: ROUTES.REPORT_F,  element: withSuspense(ReportFPage) },
           { path: ROUTES.FUEL, element: withSuspense(FuelPage) },
           { path: ROUTES.POSITION_HISTORY, element: withSuspense(PositionHistoryPage) },
+          { path: ROUTES.SPEED_PER_SEGMENT, element: withSuspense(SpeedPerSegmentPage) },
         ],
       },
     ],

@@ -8,7 +8,7 @@ import dayjs from 'dayjs'
 
 import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
-import { BaseMap, GeofenceLayer, MapResize, ResetViewButton } from '@/components/map'
+import { BaseMap, GeofenceLayer, MapController, MapResize, ResetViewButton } from '@/components/map'
 import { useAuthStore } from '@/stores/auth.store'
 import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
 import alertApi from '@/services/api/alert.api'
@@ -261,6 +261,7 @@ const PositionHistoryPage = () => {
             )}
 
             <BaseMap>
+            <MapController defaultCenter={[-3.585, 103.809]} defaultZoom={10} />
               <MapResize deps={showPanel} />
               <GeofenceLayer geoJson={geoJson} />
               <ResetViewButton />

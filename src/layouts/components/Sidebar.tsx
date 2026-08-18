@@ -27,7 +27,8 @@ import {
   Upload,
   UserPlus,
   BarChart,
-  Scale
+  Scale,
+  CircleGauge
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store'
 import { useAlertStore } from '@/stores/alert.store'
@@ -113,13 +114,19 @@ const MENU_CONFIG: MenuConfig[] = [
     key: 'graphic',
     icon: <ChartNoAxesCombined {...iconStyle} />,
     label: 'Graphic',
-    path: ROUTES.GRAPHIC,
+    path: ROUTES.POSITION_HISTORY,
   },
   {
     key: 'distribution-map',
     icon: <Locate {...iconStyle} />,
     label: 'Distribution Map',
     path: ROUTES.DISTRIBUTION_MAP,
+  },
+  {
+    key: 'speed-per-segment',
+    icon: <CircleGauge {...iconStyle} />,
+    label: 'Speed Per Segment',
+    path: ROUTES.SPEED_PER_SEGMENT,
   },
   {
     key: 'fuel',

@@ -45,6 +45,7 @@ export interface MapLayersProps {
 
 export interface GeofenceLayerProps {
   geoJson?: GeoJsonObject | null
+  segmentStats?: Record<string, { speed: string; status: string }>
 }
 
 export interface FitBoundsProps {
