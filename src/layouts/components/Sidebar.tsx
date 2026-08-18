@@ -4,10 +4,10 @@ import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import { 
   Map as MapIcon, 
-  // ChevronDown, 
-  // ChevronRight, 
+  RouteOff, 
   Truck, 
   AlertTriangle,
+  SearchAlert,
   MapPin,
   Sliders,
   Building,
@@ -17,8 +17,17 @@ import {
   OctagonAlert,
   SquareUser,
   Fuel,
-  File,
-  Road
+  // File,
+  Road,
+  Snail,
+  Zap,
+  ChartNoAxesCombined,
+  FileText,
+  Locate,
+  Upload,
+  UserPlus,
+  BarChart,
+  Scale
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store'
 import { useAlertStore } from '@/stores/alert.store'
@@ -39,6 +48,11 @@ interface MenuConfig {
   children?: MenuConfig[]
 }
 
+const iconStyle = {
+  width: 18,
+  height: 18,
+}
+
 const MENU_CONFIG: MenuConfig[] = [
   // {
   //   key: 'dashboard',
@@ -48,80 +62,161 @@ const MENU_CONFIG: MenuConfig[] = [
   // },
   {
     key: 'tracking',
-    icon: <MapIcon />,
+    icon: <MapIcon {...iconStyle} />,
     label: 'Live Tracking',
     path: ROUTES.TRACKING,
   },
   {
-    key: 'alert',
-    icon: <AlertTriangle />,
-    label: 'Alert',
-    path: ROUTES.ALERT,
-  },
-  {
     key: 'geofence',
-    icon: <MapPin />,
+    icon: <MapPin {...iconStyle} />,
     label: 'Geofence',
     path: ROUTES.GEOFENCE,
   },
   {
+    key: 'all alerts',
+    icon: <AlertTriangle {...iconStyle} />,
+    label: 'Alerts',
+    children: [
+      {
+        key: 'alert',
+        icon: <SearchAlert {...iconStyle} />,
+        label: 'All Alerts',
+        path: ROUTES.ALERT,
+      },
+      {
+        key: 'fuel-alert',
+        icon: <Fuel {...iconStyle} />,
+        label: 'Fuel Alert',
+        path: ROUTES.FUELALERT,
+      },
+      {
+        key: 'underspeed',
+        icon: <Snail {...iconStyle} />,
+        label: 'Underspeed Alert',
+        path: ROUTES.UNDERSPEED,
+      },
+      {
+        key: 'overspeed',
+        icon: <Zap {...iconStyle} />,
+        label: 'Overspeed Alert',
+        path: ROUTES.OVERSPEED,
+      },
+      {
+        key: 'offtrack',
+        icon: <RouteOff {...iconStyle} />,
+        label: 'Offtrack Alert',
+        path: ROUTES.OFFTRACK,
+      },
+    ],
+  },
+  {
+    key: 'graphic',
+    icon: <ChartNoAxesCombined {...iconStyle} />,
+    label: 'Graphic',
+    path: ROUTES.GRAPHIC,
+  },
+  {
+    key: 'distribution-map',
+    icon: <Locate {...iconStyle} />,
+    label: 'Distribution Map',
+    path: ROUTES.DISTRIBUTION_MAP,
+  },
+  {
     key: 'fuel',
-    icon: <Fuel />,
+    icon: <Fuel {...iconStyle} />,
     label: 'Fuel',
     path: ROUTES.FUEL,
   },
   {
-    key: 'user',
-    icon: <SquareUser />,
-    label: 'User',
-    path: ROUTES.USER,
-    roles: ['superadmin'],
-  },
-  {
     key: 'report',
-    icon: <File />,
+    icon: <FileText {...iconStyle} />,
     label: 'Report',
     path: ROUTES.REPORT,
   },
+  // {
+  //   key: 'user',
+  //   icon: <SquareUser {...iconStyle} />,
+  //   label: 'User',
+  //   path: ROUTES.USER,
+  //   roles: ['superadmin'],
+  // },
+  {
+    key: 'upload',
+    icon: <Upload {...iconStyle} />,
+    label: 'Upload Data',
+    roles: ['superadmin', 'admin'],
+    children: [
+      {
+        key: 'daily-setting-operator',
+        icon: <UserPlus {...iconStyle} />,
+        label: 'Setting Operator',
+        path: ROUTES.DAILY_SETTING_OPERATOR,
+      },
+      {
+        key: 'status-breakdown',
+        icon: <BarChart {...iconStyle} />,
+        label: 'Status Breakdown',
+        path: ROUTES.STATUS_BREAKDOWN,
+      },
+      {
+        key: 'weighbridge',
+        icon: <Scale {...iconStyle} />,
+        label: 'Weighbridge',
+        path: ROUTES.WEIGHBRIDGE,
+      },
+    ],
+  },
   {
     key: 'master',
-    icon: <Sliders />,
+    icon: <Sliders {...iconStyle} />,
     label: 'System Data',
     roles: ['superadmin', 'admin'],
     children: [
       {
+        key: 'user',
+        icon: <SquareUser {...iconStyle} />,
+        label: 'User',
+        path: ROUTES.USER,
+      },
+      {
         key: 'company',
-        icon: <Building />,
+        icon: <Building {...iconStyle} />,
         label: 'Company',
         path: ROUTES.COMPANY,
       },
       {
         key: 'project',
-        icon: <Landmark />,
+        icon: <Landmark {...iconStyle} />,
         label: 'Project',
         path: ROUTES.PROJECT,
       },
       {
         key: 'equipment',
-        icon: <Truck />,
+        icon: <Truck {...iconStyle} />,
         label: 'Equipment',
         path: ROUTES.EQUIPMENT,
       },
       {
         key: 'device',
-        icon: <RadioReceiver />,
+        icon: <RadioReceiver {...iconStyle} />,
         label: 'Device',
         path: ROUTES.DEVICE,
       },
       {
+        key: 'fuel-calibration',
+        icon: <Fuel {...iconStyle} />,
+        label: 'Fuel Calibration',
+        path: ROUTES.FUEL_CALIBRATION,
+      },
+      {
         key: 'shift',
-        icon: <Clock />,
+        icon: <Clock {...iconStyle} />,
         label: 'Shift',
         path: ROUTES.SHIFT,
       },
       {
         key: 'alert-category',
-        icon: <OctagonAlert />,
+        icon: <OctagonAlert {...iconStyle} />,
         label: 'Alert Category',
         path: ROUTES.ALERT_CATEGORY,
       },
@@ -183,34 +278,65 @@ const Sidebar = () => {
       trigger={null}
       collapsible
       collapsed={collapsed}
-      width={220}
-      style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}
+      width={260}
+      theme="light"
+      style={{
+        overflow: 'auto',
+        height: '100vh',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        background: '#fff',
+        borderRight: '1px solid #f0f0f0',
+      }}
     >
-      <div style={{
-        height: 64,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: collapsed ? 'center' : 'flex-start',
-        padding: collapsed ? 0 : '0 20px',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
-      }}>
-        {/* <img src="/logo.svg" alt="FMS" height={28} /> */}
-        <Road style={{ color: '#0d6efd', marginLeft: 8 }} />
+      <div
+        style={{
+          height: 60,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          padding: collapsed ? 0 : '0 20px',
+          borderBottom: '1px solid #f0f0f0',
+          background: '#fff',
+        }}
+      >
+        <Road
+          size={20}
+          style={{
+            color: '#1677ff',
+          }}
+        />
+
         {!collapsed && (
-          <span style={{ color: '#fff', marginLeft: 10, fontWeight: 600, fontSize: 14 }}>
-            FMS
+          <span
+            style={{
+              color: '#111',
+              marginLeft: 10,
+              fontWeight: 600,
+              fontSize: 15,
+            }}
+          >
+            CHRS
           </span>
         )}
       </div>
 
       <Menu
-        theme="dark"
+        theme="light"
         mode="inline"
         selectedKeys={[selectedKey]}
         defaultOpenKeys={openKeys}
         items={menuItems}
         onClick={handleMenuClick}
-        style={{ borderRight: 0, marginTop: 8 }}
+        style={{
+          borderRight: 0,
+          marginTop: 10,
+          paddingInline: 10,
+          fontSize: 13,
+          background: '#fff',
+        }}
       />
     </Sider>
   )

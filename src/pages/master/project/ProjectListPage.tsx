@@ -47,35 +47,89 @@ const ProjectListPage = () => {
 
   const handleDelete = (r: Project) => {
     showConfirm({
-      title: 'Hapus Project',
-      content: `Yakin hapus project "${r.project_name}"?`,
+      title: 'Delete Project',
+      content: `Yakin delete project "${r.project_name}"?`,
       danger: true,
-      okText: 'Ya, Hapus',
+      okText: 'Ya, Delete',
       onConfirm: () => deleteM.mutate(r.id),
     })
   }
 
   const columns: ColumnsType<Project> = [
     {
-      title: 'Company', key: 'companies', width: 180,
-      render: (_, r) => r.companies ? `${r.companies.company_name}` : '—',
+      title: 'Company',
+      key: 'companies',
+      width: 180,
+      align: 'left',
+      render: (_, record) =>
+        record.companies?.company_name ?? '—',
     },
     {
-      title: 'Code', dataIndex: 'project_code', width: 120,
-      render: (v) => <span style={{ fontWeight: 'bold', color: '#000' }}>{v}</span>,
+      title: 'Project Code',
+      dataIndex: 'project_code',
+      width: 120,
+      align: 'left',
+      render: (value) => (
+        <span style={{ fontWeight: 600 }}>
+          {value}
+        </span>
+      ),
     },
-    { title: 'Project Name', dataIndex: 'project_name', width: 220 },
     {
-      title: 'Status', dataIndex: 'status', width: 100,
-      render: (v) => <Tag color={v === 'active' ? 'success' : 'default'}>{v === 'active' ? 'Aktif' : 'Nonaktif'}</Tag>,
+      title: 'Project Name',
+      dataIndex: 'project_name',
+      width: 220,
+      align: 'left',
     },
-    { title: 'Created At', dataIndex: 'created_at', width: 130, render: (v) => formatDate(v) },
     {
-      title: 'Actions', key: 'action', fixed: 'right', width: 90,
-      render: (_, r) => (
+      title: 'Status',
+      dataIndex: 'status',
+      width: 120,
+      align: 'center',
+      render: (value) => (
+        <Tag color={value === 'active' ? 'success' : 'default'}>
+          {value === 'active' ? 'Aktif' : 'Nonaktif'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Created At',
+      dataIndex: 'created_at',
+      width: 140,
+      align: 'center',
+      render: (value) => formatDate(value),
+    },
+    {
+      title: 'Actions',
+      key: 'action',
+      width: 100,
+      fixed: 'right',
+      align: 'center',
+      render: (_, record) => (
         <Space size={4}>
-          {canUpdate && <Tooltip title="Edit"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} /></Tooltip>}
-          {canDelete && <Tooltip title="Hapus"><Button type="text" size="small" danger icon={<DeleteOutlined />} loading={deleteM.isPending} onClick={() => handleDelete(r)} /></Tooltip>}
+          {canUpdate && (
+            <Tooltip title="Edit">
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => openEdit(record)}
+              />
+            </Tooltip>
+          )}
+
+          {canDelete && (
+            <Tooltip title="Hapus">
+              <Button
+                type="text"
+                size="small"
+                danger
+                loading={deleteM.isPending}
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(record)}
+              />
+            </Tooltip>
+          )}
         </Space>
       ),
     },
@@ -85,11 +139,11 @@ const ProjectListPage = () => {
     <>
       <PageHeader
         title="Project"
-        subtitle={`Total ${data?.meta?.total ?? 0} project`}
+        // subtitle={`Total ${data?.meta?.total ?? 0} project`}
         extra={
           <Space>
             <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>NEW</Button>}
+            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
           </Space>
         }
       />

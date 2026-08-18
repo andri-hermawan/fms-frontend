@@ -1,32 +1,35 @@
-export type GeofenceType = 'allowed' | 'restricted'
-export type GeofenceShape = 'polygon' | 'circle'
-export type GeofenceStatus = 'active' | 'inactive'
+export type EventGeofence = 'IN' | 'OUT'
 
-export interface Geofence {
-  id: string
-  name: string
-  type: GeofenceType
-  shape: GeofenceShape
-  status: GeofenceStatus
-  geoJson: GeoJSON.Feature
-  color: string
-  description: string | null
-  createdAt: string
-  updatedAt: string
+export interface PassingItem {
+  id: number
+  equipment_code: string
+  segment: string
+  time: string
+  event: EventGeofence
 }
 
-export interface GeofenceFormValues {
-  name: string
-  type: GeofenceType
-  status: GeofenceStatus
-  description?: string
+export interface PassingSummaryItem {
+  hour: string
+  in: number
+  out: number
+  total: number
 }
 
-export interface VehicleGeofenceStatus {
-  vehicleId: string
-  vehicleName: string
-  geofenceId: string
-  geofenceName: string
-  isInside: boolean
-  lastChecked: string
+export interface PassingResponse {
+  data: PassingItem[]
+  meta: {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+  }
+}
+
+export interface PassingQuery {
+  page?: number
+  limit?: number
+  equipment_code?: string
+  segment?: string
+  start_date?: string
+  end_date?: string
 }

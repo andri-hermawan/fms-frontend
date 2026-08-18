@@ -29,7 +29,7 @@ const UserForm = ({ form, initialValues, isEdit = false }: Props) => {
 
   return (
     <Form form={form} layout="vertical" requiredMark={false}>
-      <Form.Item name="name" label="Nama"
+      <Form.Item name="name" label="Name"
         rules={[{ required: true, message: 'Wajib diisi' }]}>
         <Input placeholder="Budi Santoso" />
       </Form.Item>

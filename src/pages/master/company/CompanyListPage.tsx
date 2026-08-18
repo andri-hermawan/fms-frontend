@@ -47,31 +47,79 @@ const CompanyListPage = () => {
 
   const handleDelete = (r: Company) => {
     showConfirm({
-      title: 'Hapus Company',
-      content: `Yakin hapus company "${r.company_name}"?`,
+      title: 'Delete Company',
+      content: `Yakin delete company "${r.company_name}"?`,
       danger: true,
-      okText: 'Ya, Hapus',
+      okText: 'Ya, Delete',
       onConfirm: () => deleteM.mutate(r.id),
     })
   }
 
   const columns: ColumnsType<Company> = [
     {
-      title: 'Code', dataIndex: 'company_code', width: 120,
-      render: (v) => <span style={{ fontWeight: 'bold', color: '#000' }}>{v}</span>,
+      title: 'Company Code',
+      dataIndex: 'company_code',
+      width: 120,
+      align: 'left',
+      render: (value) => (
+        <span style={{ fontWeight: 600 }}>{value}</span>
+      ),
     },
-    { title: 'Company Name', dataIndex: 'company_name', width: 220 },
     {
-      title: 'Status', dataIndex: 'status', width: 100,
-      render: (v) => <Tag color={v === 'active' ? 'success' : 'default'}>{v === 'active' ? 'Aktif' : 'Nonaktif'}</Tag>,
+      title: 'Company Name',
+      dataIndex: 'company_name',
+      width: 220,
+      align: 'left',
     },
-    { title: 'Created At', dataIndex: 'created_at', width: 130, render: (v) => formatDate(v) },
     {
-      title: 'Actions', key: 'action', fixed: 'right', width: 90,
-      render: (_, r) => (
+      title: 'Status',
+      dataIndex: 'status',
+      width: 120,
+      align: 'center',
+      render: (value) => (
+        <Tag color={value === 'active' ? 'success' : 'default'}>
+          {value === 'active' ? 'Aktif' : 'Nonaktif'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Created At',
+      dataIndex: 'created_at',
+      width: 140,
+      align: 'center',
+      render: (value) => formatDate(value),
+    },
+    {
+      title: 'Actions',
+      key: 'action',
+      width: 100,
+      fixed: 'right',
+      align: 'center',
+      render: (_, record) => (
         <Space size={4}>
-          {canUpdate && <Tooltip title="Edit"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} /></Tooltip>}
-          {canDelete && <Tooltip title="Hapus"><Button type="text" size="small" danger icon={<DeleteOutlined />} loading={deleteM.isPending} onClick={() => handleDelete(r)} /></Tooltip>}
+          {canUpdate && (
+            <Tooltip title="Edit">
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => openEdit(record)}
+              />
+            </Tooltip>
+          )}
+
+          {canDelete && (
+            <Tooltip title="Hapus">
+              <Button
+                type="text"
+                size="small"
+                danger
+                loading={deleteM.isPending}
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(record)}
+              />
+            </Tooltip>
+          )}
         </Space>
       ),
     },
@@ -81,11 +129,11 @@ const CompanyListPage = () => {
     <>
       <PageHeader
         title="Company"
-        subtitle={`Total ${data?.meta?.total ?? 0} company`}
+        // subtitle={`Total ${data?.meta?.total ?? 0} company`}
         extra={
           <Space>
             <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>NEW</Button>}
+            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
           </Space>
         }
       />
@@ -97,7 +145,7 @@ const CompanyListPage = () => {
         onSearch={setSearch}
         pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
       />
-      <FormDrawer open={open} title={isEdit ? 'Edit Company' : 'Add Company'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'}>
+      <FormDrawer open={open} title={isEdit ? 'Edit Company' : 'Add Company'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Save' : 'Add'}>
         <CompanyForm form={form} initialValues={selected} />
       </FormDrawer>
     </>

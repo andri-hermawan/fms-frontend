@@ -18,11 +18,11 @@ const AlertCategoryForm = ({ form, initialValues }: Props) => {
 
   return (
     <Form form={form} layout="vertical" requiredMark={false}>
-      <Form.Item name="alert_category_code" label="Code"
+      <Form.Item name="alert_category_code" label="Alert Category Code"
         rules={[{ required: true, message: 'Wajib diisi' }]}>
         <Input placeholder="ALT-001" />
       </Form.Item>
-      <Form.Item name="alert_category_name" label="Category Name"
+      <Form.Item name="alert_category_name" label="Alert Category Name"
         rules={[{ required: true, message: 'Wajib diisi' }]}>
         <Input placeholder="Overspeed" />
       </Form.Item>

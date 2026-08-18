@@ -40,7 +40,7 @@ const DeviceForm = ({ form, initialValues }: DeviceFormProps) => {
     <Form form={form} layout="vertical" requiredMark={false}>
       <Form.Item
         name="device_code"
-        label="Code / Imei"
+        label="Imei"
         rules={[
           { required: true, message: 'Wajib diisi' },
           { len: 15, message: 'Code / Imei harus 15 digit' },
@@ -101,7 +101,7 @@ const DeviceForm = ({ form, initialValues }: DeviceFormProps) => {
           options={equipmentOptions}
           showSearch
           filterOption={(input, opt) =>
-            (opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            String(opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
           }
         />
       </Form.Item>
@@ -113,7 +113,7 @@ const DeviceForm = ({ form, initialValues }: DeviceFormProps) => {
       >
         <Select placeholder="Pilih status">
           {STATUS_OPTIONS.map((s) => (
-            <Option key={s.value} value={s.value}>{s.label}</Option>
+            <Select.Option key={s.value} value={s.value}>{s.label}</Select.Option>
           ))}
         </Select>
       </Form.Item>

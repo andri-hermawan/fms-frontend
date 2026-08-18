@@ -36,6 +36,32 @@ export interface TrackingHistoryParams {
   endDate: string
 }
 
+export interface ActivitySummaryParams {
+  equipment_id: string
+  start_date: string
+  end_date: string
+}
+
+export interface ActivitySummaryData {
+  equipment_id: string
+  equipment_code: string
+  period: {
+    start: string
+    end: string
+  }
+  summary: {
+    running_time: number // jam
+    idling_time: number // jam
+    mileage: number // km
+    avg_running_speed: number // km/h
+    max_running_speed: number // km/h
+    fuel_decrease: number // liter
+    fuel_ratio: number // %
+    fuel_remaining: number // liter
+    fuel_remaining_percentage: number // %
+  }
+}
+
 export interface StopPoint {
   latitude: number
   longitude: number

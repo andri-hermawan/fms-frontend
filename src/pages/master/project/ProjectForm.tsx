@@ -27,7 +27,7 @@ const ProjectForm = ({ form, initialValues }: Props) => {
 
   return (
     <Form form={form} layout="vertical" requiredMark={false}>
-      <Form.Item name="project_code" label="Code"
+      <Form.Item name="project_code" label="Project Code"
         rules={[{ required: true, message: 'Wajib diisi' }]}>
         <Input placeholder="PRJ-001" />
       </Form.Item>

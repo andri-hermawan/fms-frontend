@@ -74,10 +74,10 @@ const EquipmentListPage = () => {
 
   const handleDelete = (equipment: Equipment) => {
     showConfirm({
-      title: 'Hapus Perangkat',
+      title: 'Delete Perangkat',
       content: `Yakin ingin menghapus "${equipment.equipment_code} (${equipment.equipment_code})"? Tindakan ini tidak bisa dibatalkan.`,
       danger: true,
-      okText: 'Ya, Hapus',
+      okText: 'Ya, Delete',
       onConfirm: () => deleteMutation.mutate(equipment.id),
     })
   }
@@ -86,14 +86,15 @@ const EquipmentListPage = () => {
 
   const columns: ColumnsType<Equipment> = [
     {
-      title: 'Cn Unit',
+      title: 'Unit Code',
       dataIndex: 'equipment_code',
       key: 'equipment_code',
       width: 130,
       fixed: 'left',
-      render: (val: string) => (
-        <span style={{ fontWeight: 'bold', color: '#000' }}>
-          {val}
+      align: 'left',
+      render: (value: string) => (
+        <span style={{ fontWeight: 600 }}>
+          {value}
         </span>
       ),
     },
@@ -102,51 +103,61 @@ const EquipmentListPage = () => {
       dataIndex: 'type',
       key: 'type',
       width: 120,
-      render: (val: string) => {
+      align: 'left',
+      render: (value: string) => {
         const map: Record<string, string> = {
-          truck: 'Truk', car: 'Mobil',
-          motorcycle: 'Motor', heavy_equipment: 'Alat Berat',
+          truck: 'Truk',
+          car: 'Mobil',
+          motorcycle: 'Motor',
+          heavy_equipment: 'Alat Berat',
         }
-        return map[val] ?? val
+
+        return map[value] ?? value
       },
     },
     {
       title: 'Brand',
+      dataIndex: 'brand',
       key: 'brand',
       width: 160,
-      render: (_, r) => `${r.brand} `,
+      align: 'left',
     },
     {
       title: 'Model',
+      dataIndex: 'model',
       key: 'model',
       width: 160,
-      render: (_, r) => `${r.model} `,
+      align: 'left',
     },
     {
       title: 'Class',
+      dataIndex: 'class',
       key: 'class',
       width: 160,
-      render: (_, r) => `${r.class} `,
+      align: 'left',
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      width: 130,
-      render: (val) => <StatusBadge status={val} />,
+      width: 120,
+      align: 'center',
+      render: (value) => <StatusBadge status={value} />,
     },
     {
       title: 'Created At',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 120,
-      render: (val: string) => formatDate(val),
+      width: 140,
+      align: 'center',
+      render: (value: string) => formatDate(value),
     },
     {
       title: 'Actions',
       key: 'action',
+      width: 100,
       fixed: 'right',
-      width: 90,
+      align: 'center',
       render: (_, record) => (
         <Space size={4}>
           {canUpdate && (
@@ -159,6 +170,7 @@ const EquipmentListPage = () => {
               />
             </Tooltip>
           )}
+
           {canDelete && (
             <Tooltip title="Hapus">
               <Button
@@ -175,14 +187,13 @@ const EquipmentListPage = () => {
       ),
     },
   ]
-
   // ─── Render ───────────────────────────────────────────────
 
   return (
     <>
       <PageHeader
         title="Equipment"
-        subtitle={`Total ${data?.meta.total ?? 0} Equipment terdaftar`}
+        // subtitle={`Total ${data?.meta.total ?? 0} Equipment`}
         extra={
           <Space>
             <Tooltip title="Refresh">
@@ -198,7 +209,7 @@ const EquipmentListPage = () => {
                 icon={<PlusOutlined />}
                 onClick={openCreate}
               >
-                NEW
+                Add
               </Button>
             )}
           </Space>
@@ -233,7 +244,7 @@ const EquipmentListPage = () => {
         onClose={closeDrawer}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        submitText={isEditMode ? 'Simpan Perubahan' : 'Add'}
+        submitText={isEditMode ? 'Save' : 'Add'}
         width={540}
       >
         <EquipmentForm form={form} initialValues={selectedEquipment} />

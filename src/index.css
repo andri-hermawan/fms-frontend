@@ -21,7 +21,34 @@ html {
 
 /* Fix Ant Design Layout background */
 .ant-layout {
+  height: 100%;
   background: #f5f5f5 !important;
+}
+
+.ant-layout:has(> .ant-layout-header) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ant-layout-header {
+  flex-shrink: 0;  /* header tetap di tinggi aslinya, tidak boleh menyusut */
+  height: auto;
+  line-height: normal;
+}
+
+.ant-layout-content {
+  flex: 1;
+  min-height: 0;   /* KUNCI — biar Content bisa dikasih tinggi terbatas,
+                       bukan auto/tumbuh sesuai isi */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ant-layout-content > * {
+  height: 100%;
+  min-height: 0;
 }
 
 /* Leaflet z-index fix agar tidak menimpa Ant Design modal */
@@ -32,3 +59,69 @@ html {
 .leaflet-bottom {
   z-index: 401;
 }
+
+/* ===========================
+   Custom Ant Design Table
+=========================== */
+
+.custom-table .ant-table-thead > tr > th {
+  background: #064596 !important;
+  color: #ffffff !important;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: none !important;
+}
+
+.custom-table .ant-table-thead > tr > th::before {
+  display: none !important;
+}
+
+.custom-table .ant-table-tbody > tr > td {
+  font-size: 14px;
+  color: #333;
+}
+
+.custom-table .ant-table-tbody > tr:hover > td {
+  background: #f5faff !important;
+}
+
+/* Hide scrollbar tapi tetap bisa scroll */
+.custom-table .ant-table-body {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE & Edge */
+}
+
+.custom-table .ant-table-body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Sidebar */
+
+.ant-layout-sider-light .ant-menu-item,
+.ant-layout-sider-light .ant-menu-submenu-title {
+  height: 42px;
+  line-height: 42px;
+  font-size: 16px;
+  border-radius: 8px;
+  margin: 4px 8px;
+}
+
+.ant-layout-sider-light .ant-menu-item-icon {
+  font-size: 18px;
+}
+
+.ant-layout-sider-light .ant-menu-title-content {
+  font-weight: 500;
+}
+
+.ant-layout-sider-light .ant-menu-item-selected {
+  background: #e6f4ff !important;
+  color: #1677ff !important;
+}
+
+.ant-layout-sider-light .ant-menu-item-selected svg {
+  color: #1677ff;
+}
+

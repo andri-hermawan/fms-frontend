@@ -4,6 +4,12 @@ export const ROUTES = {
 
   // Dashboard
   DASHBOARD: '/',
+  TRACKING: '/tracking',
+  GEOFENCE: '/geofence',
+  GRAPHIC: '/graphic',
+  DISTRIBUTION_MAP: '/distribution-maps',
+  POSITION_HISTORY: '/position-history',
+  FUEL: '/fuel',
 
   // Master
   USER: '/master/user',
@@ -13,12 +19,19 @@ export const ROUTES = {
   DEVICE: '/master/device',
   SHIFT: '/master/shift',
   ALERT_CATEGORY: '/master/alert-category',
+  FUEL_CALIBRATION: '/fuel-calibration',
 
-  // Operations
-  TRACKING: '/tracking',
+  // Alerts
   ALERT: '/alert',
-  FUEL: '/fuel',
-  GEOFENCE: '/geofence',
+  UNDERSPEED: '/underspeed',
+  OVERSPEED: '/overspeed',
+  OFFTRACK: '/offtrack',
+  FUELALERT: '/fuel-alert',
+  
+  // Upload
+  DAILY_SETTING_OPERATOR: '/upload/daily-setting-operator',
+  STATUS_BREAKDOWN: '/upload/status-breakdown',
+  WEIGHBRIDGE: '/upload/weighbridge',
 
   // Report
   REPORT: '/report',

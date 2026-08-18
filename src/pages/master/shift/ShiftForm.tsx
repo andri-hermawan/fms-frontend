@@ -18,7 +18,7 @@ const ShiftForm = ({ form, initialValues }: Props) => {
 
   return (
     <Form form={form} layout="vertical" requiredMark={false}>
-      <Form.Item name="shift_code" label="Code"
+      <Form.Item name="shift_code" label="Shift Code"
         rules={[{ required: true, message: 'Wajib diisi' }]}>
         <Input placeholder="SHIFT-A" />
       </Form.Item>

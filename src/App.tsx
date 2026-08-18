@@ -1,10 +1,15 @@
 import { RouterProvider } from 'react-router-dom'
-import { App as AntApp, Spin } from 'antd'
+import { App as AntApp, Spin, message } from 'antd'
 import router from '@/router'
 import ErrorBoundary from '@/components/feedback/ErrorBoundary'
 import useRestoreSession from '@/hooks/useRestoreSession'
 import { useAuthStore } from '@/stores/auth.store'
 import { useEffect } from 'react'
+
+message.config({
+  top: 80, // jarak dari atas (px)
+  duration: 10, // lama tampil
+})
 
 // const SessionRestorer = () => {
 //   useRestoreSession()

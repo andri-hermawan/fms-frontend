@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Form, Button, Space, Tooltip, Badge } from 'antd'
+import { Form, Button, Space, Tooltip } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 
@@ -13,7 +13,6 @@ import { useDevices, useCreateDevice, useUpdateDevice, useDeleteDevice } from '.
 import DeviceForm from './DeviceForm'
 import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
-import { formatDate, formatDateTime } from '@/utils/format'
 import type { Device, DeviceFormValues } from '@/types/device.types'
 
 const DeviceListPage = () => {
@@ -67,70 +66,91 @@ const DeviceListPage = () => {
 
   const handleDelete = (device: Device) => {
     showConfirm({
-      title: 'Hapus Device',
+      title: 'Delete Device',
       content: `Yakin ingin menghapus device IMEI "${device.device_code}"?`,
       danger: true,
-      okText: 'Ya, Hapus',
+      okText: 'Ya, Delete',
       onConfirm: () => deleteMutation.mutate(device.id),
     })
   }
 
   const columns: ColumnsType<Device> = [
     {
-      title: 'Code / Imei',
+      title: 'Imei',
       dataIndex: 'device_code',
       key: 'device_code',
       width: 160,
       fixed: 'left',
-      render: (val: string) => (
-        <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{val}</span>
+      align: 'left',
+      render: (value: string) => (
+        <span
+          style={{
+            fontFamily: 'monospace',
+            fontWeight: 600,
+          }}
+        >
+          {value}
+        </span>
       ),
     },
     {
       title: 'Device Name',
       dataIndex: 'device_name',
       key: 'device_name',
-      width: 160,
+      width: 180,
+      align: 'left',
     },
     {
       title: 'Provider',
       dataIndex: 'provider_name',
       key: 'provider_name',
       width: 140,
+      align: 'left',
     },
     {
-      title: 'Sim Number',
+      title: 'No. SIM Card',
       dataIndex: 'sim_number',
       key: 'sim_number',
-      width: 140,
+      width: 160,
+      align: 'left',
     },
     {
       title: 'Device Model',
       dataIndex: 'device_model',
       key: 'device_model',
-      width: 140,
+      width: 160,
+      align: 'left',
     },
     {
       title: 'Equipment',
       key: 'equipments',
       width: 160,
-      render: (_, r) =>
-        r.equipments
-          ? `${r.equipments.equipment_code}`
-          : <span style={{ color: '#ccc' }}>Belum dipasang</span>,
+      align: 'left',
+      render: (_, record) =>
+        record.equipments ? (
+          <span style={{ fontWeight: 600 }}>
+            {record.equipments.equipment_code}
+          </span>
+        ) : (
+          <span style={{ color: '#999' }}>
+            Belum dipasang
+          </span>
+        ),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      width: 130,
-      render: (val) => <StatusBadge status={val} />,
+      width: 120,
+      align: 'center',
+      render: (value) => <StatusBadge status={value} />,
     },
     {
-      title: 'Aksi',
+      title: 'Actions',
       key: 'action',
+      width: 100,
       fixed: 'right',
-      width: 90,
+      align: 'center',
       render: (_, record) => (
         <Space size={4}>
           {canUpdate && (
@@ -143,6 +163,7 @@ const DeviceListPage = () => {
               />
             </Tooltip>
           )}
+
           {canDelete && (
             <Tooltip title="Hapus">
               <Button
@@ -160,22 +181,13 @@ const DeviceListPage = () => {
     },
   ]
 
-  // Summary badges
-  const onlineCount     = data?.data.filter((d) => d.status === 'online').length ?? 0
-  const offlineCount    = data?.data.filter((d) => d.status === 'offline').length ?? 0
-  const unassignedCount = data?.data.filter((d) => d.status === 'unassigned').length ?? 0
+
 
   return (
     <>
       <PageHeader
-        title="GPS Device"
-        subtitle={
-          <Space size={12}>
-            <Badge status="success" text={`${onlineCount} Online`} />
-            <Badge status="error"   text={`${offlineCount} Offline`} />
-            <Badge status="default" text={`${unassignedCount} Belum Dipasang`} />
-          </Space>
-        }
+        title="Device"
+        // subtitle={`Total ${data?.meta.total ?? 0} Device`}
         extra={
           <Space>
             <Tooltip title="Refresh">
@@ -183,7 +195,7 @@ const DeviceListPage = () => {
             </Tooltip>
             {canCreate && (
               <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-                NEW
+                Add
               </Button>
             )}
           </Space>
@@ -214,7 +226,7 @@ const DeviceListPage = () => {
         onClose={closeDrawer}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        submitText={isEditMode ? 'Simpan Perubahan' : 'Add'}
+        submitText={isEditMode ? 'Save' : 'Add'}
       >
         <DeviceForm form={form} initialValues={selectedDevice} />
       </FormDrawer>

@@ -18,7 +18,7 @@ const CompanyForm = ({ form, initialValues }: Props) => {
 
   return (
     <Form form={form} layout="vertical" requiredMark={false}>
-      <Form.Item name="company_code" label="Code"
+      <Form.Item name="company_code" label="Company Code"
         rules={[{ required: true, message: 'Wajib diisi' }]}>
         <Input placeholder="RMK" />
       </Form.Item>

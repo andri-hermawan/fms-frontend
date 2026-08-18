@@ -10,17 +10,22 @@ const useLogin = () => {
   const navigate    = useNavigate()
   const setTokens   = useAuthStore((s) => s.setTokens)
   const setUser     = useAuthStore((s) => s.setUser)
+  const setProject   = useAuthStore((s) => s.setProject)
   const { message } = App.useApp()
 
   const mutation = useMutation({
     mutationFn: (payload: LoginRequest) => authApi.login(payload),
 
     onSuccess: ({ data: response }) => {
-      const { access_token, refresh_token, user } = response.data
+      const { access_token, refresh_token, user, project } = response.data
 
       // Simpan kedua token + user ke store
       setTokens(access_token, refresh_token)
       setUser(user)
+      // Simpan project (geojson_origin untuk peta tracking)
+      if (project) {
+        setProject(project)
+      }
 
       message.success(`Welcome Back, ${user.name}!`)
       navigate(ROUTES.DASHBOARD)

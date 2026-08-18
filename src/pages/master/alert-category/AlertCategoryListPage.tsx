@@ -47,31 +47,81 @@ const AlertCategoryListPage = () => {
 
   const handleDelete = (r: AlertCategory) => {
     showConfirm({
-      title: 'Hapus Alert Category',
+      title: 'Delete Alert Category',
       content: `Yakin hapus kategori "${r.alert_category_name}"?`,
       danger: true,
-      okText: 'Ya, Hapus',
+      okText: 'Ya, Delete',
       onConfirm: () => deleteM.mutate(r.id),
     })
   }
 
   const columns: ColumnsType<AlertCategory> = [
     {
-      title: 'Code', dataIndex: 'alert_category_code', width: 140,
-      render: (v) => <span style={{ fontWeight: 'bold', color: '#000' }}>{v}</span>,
+      title: 'Alert Category Code',
+      dataIndex: 'alert_category_code',
+      width: 140,
+      align: 'left',
+      render: (value) => (
+        <span style={{ fontWeight: 600 }}>
+          {value}
+        </span>
+      ),
     },
-    { title: 'Category Name', dataIndex: 'alert_category_name', width: 220 },
     {
-      title: 'Status', dataIndex: 'status', width: 100,
-      render: (v) => <Tag color={v === 'active' ? 'success' : 'default'}>{v === 'active' ? 'Active' : 'Inactive'}</Tag>,
+      title: 'Alert Category Name',
+      dataIndex: 'alert_category_name',
+      width: 220,
+      align: 'left',
     },
-    { title: 'Created At', dataIndex: 'created_at', width: 130, render: (v) => formatDate(v) },
     {
-      title: 'Actions', key: 'action', fixed: 'right', width: 90,
-      render: (_, r) => (
+      title: 'Status',
+      dataIndex: 'status',
+      width: 120,
+      align: 'center',
+      render: (value) => (
+        <Tag color={value === 'active' ? 'success' : 'default'}>
+          {value === 'active' ? 'Active' : 'Inactive'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Created At',
+      dataIndex: 'created_at',
+      width: 140,
+      align: 'center',
+      render: (value) => formatDate(value),
+    },
+    {
+      title: 'Actions',
+      key: 'action',
+      width: 100,
+      fixed: 'right',
+      align: 'center',
+      render: (_, record) => (
         <Space size={4}>
-          {canUpdate && <Tooltip title="Edit"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} /></Tooltip>}
-          {canDelete && <Tooltip title="Hapus"><Button type="text" size="small" danger icon={<DeleteOutlined />} loading={deleteM.isPending} onClick={() => handleDelete(r)} /></Tooltip>}
+          {canUpdate && (
+            <Tooltip title="Edit">
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => openEdit(record)}
+              />
+            </Tooltip>
+          )}
+
+          {canDelete && (
+            <Tooltip title="Hapus">
+              <Button
+                type="text"
+                size="small"
+                danger
+                loading={deleteM.isPending}
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(record)}
+              />
+            </Tooltip>
+          )}
         </Space>
       ),
     },
@@ -81,11 +131,11 @@ const AlertCategoryListPage = () => {
     <>
       <PageHeader
         title="Alert Category"
-        subtitle={`Total ${data?.meta?.total ?? 0} alert categories`}
+        // subtitle={`Total ${data?.meta?.total ?? 0} alert categories`}
         extra={
           <Space>
             <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>NEW</Button>}
+            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
           </Space>
         }
       />
@@ -97,7 +147,7 @@ const AlertCategoryListPage = () => {
         onSearch={setSearch}
         pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
       />
-      <FormDrawer open={open} title={isEdit ? 'Edit Alert Category' : 'Add Alert Category'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'}>
+      <FormDrawer open={open} title={isEdit ? 'Edit Alert Category' : 'Add Alert Category'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Save' : 'Add'}>
         <AlertCategoryForm form={form} initialValues={selected} />
       </FormDrawer>
     </>

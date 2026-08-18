@@ -13,7 +13,7 @@ const PageHeader = ({ title, subtitle, extra }: PageHeaderProps) => (
   <Flex
     align="flex-start"
     justify="space-between"
-    style={{ marginBottom: 24 }}
+    style={{ marginBottom: 4 }}
   >
     <Flex vertical gap={2}>
       <Title level={4} style={{ margin: 0 }}>

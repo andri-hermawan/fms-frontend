@@ -1,9 +1,8 @@
-import { Layout, Button, Avatar, Dropdown, Badge, Space, Typography } from 'antd'
+import { Layout, Button, Avatar, Dropdown, Space, Typography } from 'antd'
 import type { MenuProps } from 'antd'
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  BellOutlined,
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
@@ -11,8 +10,8 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useUiStore } from '@/stores/ui.store'
 import { useAuthStore } from '@/stores/auth.store'
-import { useAlertStore } from '@/stores/alert.store'
 import { ROUTES } from '@/router/routes'
+import AlertDropdown from './AlertDropdown'
 
 const { Header: AntHeader } = Layout
 const { Text } = Typography
@@ -24,7 +23,6 @@ const Header = () => {
   const pageTitle = useUiStore((s) => s.pageTitle)
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
-  const unreadCount = useAlertStore((s) => s.unreadCount)
 
   const handleLogout = () => {
     logout()
@@ -50,49 +48,97 @@ const Header = () => {
   return (
     <AntHeader
       style={{
+        width: '100%',
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        padding: '0 24px',
+        height: 60,
+        lineHeight: '60px',
+        padding: '0 28px',
         background: '#fff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottom: '1px solid #f0f0f0',
-        boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
+        borderBottom: '1px solid #e8e8e8',
+        boxShadow: '0 1px 3px rgba(0,0,0,.06)',
       }}
     >
       {/* Left: toggle + title */}
-      <Space>
+      <Space size={16}>
         <Button
           type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          icon={
+            collapsed
+              ? <MenuUnfoldOutlined />
+              : <MenuFoldOutlined />
+          }
           onClick={toggleSidebar}
-          style={{ fontSize: 16 }}
+          style={{
+            fontSize: 18,
+            width: 40,
+            height: 40,
+          }}
         />
-        <Text strong style={{ fontSize: 16 }}>
+
+        <Text
+          strong
+          style={{
+            fontSize: 20,
+            color: '#222',
+            marginBottom: 0,
+          }}
+        >
           {pageTitle}
         </Text>
       </Space>
 
       {/* Right: notif + user */}
-      <Space size={16}>
-        <Badge count={unreadCount} size="small">
-          <Button
-            type="text"
-            icon={<BellOutlined style={{ fontSize: 18 }} />}
-            onClick={() => navigate(ROUTES.ALERT)}
-          />
-        </Badge>
+      <Space size={20}>
+        <AlertDropdown />
 
-        <Dropdown menu={{ items: userMenu }} placement="bottomRight" arrow>
-          <Space style={{ cursor: 'pointer' }}>
+        <Dropdown
+          menu={{ items: userMenu }}
+          placement="bottomRight"
+          arrow
+        >
+          <Space
+            style={{
+              cursor: 'pointer',
+              padding: '4px 10px',
+              borderRadius: 8,
+            }}
+          >
             <Avatar
-              size={32}
+              size={34}
               icon={<UserOutlined />}
               style={{ background: '#1677ff' }}
             />
-            <span style={{ fontSize: 13 }}>{user?.name}</span>
+
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                lineHeight: 1.2,
+              }}
+            >
+              <span
+                style={{
+                  fontWeight: 600,
+                  fontSize: 13,
+                }}
+              >
+                {user?.name}
+              </span>
+
+              <span
+                style={{
+                  fontSize: 11,
+                  color: '#888',
+                }}
+              >
+                {user?.role}
+              </span>
+            </div>
           </Space>
         </Dropdown>
       </Space>

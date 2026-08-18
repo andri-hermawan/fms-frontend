@@ -22,6 +22,10 @@ const LoginPage = () => {
 
       <Form
         form={form}
+        initialValues={{
+          email: 'andri.hermawan@fms.com',
+          password: 'rmk2026',
+        }}
         layout="vertical"
         onFinish={handleSubmit}
         requiredMark={false}
@@ -39,6 +43,7 @@ const LoginPage = () => {
             prefix={<UserOutlined style={{ color: '#bbb' }} />}
             placeholder="nama@perusahaan.com"
             autoComplete="email"
+            value="andri.hermawan@fms.com"
             autoFocus
           />
         </Form.Item>

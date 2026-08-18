@@ -27,7 +27,6 @@ axiosInstance.interceptors.response.use(
     }
 
     const url    = originalRequest?.url ?? ''
-    const method = originalRequest?.method?.toUpperCase() ?? ''
     const status = error.response?.status
 
     // console.error(`[RESPONSE] ❌ ${method} ${url} → ${status}`)

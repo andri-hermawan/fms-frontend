@@ -49,7 +49,7 @@ function DataTable<T extends object>({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '16px 16px 0',
+            padding: '16px',
             gap: 12,
             flexWrap: 'wrap',
           }}
@@ -72,6 +72,7 @@ function DataTable<T extends object>({
       )}
 
       <Table
+        className="custom-table"
         size="middle"
         scroll={{ x: 'max-content' }}
         pagination={{
@@ -82,7 +83,7 @@ function DataTable<T extends object>({
           defaultPageSize: 25,
         }}
         {...tableProps}
-        style={{ padding: 16, ...tableProps.style }}
+        style={tableProps.style}
       />
     </Card>
   )

@@ -1,19 +1,24 @@
 import { create } from 'zustand'
-import type { Alert } from '@/types/alert.types'
+import type { Alert, AlertCategorySummary } from '@/types/alert.types'
 
 interface AlertState {
   activeAlerts: Alert[]
   unreadCount: number
+  // Latest alert summary pushed by the ALERT_SUMMARY_UPDATE socket event.
+  // Used by AlertSectionsPanel so it renders the exact socket payload.
+  summary: AlertCategorySummary[]
 
   addAlert: (alert: Alert) => void
   markAllAsRead: () => void
   markAsRead: (alertId: string) => void
   clearAlerts: () => void
+  setSummary: (list: AlertCategorySummary[]) => void
 }
 
 export const useAlertStore = create<AlertState>((set) => ({
   activeAlerts: [],
   unreadCount: 0,
+  summary: [],
 
   addAlert: (alert) =>
     set((state) => ({
@@ -37,7 +42,11 @@ export const useAlertStore = create<AlertState>((set) => ({
 
   clearAlerts: () =>
     set({ activeAlerts: [], unreadCount: 0 }),
+
+  setSummary: (list) =>
+    set({ summary: list }),
 }))
 
 export const selectUnreadCount = (state: AlertState) => state.unreadCount
 export const selectActiveAlerts = (state: AlertState) => state.activeAlerts
+export const selectSummary = (state: AlertState) => state.summary

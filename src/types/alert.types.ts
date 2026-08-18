@@ -1,48 +1,68 @@
 export type AlertType =
-  | 'overspeed'
-  | 'geofence_enter'
-  | 'geofence_exit'
-  | 'fuel_critical'
-  | 'engine_off_abnormal'
-  | 'idle_too_long'
-  | 'harsh_braking'
-
-export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical'
-export type AlertStatus = 'active' | 'resolved' | 'acknowledged'
+  | 'Overspeed'
+  | 'Underspeed'
+  | 'Offtrack'
+  | 'Fuel Decrease'
+  | 'Fuel Increase';
 
 export interface Alert {
   id: string
-  type: AlertType
-  severity: AlertSeverity
-  status: AlertStatus
-  vehicleId: string
-  vehicleName: string
-  licensePlate: string
-  driverName: string | null
-  message: string
-  latitude: number | null
-  longitude: number | null
-  isRead: boolean
-  triggeredAt: string
-  resolvedAt: string | null
+  equipment_id: string;
+  equipments?: {
+    equipment_code?: string
+  }
+  log_id: string;
+  alert_category_id: number;
+  alert_categories?: {
+    alert_category_name?: string
+  }
+  latitude: number;
+  longitude: number;
+  is_inside: boolean;
+  orig_fid: number;
+  location_category: string;
+  segment: string;
+  speed: number;
+  fuel_level: number;
+  vessel: string;
+  millege: number;
+  vessel_status: string;
+  engine_status: boolean;
+  status: AlertType;
+  created_at: string;
+  resolved_at: string ;
+  is_read: boolean;
+  shift: string;
   metadata: Record<string, unknown>
 }
 
-export interface AlertRule {
-  id: string
-  name: string
-  type: AlertType
-  vehicleId: string | null    // null = berlaku untuk semua kendaraan
-  isActive: boolean
-  threshold: AlertThreshold
-  notifyEmail: boolean
-  notifyInApp: boolean
-  createdAt: string
+export interface AlertSummaryByCategoryParams {
+  created_at?: string
+  created_at_end?: string
+  search?: string
+}
+export interface AlertCategorySummary {
+  alert_category_name: string
+  equipment_code: string
+  alert_count: number
+  duration: string
 }
 
-export interface AlertThreshold {
-  maxSpeed?: number           // km/h untuk overspeed
-  maxIdleMinutes?: number     // menit untuk idle too long
-  minFuelPercent?: number     // % untuk fuel critical
-  geofenceId?: string         // untuk geofence alert
-}
+// export interface AlertRule {
+//   id: string
+//   name: string
+//   type: AlertType
+//   vehicleId: string
+//   isActive: boolean
+//   threshold: AlertThreshold
+//   notifyEmail: boolean
+//   notifyInApp: boolean
+//   createdAt: string
+// }
+
+// export interface AlertThreshold {
+//   maxSpeed?: number           
+//   maxIdleMinutes?: number     
+//   minFuelPercent?: number     
+//   geofenceId?: string         
+// }

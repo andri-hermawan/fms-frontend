@@ -1,3 +1,4 @@
+import type { FeatureCollection, Feature, Geometry } from 'geojson'
 export type Role = 'superadmin' | 'admin' | 'viewer'
 
 export interface User {
@@ -8,6 +9,14 @@ export interface User {
   isActive?: boolean
   createdAt?: string
   updatedAt?: string
+}
+ 
+// Project yang dikembalikan saat login
+export interface LoginProject {
+  id:string
+  project_code: string
+  project_name: string
+  geojson_origin: FeatureCollection | Feature | Geometry | null
 }
 
 export interface LoginRequest {
@@ -21,6 +30,7 @@ export interface LoginResponseData {
   access_token: string
   refresh_token: string
   user: User
+  project: LoginProject | null
 }
 
 export interface RefreshResponseData {

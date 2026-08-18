@@ -1,5 +1,5 @@
 import { axiosInstance } from '@/services/http'
-import type { Shift, ShiftFormValues } from '@/types/shift.types'
+import type { Shift, ShiftFormValues, CurrentShift } from '@/types/shift.types'
 import type { ApiResponse, PaginatedResponse, PaginationParams } from '@/types/api.types'
 
 const shiftApi = {
@@ -13,5 +13,10 @@ const shiftApi = {
     axiosInstance.put<ApiResponse<Shift>>(`/fms/api/shifts/${id}`, payload),
   delete: (id: string) =>
     axiosInstance.delete<ApiResponse<null>>(`/fms/api/shifts/${id}`),
+  getCurrentByProject: (projectId: string, currentTime?: string) =>
+    axiosInstance.get<ApiResponse<CurrentShift>>(
+      `/fms/api/shifts/current/project/${projectId}`,
+      { params: currentTime ? { currentTime } : undefined },
+    ),
 }
 export default shiftApi

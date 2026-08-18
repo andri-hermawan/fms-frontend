@@ -12,6 +12,13 @@ export const useShifts = (params?: PaginationParams) =>
     queryFn: () => shiftApi.getAll(params).then((r) => r.data),
   })
 
+export const useCurrentShift = (projectId?: string, currentTime?: string) =>
+  useQuery({
+    queryKey: [SHIFT_KEY, 'current', projectId, currentTime],
+    queryFn: () => shiftApi.getCurrentByProject(projectId!, currentTime).then((r) => r.data?.data?.shift),
+    enabled: !!projectId,
+  })
+
 export const useCreateShift = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()

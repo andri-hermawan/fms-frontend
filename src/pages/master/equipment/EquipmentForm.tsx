@@ -60,7 +60,7 @@ const EquipmentForm = ({ form, initialValues }: EquipmentFormProps) => {
 
       <Form.Item
         name="equipment_code"
-        label="Cn Unit"
+        label="Unit Code"
         rules={[{ required: true, message: 'Wajib diisi' }]}
       >
         <Input

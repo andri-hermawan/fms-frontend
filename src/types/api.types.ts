@@ -24,6 +24,11 @@ export interface PaginationParams {
   page?: number
   limit?: number
   search?: string
+  created_at?: string
+  created_at_end?: string
+  alert_category?: string
+  alert_category_id?: string
+  is_read?: boolean
 }
 
 export type ApiError = {

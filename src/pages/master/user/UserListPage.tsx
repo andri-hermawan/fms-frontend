@@ -54,35 +54,90 @@ const UserListPage = () => {
 
   const handleDelete = (r: User) => {
     showConfirm({
-      title: 'Hapus User',
-      content: `Yakin hapus user "${r.name}"?`,
+      title: 'Delete User',
+      content: `Yakin delete user "${r.name}"?`,
       danger: true,
-      okText: 'Ya, Hapus',
+      okText: 'Ya, Delete',
       onConfirm: () => deleteM.mutate(r.id),
     })
   }
 
   const columns: ColumnsType<User> = [
     {
-      title: 'Nama', dataIndex: 'name', width: 180,
-      render: (v) => <span style={{ fontWeight: 500 }}>{v}</span>,
+      title: 'Name',
+      dataIndex: 'name',
+      width: 180,
+      align: 'left',
+      render: (value) => (
+        <span style={{ fontWeight: 500 }}>{value}</span>
+      ),
     },
-    { title: 'Email', dataIndex: 'email', width: 220 },
     {
-      title: 'Role', dataIndex: 'role', width: 120,
-      render: (v) => <Tag color={ROLE_COLOR[v] ?? 'default'}>{v}</Tag>,
+      title: 'Email',
+      dataIndex: 'email',
+      width: 220,
+      align: 'left',
     },
     {
-      title: 'Status', dataIndex: 'status', width: 100,
-      render: (v) => <Tag color={v === 'active' ? 'success' : 'default'}>{v === 'active' ? 'Aktif' : 'Nonaktif'}</Tag>,
+      title: 'Role',
+      dataIndex: 'role',
+      width: 120,
+      align: 'center',
+      render: (value) => (
+        <Tag color={ROLE_COLOR[value] ?? 'default'}>
+          {value}
+        </Tag>
+      ),
     },
-    { title: 'Dibuat', dataIndex: 'created_at', width: 130, render: (v) => formatDate(v) },
     {
-      title: 'Aksi', key: 'action', fixed: 'right', width: 90,
-      render: (_, r) => (
+      title: 'Status',
+      dataIndex: 'status',
+      width: 120,
+      align: 'center',
+      render: (value) => (
+        <Tag color={value === 'active' ? 'success' : 'default'}>
+          {value === 'active' ? 'Aktif' : 'Nonaktif'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Create At',
+      dataIndex: 'created_at',
+      width: 140,
+      align: 'center',
+      render: (value) => formatDate(value),
+    },
+    {
+      title: 'Actions',
+      key: 'action',
+      width: 100,
+      fixed: 'right',
+      align: 'center',
+      render: (_, record) => (
         <Space size={4}>
-          {canUpdate && <Tooltip title="Edit"><Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} /></Tooltip>}
-          {canDelete && <Tooltip title="Hapus"><Button type="text" size="small" danger icon={<DeleteOutlined />} loading={deleteM.isPending} onClick={() => handleDelete(r)} /></Tooltip>}
+          {canUpdate && (
+            <Tooltip title="Edit">
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => openEdit(record)}
+              />
+            </Tooltip>
+          )}
+
+          {canDelete && (
+            <Tooltip title="Hapus">
+              <Button
+                type="text"
+                size="small"
+                danger
+                loading={deleteM.isPending}
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(record)}
+              />
+            </Tooltip>
+          )}
         </Space>
       ),
     },
@@ -92,11 +147,11 @@ const UserListPage = () => {
     <>
       <PageHeader
         title="User Management"
-        subtitle={`Total ${data?.meta?.total ?? 0} user`}
+        // subtitle={`Total ${data?.meta?.total ?? 0} user`}
         extra={
           <Space>
             <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Tambah User</Button>}
+            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
           </Space>
         }
       />
@@ -116,11 +171,11 @@ const UserListPage = () => {
       />
       <FormDrawer
         open={open}
-        title={isEdit ? 'Edit User' : 'Tambah User'}
+        title={isEdit ? 'Edit User' : 'Add User'}
         onClose={closeDrawer}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        submitText={isEdit ? 'Simpan' : 'Tambah'}
+        submitText={isEdit ? 'Save' : 'Add'}
       >
         <UserForm form={form} initialValues={selected} isEdit={isEdit} />
       </FormDrawer>

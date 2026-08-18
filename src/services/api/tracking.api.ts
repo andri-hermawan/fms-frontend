@@ -1,5 +1,9 @@
 import { axiosInstance } from '@/services/http'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
+import type {
+  ActivitySummaryData,
+  ActivitySummaryParams,
+} from '@/types/tracking.types'
 
 export interface VehiclePosition {
   id: string
@@ -58,6 +62,13 @@ const trackingApi = {
     axiosInstance.get<PaginatedResponse<GpsHistory>>('/fms/api/tracking/history', {
       params,
     }),
+
+  // Ambil ringkasan aktivitas kendaraan (running/idle/mileage/fuel)
+  getActivitySummary: (params: ActivitySummaryParams) =>
+    axiosInstance.get<ApiResponse<ActivitySummaryData>>(
+      '/fms/api/equipment-logs/activity_summary',
+      { params },
+    ),
 }
 
 export default trackingApi

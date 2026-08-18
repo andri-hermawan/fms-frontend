@@ -16,3 +16,15 @@ export interface ShiftFormValues {
   shift_name: string
   status: ShiftStatus
 }
+
+export interface CurrentShift {
+  project_id: string
+  checked_time: string
+  shift: Shift & {
+    project_id: string
+    start_time: string
+    end_time: string
+    sequence: number
+    timezone: string
+  }
+}
