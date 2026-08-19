@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Select } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
+import { Marker } from 'react-leaflet'
+import L from 'leaflet'
 import dayjs from 'dayjs'
 
 import PageHeader from '@/components/ui/PageHeader'
@@ -10,6 +12,7 @@ import { BaseMap, MapController, MapResize } from '@/components/map'
 import SegmentTooltipLayer from './SegmentTooltipLayer'
 import SpeedPerSegmentList from './components/SpeedPerSegmentList'
 import { useAuthStore } from '@/stores/auth.store'
+import { useEquipmentLogsByDateShift, useSegmentSpeedSummary } from '@/hooks/useEquipmentLogs'
 
 const SpeedPerSegmentPage = () => {
   const [searchParams] = useSearchParams()
@@ -43,6 +46,36 @@ const SpeedPerSegmentPage = () => {
 
   const project = useAuthStore((s) => s.project)
   const geoJson = project?.geojson_origin ?? null
+
+  const dateStr = selectedDate.format('YYYY-MM-DD')
+  const shiftLabel = shift === '1' ? 'Shift 1' : 'Shift 2'
+
+  const logsParams = useMemo(() => {
+    if (!dateStr) return null
+    return { created_at: dateStr, shift: shiftLabel }
+  }, [dateStr, shiftLabel])
+
+  const { data: logsData } = useEquipmentLogsByDateShift(logsParams)
+  const logs = logsData?.data ?? []
+
+  const { data: speedSummaryData } = useSegmentSpeedSummary(logsParams)
+  const speedData = speedSummaryData?.data ?? []
+
+  console.log('[SpeedPerSegmentPage] speedSummaryData:', speedSummaryData, 'speedData:', speedData)
+
+  const defaultMapCenter = useMemo(() => [-3.487, 103.869] as [number, number], [])
+
+  const redIcon = useMemo(
+    () =>
+      L.divIcon({
+        className: '',
+        html: '<div style="width:10px;height:10px;background:red;border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.4)"></div>',
+        iconSize: [10, 10],
+        iconAnchor: [5, 5],
+      }),
+    [],
+  )
+
   return (
     <div
       style={{
@@ -102,9 +135,18 @@ const SpeedPerSegmentPage = () => {
           styles={{ body: { padding: 0, height: '100%' } }}
         >
           <BaseMap>
-            <MapController defaultCenter={[-3.487, 103.869]} defaultZoom={14} />
+            <MapController defaultCenter={defaultMapCenter} defaultZoom={14} />
             <MapResize deps={showPanel} />
-            <SegmentTooltipLayer geoJson={geoJson} />
+            <SegmentTooltipLayer geoJson={geoJson} speedData={speedData} />
+            {logs.map((log) =>
+              log.latitude && log.longitude ? (
+                <Marker
+                  key={log.id}
+                  position={[log.latitude, log.longitude]}
+                  icon={redIcon}
+                />
+              ) : null,
+            )}
           </BaseMap>
         </Card>
 
@@ -160,7 +202,7 @@ const SpeedPerSegmentPage = () => {
             }}
           >
             <span>Speed Per Segment</span>
-            <span>0</span>
+            <span>{logs.length}</span>
           </div>
 
           <div
@@ -175,7 +217,7 @@ const SpeedPerSegmentPage = () => {
               marginTop: 8,
             }}
           >
-            <SpeedPerSegmentList data={[]} />
+            <SpeedPerSegmentList data={logs} />
           </div>
         </div>
         )}

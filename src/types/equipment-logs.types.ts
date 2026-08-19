@@ -56,6 +56,12 @@ export interface EquipmentLog {
 
 export interface EquipmentLogParams {
   created_at: string
-  equipment_code: string
+  equipment_code?: string
   shift: string
+}
+
+export interface SegmentSpeedSummary {
+  segment: string
+  avg_speed_empty: string
+  avg_speed_loaded: string
 }

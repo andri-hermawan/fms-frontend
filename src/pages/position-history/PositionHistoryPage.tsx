@@ -60,7 +60,7 @@ const FlyToLogMarker = ({ lat, lng, trigger }: { lat: number; lng: number; trigg
     if (lat !== 0 && lng !== 0) {
       map.flyTo([lat, lng], 17, { animate: true, duration: 0.5 })
     }
-  }, [trigger]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [lat, lng, trigger])
   return null
 }
 
@@ -84,6 +84,8 @@ const PositionHistoryPage = () => {
   const [search, setSearch] = useState<string>(initialCode || '')
   const [flyToIndex, setFlyToIndex] = useState<number>(0)
   const [flyToTrigger, setFlyToTrigger] = useState<number>(0)
+
+  const defaultMapCenter = useMemo(() => [-3.585, 103.809] as [number, number], [])
 
   // Sync URL params when filter changes
   const syncUrl = useCallback(
@@ -261,7 +263,7 @@ const PositionHistoryPage = () => {
             )}
 
             <BaseMap>
-            <MapController defaultCenter={[-3.585, 103.809]} defaultZoom={10} />
+            <MapController defaultCenter={defaultMapCenter} defaultZoom={10} />
               <MapResize deps={showPanel} />
               <GeofenceLayer geoJson={geoJson} />
               <ResetViewButton />
