@@ -54,7 +54,7 @@ const GeofencePage = () => {
     try {
       const params = {
         page: 1,
-        limit: 10,
+        limit: 99999,
         segment: selectedSegment,
         start_date: selectedDate.startOf('day').format('YYYY-MM-DD'),
         end_date: selectedDate.endOf('day').format('YYYY-MM-DD'),

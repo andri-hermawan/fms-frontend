@@ -43,12 +43,8 @@ export interface EquipmentLog {
   fuel_volume: string
   fuel_percentage: string
   fuel_difference: string
-  equipments: {
-    equipment_code: string
-  }
-  devices: {
-    device_code: string
-  }
+  equipment_code: string
+  device_code: string
   alerts: Array<{
     status: string
   }>

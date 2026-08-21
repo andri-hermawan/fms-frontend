@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Card, Empty } from 'antd'
 import ReactECharts from 'echarts-for-react'
 
@@ -19,16 +19,7 @@ const chartColors: Record<string, string> = {
   Fuel: '#ff7f00',
 }
 
-const categoryColors: Record<string, string> = {
-  Overspeed: 'red',
-  Underspeed: 'blue',
-  Offtrack: 'orange',
-  'Fuel Decrease': 'gold',
-  'FUEL DECREASE': 'gold',
-}
-
-// Custom SVG path: warning triangle + exclamation
-const ALERT_ICON = 'path://M0,-10 L8.66,5 L-8.66,5 Z M-1.5,-4 L1.5,-4 L1.5,2 L-1.5,2 Z M-1.5,4 L1.5,4 L1.5,6 L-1.5,6 Z'
+const ALERT_SYMBOL = 'triangle'
 
 interface PositionHistoryChartProps {
   equipmentCode: string
@@ -38,6 +29,11 @@ interface PositionHistoryChartProps {
 
 const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryChartProps) => {
   const chartRef = useRef<ReactECharts | null>(null)
+
+  useEffect(() => {
+    const alertCount = data.filter(d => !!d.alertStatus).length
+    console.log('[PositionHistoryChart] data length:', data.length, 'alertCount:', alertCount)
+  }, [data])
 
   useEffect(() => {
     const ro = new ResizeObserver(() => {
@@ -50,7 +46,7 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
     return () => ro.disconnect()
   }, [])
 
-  const option = {
+  const option = useMemo(() => ({
     tooltip: {
       trigger: 'axis',
       formatter: (params: unknown) => {
@@ -127,24 +123,20 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
         name: 'Speed',
         type: 'line',
         smooth: true,
-        symbol: (_: unknown, p: { dataIndex: number }) =>
-          data[p.dataIndex]?.alertStatus ? ALERT_ICON : 'circle',
-        symbolSize: (_val: number, p: { dataIndex: number }) =>
-          data[p.dataIndex]?.alertStatus ? 16 : 6,
-        data: data.map((d) => d.speed),
+        data: data.map((d) => {
+          const hasAlert = !!d.alertStatus
+          return {
+            value: d.speed,
+            symbol: hasAlert ? ALERT_SYMBOL : 'circle',
+            symbolSize: hasAlert ? 16 : 6,
+            itemStyle: {
+              color: chartColors.Speed,
+              borderColor: hasAlert ? '#fff' : 'transparent',
+              borderWidth: hasAlert ? 2 : 0,
+            },
+          }
+        }),
         lineStyle: { color: chartColors.Speed, width: 2.5 },
-        itemStyle: {
-          color: (p: { dataIndex: number }) => {
-            const status = data[p.dataIndex]?.alertStatus
-            if (!status) return chartColors.Speed
-            return categoryColors[status] ?? '#e74c3c'
-          },
-          borderColor: (p: { dataIndex: number }) => {
-            const status = data[p.dataIndex]?.alertStatus
-            return status ? '#fff' : 'transparent'
-          },
-          borderWidth: 2,
-        },
         areaStyle: {
           color: {
             type: 'linear',
@@ -164,27 +156,23 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
         type: 'line',
         yAxisIndex: 1,
         smooth: true,
-        symbol: (_: unknown, p: { dataIndex: number }) =>
-          data[p.dataIndex]?.alertStatus ? ALERT_ICON : 'circle',
-        symbolSize: (_val: number, p: { dataIndex: number }) =>
-          data[p.dataIndex]?.alertStatus ? 16 : 6,
-        data: data.map((d) => d.fuel),
+        data: data.map((d) => {
+          const hasAlert = !!d.alertStatus
+          return {
+            value: d.fuel,
+            symbol: hasAlert ? ALERT_SYMBOL : 'circle',
+            symbolSize: hasAlert ? 16 : 6,
+            itemStyle: {
+              color: chartColors.Fuel,
+              borderColor: hasAlert ? '#fff' : 'transparent',
+              borderWidth: hasAlert ? 2 : 0,
+            },
+          }
+        }),
         lineStyle: { color: chartColors.Fuel, width: 2.5 },
-        itemStyle: {
-          color: (p: { dataIndex: number }) => {
-            const status = data[p.dataIndex]?.alertStatus
-            if (!status) return chartColors.Fuel
-            return categoryColors[status] ?? '#e74c3c'
-          },
-          borderColor: (p: { dataIndex: number }) => {
-            const status = data[p.dataIndex]?.alertStatus
-            return status ? '#fff' : 'transparent'
-          },
-          borderWidth: 2,
-        },
       },
     ],
-  }
+  }), [data])
 
   return (
     <Card
@@ -229,7 +217,6 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
           ref={chartRef}
           option={option}
           notMerge
-          lazyUpdate
           style={{ width: '100%', height: '100%' }}
           onEvents={{
             click: (params: { dataIndex?: number }) => {

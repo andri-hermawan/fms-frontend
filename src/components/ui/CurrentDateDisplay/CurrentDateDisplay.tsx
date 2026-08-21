@@ -2,7 +2,7 @@ import { DatePicker } from 'antd'
 import type { Dayjs } from 'dayjs'
 
 type CurrentDateDisplayProps = {
-  value: Dayjs
+  value: Dayjs | null
   disabled?: boolean
   onChange?: (date: Dayjs | null) => void
 }

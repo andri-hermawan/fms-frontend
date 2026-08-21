@@ -14,7 +14,7 @@ const EquipmentSearch = ({
       allowClear
       showSearch
       size="large"
-      value={value}
+      value={value || undefined}
       options={options}
       placeholder="Search Equipment..."
       style={{

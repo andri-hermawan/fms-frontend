@@ -9,6 +9,7 @@ export { default as DrawControl } from './DrawControl'
 export { default as MapResize } from './MapResize'
 export { default as ResetViewButton } from './ResetViewButton'
 export { default as MapLegend } from './MapLegend'
+export { default as MapLegendSpeed } from './MapLegendSpeed'
 
 export type {
   BaseMapProps,

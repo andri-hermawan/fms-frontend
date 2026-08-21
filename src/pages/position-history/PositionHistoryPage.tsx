@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { Button, Card, Select, Spin } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
 import { Marker, useMap } from 'react-leaflet'
@@ -11,8 +10,7 @@ import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
 import { BaseMap, GeofenceLayer, MapController, MapResize, ResetViewButton } from '@/components/map'
 import { useAuthStore } from '@/stores/auth.store'
 import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
-import alertApi from '@/services/api/alert.api'
-import useEquipmentLogs from '@/hooks/useEquipmentLogs'
+import { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
 import PositionHistoryChart from './components/PositionHistoryChart'
 import PositionHistoryList from './components/PositionHistoryList'
 import type { AlertDataPoint } from './components/PositionHistoryChart'
@@ -25,7 +23,7 @@ import { getMarkerIcon } from '@/utils/marker-icon'
 // Convert EquipmentLog ke EquipmentMarkerData untuk getMarkerIcon
 const toMarkerData = (log: EquipmentLog): EquipmentMarkerData => ({
   equipment_id: log.equipment_id,
-  equipment_code: log.equipments?.equipment_code ?? '-',
+  equipment_code: log.equipment_code ?? '-',
   latitude: log.latitude ?? 0,
   longitude: log.longitude ?? 0,
   heading: log.heading ?? 0,
@@ -109,47 +107,30 @@ const PositionHistoryPage = () => {
 
   const dateStr = selectedDate.format('YYYY-MM-DD')
 
-  // ─── Data Alert (untuk equipmentOptions) ─────────────────
-  const { data, isLoading } = useQuery({
-    queryKey: ['alerts', dateStr, search],
-    queryFn: () => {
-      const params = {
-        page: 1,
-        limit: 100,
-        created_at: dateStr,
-        created_at_end: dateStr,
-        ...(search ? { search } : {}),
-      }
-      return alertApi.getAll(params).then((r) => {
-        console.log(
-          '[PositionHistoryPage] response total:',
-          r.data?.meta?.total,
-          'data count:',
-          r.data?.data?.length,
-        )
-        return r.data
-      })
-    },
-  })
-
-  const alerts = data?.data ?? []
-
   // ─── Data Equipment Logs (chart + map + list) ──────────────
   const shiftLabel = shift === '1' ? 'Shift 1' : 'Shift 2'
 
   const equipmentLogsParams = useMemo(() => {
-    if (!search || !dateStr) return null
-    return { created_at: dateStr, equipment_code: search, shift: shiftLabel }
-  }, [search, dateStr, shiftLabel])
+    if (!dateStr) return null
+    return { created_at: dateStr, shift: shiftLabel }
+  }, [dateStr, shiftLabel])
 
-  const { data: logsData } = useEquipmentLogs(equipmentLogsParams)
+  const { data: logsData, isLoading } = useEquipmentLogsByDateShift(equipmentLogsParams)
+
+  // Filter logs by selected equipment code
+  const filteredLogs = useMemo(() => {
+    const logs = logsData?.data ?? []
+    if (!search) return []
+    return logs.filter((log) => log.equipment_code === search)
+  }, [logsData, search])
 
   const chartData: AlertDataPoint[] = useMemo(() => {
-    const logs = logsData?.data ?? []
+    const logs = filteredLogs
 
-    return logs.map((log) => {
+    const result = logs.map((log) => {
       const speed = Number(log.speed) || 0
       const fuel = Number(log.fuel_percentage) || 0
+      const alertStatus = log.alerts?.[0]?.status || log.status || undefined
       return {
         time: dayjs(log.created_at).format('HH:mm'),
         speed,
@@ -159,23 +140,26 @@ const PositionHistoryPage = () => {
         fuelMin: fuel,
         fuelMax: fuel,
         count: 1,
-        alertStatus: log.alerts?.[0]?.status,
+        alertStatus,
       }
     })
-  }, [logsData])
+    console.log('[PositionHistoryPage] chartData sample:', result.slice(0, 3).map(d => ({ time: d.time, alertStatus: d.alertStatus })))
+    return result
+  }, [filteredLogs])
 
-  // ─── Equipment Options (dari Alert API) ─────────────────
+  // ─── Equipment Options (dari logsData) ─────────────────
 
   const equipmentOptions = useMemo(() => {
     const codes = new Set<string>()
-    alerts.forEach((a) => {
-      const code = a.equipments?.equipment_code ?? a.vessel
+    const logs = logsData?.data ?? []
+    logs.forEach((log) => {
+      const code = log.equipment_code ?? log.vessel
       if (code) codes.add(code)
     })
     return Array.from(codes)
       .sort()
       .map((code) => ({ label: code, value: code }))
-  }, [alerts])
+  }, [logsData])
 
   return (
     <div
@@ -268,11 +252,11 @@ const PositionHistoryPage = () => {
               <GeofenceLayer geoJson={geoJson} />
               <ResetViewButton />
               <FlyToLogMarker
-                lat={Number(logsData?.data?.[flyToIndex]?.latitude ?? 0)}
-                lng={Number(logsData?.data?.[flyToIndex]?.longitude ?? 0)}
+                lat={Number(filteredLogs[flyToIndex]?.latitude ?? 0)}
+                lng={Number(filteredLogs[flyToIndex]?.longitude ?? 0)}
                 trigger={flyToTrigger}
               />
-              {(logsData?.data ?? []).map((log) => (
+              {filteredLogs.map((log) => (
                 <LogMarker key={log.id} log={log} />
               ))}
             </BaseMap>
@@ -280,7 +264,7 @@ const PositionHistoryPage = () => {
 
           {/* Chart */}
           <PositionHistoryChart
-            equipmentCode={search || 'All Equipment'}
+            equipmentCode={search || 'No Equipment Selected'}
             data={chartData}
             onClick={(dataIndex) => {
               setFlyToIndex(dataIndex)
@@ -347,7 +331,7 @@ const PositionHistoryPage = () => {
             }}
           >
             <span>Position History</span>
-            <span>{logsData?.data.length || 0}</span>
+            <span>{filteredLogs.length || 0}</span>
           </div>
 
           {/* Alert list */}
@@ -363,7 +347,7 @@ const PositionHistoryPage = () => {
               marginTop: 8,
             }}
           >
-            <PositionHistoryList data={logsData?.data ?? []} />
+            <PositionHistoryList data={filteredLogs} />
           </div>
         </div>
         )}

@@ -1,7 +1,7 @@
 import {
   Marker,
   Popup,
-  // Tooltip,
+  Tooltip,
   useMap,
 } from 'react-leaflet'
 import { useEffect, useRef } from 'react'
@@ -88,6 +88,21 @@ const EquipmentMarker = ({
               {item.equipment_code}
             </span>
           </Tooltip> */}
+
+          <Tooltip
+            permanent
+            direction="top"
+            offset={[0, -5]}
+          >
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: 11,
+              }}
+            >
+              {item.equipment_code}
+            </span>
+          </Tooltip>
 
           <Popup
             minWidth={220}

@@ -60,6 +60,7 @@ const DumpTruckStatusPanel = ({ equipment, equipments, totalCount }: Props) => {
       return acc
     }, {}),
   ).sort((a, b) => b.items.length - a.items.length)
+  console.log(groups, 'groups')
 
   const handleToggleGroup = (iconName: string) => {
     setExpandedGroup((prev) => (prev === iconName ? undefined : iconName))

@@ -108,7 +108,7 @@ const EquipmentPassingTable = ({ data }: Props) => {
         </span>
 
         <span>
-          Last : <b>{data[data.length - 1]?.time ?? '-'}</b>
+          Last : <b>{data.length ? data.reduce((a, b) => a.time > b.time ? a : b).time : '-'}</b>
         </span>
       </div>
     </Card>

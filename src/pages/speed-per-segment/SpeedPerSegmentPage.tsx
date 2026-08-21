@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button, Card, Select } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
 import { Marker } from 'react-leaflet'
@@ -8,30 +8,21 @@ import dayjs from 'dayjs'
 
 import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
-import { BaseMap, MapController, MapResize } from '@/components/map'
+import { BaseMap, MapController, MapResize, MapLegendSpeed } from '@/components/map'
 import SegmentTooltipLayer from './SegmentTooltipLayer'
 import SpeedPerSegmentList from './components/SpeedPerSegmentList'
 import { useAuthStore } from '@/stores/auth.store'
 import { useEquipmentLogsByDateShift, useSegmentSpeedSummary } from '@/hooks/useEquipmentLogs'
 
 const SpeedPerSegmentPage = () => {
-  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const initialDate = searchParams.get('date')
-  const initialShift = searchParams.get('shift') ?? '1'
-
-  const normalizedShift = initialShift === 'Shift 1' || initialShift === 'Shift 2'
-    ? initialShift.replace('Shift ', '')
-    : initialShift
 
   const [showPanel, setShowPanel] = useState(true)
-  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs>(
-    initialDate && dayjs(initialDate).isValid() ? dayjs(initialDate) : dayjs(),
-  )
-  const [shift, setShift] = useState<string>(normalizedShift)
+  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
+  const [shift, setShift] = useState<string | undefined>(undefined)
 
   const syncUrl = useCallback(
-    (date?: dayjs.Dayjs, shiftVal?: string) => {
+    (date?: dayjs.Dayjs | null, shiftVal?: string) => {
       const params = new URLSearchParams()
       if (date) params.set('date', date.format('YYYY-MM-DD'))
       if (shiftVal) params.set('shift', `Shift ${shiftVal}`)
@@ -47,11 +38,11 @@ const SpeedPerSegmentPage = () => {
   const project = useAuthStore((s) => s.project)
   const geoJson = project?.geojson_origin ?? null
 
-  const dateStr = selectedDate.format('YYYY-MM-DD')
-  const shiftLabel = shift === '1' ? 'Shift 1' : 'Shift 2'
+  const dateStr = selectedDate?.format('YYYY-MM-DD') ?? null
+  const shiftLabel = shift === '1' ? 'Shift 1' : shift === '2' ? 'Shift 2' : null
 
   const logsParams = useMemo(() => {
-    if (!dateStr) return null
+    if (!dateStr || !shiftLabel) return null
     return { created_at: dateStr, shift: shiftLabel }
   }, [dateStr, shiftLabel])
 
@@ -61,20 +52,26 @@ const SpeedPerSegmentPage = () => {
   const { data: speedSummaryData } = useSegmentSpeedSummary(logsParams)
   const speedData = speedSummaryData?.data ?? []
 
-  console.log('[SpeedPerSegmentPage] speedSummaryData:', speedSummaryData, 'speedData:', speedData)
+  // console.log('[SpeedPerSegmentPage] speedSummaryData:', speedSummaryData, 'speedData:', speedData)
 
   const defaultMapCenter = useMemo(() => [-3.487, 103.869] as [number, number], [])
 
-  const redIcon = useMemo(
-    () =>
-      L.divIcon({
-        className: '',
-        html: '<div style="width:10px;height:10px;background:red;border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.4)"></div>',
-        iconSize: [10, 10],
-        iconAnchor: [5, 5],
-      }),
-    [],
-  )
+  const getSpeedColor = (speed: number): string => {
+    if (speed <= 10) return '#000000'
+    if (speed <= 20) return '#FFA500'
+    if (speed <= 30) return '#55FF00'
+    if (speed <= 40) return '#00C8FF'
+    if (speed <= 50) return '#0055FF'
+    return '#FF0000'
+  }
+
+  const getSpeedIcon = (speed: number) =>
+    L.divIcon({
+      className: '',
+      html: `<div style="width:12px;height:12px;background:${getSpeedColor(speed)};border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.4)"></div>`,
+      iconSize: [12, 12],
+      iconAnchor: [6, 6],
+    })
 
   return (
     <div
@@ -143,10 +140,11 @@ const SpeedPerSegmentPage = () => {
                 <Marker
                   key={log.id}
                   position={[log.latitude, log.longitude]}
-                  icon={redIcon}
+                  icon={getSpeedIcon(Number(log.speed) || 0)}
                 />
               ) : null,
             )}
+            <MapLegendSpeed />
           </BaseMap>
         </Card>
 
@@ -172,11 +170,13 @@ const SpeedPerSegmentPage = () => {
           >
             <CurrentDateDisplay
               value={selectedDate}
-              onChange={(date) => date && setSelectedDate(date)}
+              onChange={(date) => setSelectedDate(date)}
             />
             <Select
               value={shift}
               onChange={(val) => setShift(val)}
+              allowClear
+              placeholder="Pilih Shift"
               options={[
                 { label: 'Shift 1', value: '1' },
                 { label: 'Shift 2', value: '2' },

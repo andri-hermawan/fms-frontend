@@ -7,10 +7,11 @@ import dayjs from 'dayjs'
 
 import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
-import { BaseMap, GeofenceLayer, MapResize } from '@/components/map'
+import { BaseMap, GeofenceLayer, MapController, MapResize } from '@/components/map'
 import { formatDurationBetween, formatTime } from '@/utils/format'
 import { useAuthStore } from '@/stores/auth.store'
 import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
+import AlertSummary from './components/AlertSummary'
 import alertApi from '@/services/api/alert.api'
 import alertCategoryApi from '@/services/api/alert-category.api'
 import type { Alert } from '@/types/alert.types'
@@ -90,7 +91,11 @@ const DistributionMapPage = () => {
     },
   })
 
-  const alerts = data?.data ?? []
+  const alerts = (data?.data ?? []).filter((alert) => {
+    if (!search) return false
+    const code = alert.equipments?.equipment_code ?? alert.vessel
+    return code === search
+  })
 
   // ─── Filter Alert Category ─────────────────────────────────
   const { data: categoriesData } = useQuery({
@@ -107,18 +112,19 @@ const DistributionMapPage = () => {
     [categoriesData],
   )
 
-  const unreadCount = alerts.filter((a) => !a.is_read).length
+  // const unreadCount = alerts.filter((a) => !a.is_read).length
 
   const equipmentOptions = useMemo(() => {
     const codes = new Set<string>()
-    alerts.forEach((a) => {
+    const allAlerts = data?.data ?? []
+    allAlerts.forEach((a) => {
       const code = a.equipments?.equipment_code ?? a.vessel
       if (code) codes.add(code)
     })
     return Array.from(codes)
       .sort()
       .map((code) => ({ label: code, value: code }))
-  }, [alerts])
+  }, [data])
 
   return (
     <div
@@ -158,7 +164,7 @@ const DistributionMapPage = () => {
         style={{
           display: 'grid',
           gridTemplateColumns: showPanel
-            ? 'minmax(0, 1fr) minmax(0, 640px)'
+            ? 'minmax(0, 3fr) minmax(0, 1fr)'
             : '1fr',
           gap: 16,
           flex: 1,
@@ -196,6 +202,7 @@ const DistributionMapPage = () => {
 
           <BaseMap>
             <MapResize deps={showPanel} />
+            <MapController />
             <GeofenceLayer geoJson={geoJson} />
             {alerts.map((alert) => (
               <AlertDotMarker key={alert.id} alert={alert} />
@@ -214,15 +221,14 @@ const DistributionMapPage = () => {
             overflow: 'hidden',
           }}
         >
-          {/* Filters */}
+          {/* Filters — compact */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0,1fr) minmax(150px,170px) minmax(100px,120px)',
-              gap: 12,
-              marginBottom: 16,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              marginBottom: 12,
               flexShrink: 0,
-              minWidth: 0,
             }}
           >
             <EquipmentSearch
@@ -230,23 +236,21 @@ const DistributionMapPage = () => {
               options={equipmentOptions}
               onChange={(code) => setSearch(code || undefined)}
             />
-            <CurrentDateDisplay
-              value={selectedDate}
-              onChange={(date) => date && setSelectedDate(date)}
-            />
-            <Select
-              size="large"
-              value={shift}
-              onChange={setShift}
-              options={[
-                { label: 'Shift 1', value: '1' },
-                { label: 'Shift 2', value: '2' },
-              ]}
-            />
-          </div>
-
-          {/* Category filter */}
-          <div style={{ marginBottom: 16, flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <CurrentDateDisplay
+                value={selectedDate}
+                onChange={(date) => date && setSelectedDate(date)}
+              />
+              <Select
+                size="large"
+                value={shift}
+                onChange={setShift}
+                options={[
+                  { label: 'Shift 1', value: '1' },
+                  { label: 'Shift 2', value: '2' },
+                ]}
+              />
+            </div>
             <Select
               style={{ width: '100%' }}
               size="large"
@@ -259,27 +263,7 @@ const DistributionMapPage = () => {
           </div>
 
           {/* Alert summary */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px 16px',
-              flexShrink: 0,
-              borderBottom: '1px solid #f0f0f0',
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: 0.4,
-              background: '#064596',
-              color: '#fff',
-              borderRadius: 8,
-            }}
-          >
-            <span>Alert List</span>
-            <span>
-              {alerts.length} alert
-            </span>
-          </div>
+          <AlertSummary count={alerts.length} />
 
           {/* Alert list */}
           <div

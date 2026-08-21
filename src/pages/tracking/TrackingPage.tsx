@@ -134,7 +134,7 @@ const TrackingPage = () => {
   // undefined saat load pertama -> MapController pakai defaultCenter/defaultZoom (tidak zoom in).
   // terisi saat user search/pilih -> MapController flyTo zoom 19.
   const mapFocusEquipment = selectedEquipmentData
-
+  // console.log("equipments",equipments);
   const isConnected = useEquipmentStatusStore((s) => s.isConnected)
   const isLoading = equipments.length === 0 && !isConnected
 
