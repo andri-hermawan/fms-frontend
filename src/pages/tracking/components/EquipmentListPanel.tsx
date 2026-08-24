@@ -96,8 +96,8 @@ const EquipmentListPanel = ({
                     src={iconUrl}
                     alt={item.equipment_code}
                     style={{
-                      width: 20,
-                      height: 20,
+                      width: 30,
+                      height: 30,
                       objectFit: 'contain',
                       flexShrink: 0,
                     }}
@@ -213,8 +213,57 @@ const EquipmentListPanel = ({
   )
 }
 
-const formatDurationHours = (hours: number | undefined) =>
-  hours === undefined || hours === null ? '-' : `${hours.toFixed(1)} h`
+const rowStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'baseline',
+  fontSize: 12,
+  lineHeight: '20px',
+}
+
+const labelStyle: React.CSSProperties = {
+  color: '#666',
+  width: 90,
+  flexShrink: 0,
+}
+
+const valueStyle: React.CSSProperties = {
+  color: '#333',
+  fontWeight: 500,
+  whiteSpace: 'nowrap',
+  marginLeft: 'auto',
+  display: 'inline-block',
+  width: 62,
+  textAlign: 'right',
+}
+
+const subStyle: React.CSSProperties = {
+  ...rowStyle,
+  paddingLeft: 14,
+}
+
+const subLabelStyle: React.CSSProperties = {
+  color: '#999',
+  width: 76,
+  flexShrink: 0,
+  fontSize: 11,
+}
+
+const subValueStyle: React.CSSProperties = {
+  color: '#555',
+  fontSize: 11,
+  fontWeight: 400,
+  whiteSpace: 'nowrap',
+  marginLeft: 'auto',
+  display: 'inline-block',
+  width: 62,
+  textAlign: 'right',
+}
+
+const dividerStyle: React.CSSProperties = {
+  height: 1,
+  background: '#eee',
+  margin: '4px 0',
+}
 
 const ActivitySummaryRows = ({
   summary,
@@ -222,52 +271,98 @@ const ActivitySummaryRows = ({
   summary?: ActivitySummaryData
 }) => {
   const s = summary?.summary
+  const h = (v: number | undefined) => v == null ? '-' : v.toFixed(2)
+  const f = h
+
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        rowGap: 4,
-        columnGap: 8,
-        fontSize: 12,
-        color: '#333',
-      }}
-    >
-      <span style={{ color: '#666' }}>Running Time</span>
-      <span>: {formatDurationHours(s?.running_time)}</span>
+    <div style={{ color: '#333' }}>
+      {/* Running Time */}
+      <div style={rowStyle}>
+        <span style={{ ...labelStyle, fontWeight: 600, color: '#444' }}>Running Time</span>
+        <span style={valueStyle}>{h(s?.running_time)} hours</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Empty</span>
+        <span style={subValueStyle}>{h(s?.running_empty)} hours</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Loaded</span>
+        <span style={subValueStyle}>{h(s?.running_loaded)} hours</span>
+      </div>
 
-      <span style={{ color: '#666' }}>Idling Time</span>
-      <span>: {formatDurationHours(s?.idling_time)}</span>
+      {/* Idling Time */}
+      <div style={rowStyle}>
+        <span style={{ ...labelStyle, fontWeight: 600, color: '#444' }}>Idling Time</span>
+        <span style={valueStyle}>{h(s?.idling_time)} hours</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Empty</span>
+        <span style={subValueStyle}>{h(s?.idling_empty)} hours</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Loaded</span>
+        <span style={subValueStyle}>{h(s?.idling_loaded)} hours</span>
+      </div>
 
-      <span style={{ color: '#666' }}>Mileage</span>
-      <span>
-        : {s?.mileage === undefined || s?.mileage === null ? '-' : `${s.mileage.toFixed(1)} km`}
-      </span>
+      {/* Avg. Running Speed */}
+      <div style={rowStyle}>
+        <span style={{ ...labelStyle, fontWeight: 600, color: '#444' }}>Avg Speed</span>
+        <span style={valueStyle}>       {f(s?.avg_running_speed)} km/h</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Empty</span>
+        <span style={subValueStyle}>{f(s?.avg_running_speed_empty)} km/h</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Loaded</span>
+        <span style={subValueStyle}>{f(s?.avg_running_speed_loaded)} km/h</span>
+      </div>
 
-      <span style={{ color: '#666' }}>Avg. Running Speed</span>
-      <span>
-        : {s?.avg_running_speed === undefined || s?.avg_running_speed === null ? '-' : `${s.avg_running_speed.toFixed(1)} km/h`}
-      </span>
+      {/* Max Speed */}
+      <div style={rowStyle}>
+        <span style={{ ...labelStyle, fontWeight: 600, color: '#444' }}>Max Speed</span>
+        <span style={valueStyle}>{f(s?.max_running_speed)} km/h</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Empty</span>
+        <span style={subValueStyle}>{f(s?.max_running_speed_empty)} km/h</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Loaded</span>
+        <span style={subValueStyle}>{f(s?.max_running_speed_loaded)} km/h</span>
+      </div>
 
-      <span style={{ color: '#666' }}>Max. Running Speed</span>
-      <span>
-        : {s?.max_running_speed === undefined || s?.max_running_speed === null ? '-' : `${s.max_running_speed.toFixed(1)} km/h`}
-      </span>
+      {/* Mileage */}
+      <div style={rowStyle}>
+        <span style={{ ...labelStyle, fontWeight: 600, color: '#444' }}>Mileage</span>
+        <span style={valueStyle}>{f(s?.mileage)} km</span>
+      </div>
 
-      <span style={{ color: '#666' }}>Fuel Decrease</span>
-      <span>
-        : {s?.fuel_decrease === undefined || s?.fuel_decrease === null ? '-' : `${s.fuel_decrease.toFixed(1)} L`}
-      </span>
-
-      <span style={{ color: '#666' }}>Fuel Ratio</span>
-      <span>
-        : {s?.fuel_ratio === undefined || s?.fuel_ratio === null ? '-' : `${s.fuel_ratio.toFixed(1)} %`}
-      </span>
-
-      <span style={{ color: '#666' }}>Fuel Remaining</span>
-      <span>
-        : {s?.fuel_remaining === undefined || s?.fuel_remaining === null ? '-' : `${s.fuel_remaining.toFixed(1)} L`}
-      </span>
+      {/* Fuel */}
+      <div style={{ ...rowStyle, marginBottom: 2 }}>
+        <span style={{ ...labelStyle, fontWeight: 600, color: '#444' }}>Fuel</span>
+        <span />
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Start</span>
+        <span style={subValueStyle}>{f(s?.fuel_start_run)} L</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Remaining</span>
+        <span style={subValueStyle}>{f(s?.fuel_remaining)} L</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Increase</span>
+        <span style={subValueStyle}>{f(s?.fuel_increase)} L</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Decrease</span>
+        <span style={subValueStyle}>{f(s?.fuel_decrease)} L</span>
+      </div>
+      <div style={subStyle}>
+        <span style={subLabelStyle}>Burn Ratio</span>
+        <span style={subValueStyle}>{f(s?.fuel_burn_ratio)} L/h</span>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import equipmentLogsApi, { equipmentLogsByDateShiftApi, segmentSpeedSummaryApi } from '@/services/api/equipment-logs.api'
+import equipmentLogsApi, { equipmentLogsByDateShiftApi, equipmentLogsAllApi, segmentSpeedSummaryApi } from '@/services/api/equipment-logs.api'
 import type { EquipmentLogParams, SegmentSpeedSummary } from '@/types/equipment-logs.types'
 import type { ApiResponse } from '@/types/api.types'
 
@@ -20,6 +20,17 @@ export const useEquipmentLogsByDateShift = (params: Pick<EquipmentLogParams, 'cr
     queryFn: () => {
       if (!params) return Promise.resolve(null)
       return equipmentLogsByDateShiftApi.getByDateShift(params).then((r) => r.data)
+    },
+    enabled: !!params,
+  })
+}
+
+export const useEquipmentLogsAll = (params: EquipmentLogParams | null) => {
+  return useQuery({
+    queryKey: ['equipment-logs-all', params],
+    queryFn: () => {
+      if (!params) return Promise.resolve(null)
+      return equipmentLogsAllApi.getAll(params).then((r) => r.data)
     },
     enabled: !!params,
   })

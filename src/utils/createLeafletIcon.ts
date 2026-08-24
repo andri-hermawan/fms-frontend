@@ -4,20 +4,23 @@ const iconCache = new Map<string, L.Icon>()
 
 const createLeafletIcon = (
   iconUrl: string,
+  size = 32,
 ): L.Icon => {
-  if (iconCache.has(iconUrl)) {
-    return iconCache.get(iconUrl)!
+  const cacheKey = `${iconUrl}:${size}`
+
+  if (iconCache.has(cacheKey)) {
+    return iconCache.get(cacheKey)!
   }
 
   const icon = L.icon({
     iconUrl,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
-    popupAnchor: [0, -8],
-    tooltipAnchor: [0, -10],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+    tooltipAnchor: [0, -size / 2],
   })
 
-  iconCache.set(iconUrl, icon)
+  iconCache.set(cacheKey, icon)
 
   return icon
 }

@@ -21,7 +21,9 @@ import {
   DrawControl,
   MapController,
   MapLayers,
+  MapLegend,
   MapResize,
+  ResetViewButton,
 } from '@/components/map'
 
 import EquipmentPassingTable from './components/EquipmentPassingTable'
@@ -277,12 +279,16 @@ const GeofencePage = () => {
               zoom={19}
             />
 
-            <DrawControl
+            <ResetViewButton />
+
+            <MapLegend />
+
+            {/* <DrawControl
               editable
               onCreate={setDrawingGeoJson}
               onEdit={setDrawingGeoJson}
               onDelete={() => setDrawingGeoJson(null)}
-            />
+            /> */}
 
             <MapLayers
               geoJson={geoJson}

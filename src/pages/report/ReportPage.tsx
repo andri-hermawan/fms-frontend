@@ -23,12 +23,12 @@ interface ReportItem {
 
 const reports: ReportItem[] = [
   {
-    key: 'report-a',
-    title: 'Report A',
-    description: 'Monitoring ritase by date and shift',
+    key: 'report/report-equipment-logs',
+    title: 'Equipment Logs',
+    description: 'Riwayat log equipment per tanggal & shift',
     icon: <BarChartOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
-    route: '/report/a',
+    route: '/report/report-equipment-logs',
   },
   {
     key: 'report-b',

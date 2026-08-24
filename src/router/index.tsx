@@ -6,7 +6,6 @@ import AuthGuard from './guards/AuthGuard'
 import RoleGuard from './guards/RoleGuard'
 import { ROUTES } from './routes'
 import LoadingScreen from '@/components/feedback/LoadingScreen'
-import PositionHistoryPage from '@/pages/position-history/PositionHistoryPage'
 
 // Lazy load semua halaman
 const LoginPage         = lazy(() => import('@/pages/auth/LoginPage'))
@@ -20,7 +19,7 @@ const GeofencePage      = lazy(() => import('@/pages/geofence/GeofencePage'))
 const GraphicPage       = lazy(() => import('@/pages/graphic/GraphicPage'))
 const DistributionMapPage = lazy(() => import('@/pages/distribution-maps/DistributionMapPage'))
 const ReportPage        = lazy(() => import('@/pages/report/ReportPage'))
-const ReportAPage       = lazy(() => import('@/pages/report/ReportAPage'))
+const ReportEquipmentLogsPage       = lazy(() => import('@/pages/report/report-equipment-logs/ReportEquipmentLogsPage'))
 const ReportBPage       = lazy(() => import('@/pages/report/ReportBPage'))
 const ReportCPage       = lazy(() => import('@/pages/report/ReportCPage'))
 const ReportDPage       = lazy(() => import('@/pages/report/ReportDPage'))
@@ -114,7 +113,7 @@ const router = createBrowserRouter([
           { path: ROUTES.GRAPHIC,   element: withSuspense(GraphicPage) },
           { path: ROUTES.DISTRIBUTION_MAP,   element: withSuspense(DistributionMapPage) },
           { path: ROUTES.REPORT,    element: withSuspense(ReportPage) },
-          { path: ROUTES.REPORT_A,  element: withSuspense(ReportAPage) },
+          { path: ROUTES.REPORT_EQUIPMENT_LOGS,  element: withSuspense(ReportEquipmentLogsPage) },
           { path: ROUTES.REPORT_B,  element: withSuspense(ReportBPage) },
           { path: ROUTES.REPORT_C,  element: withSuspense(ReportCPage) },
           { path: ROUTES.REPORT_D,  element: withSuspense(ReportDPage) },

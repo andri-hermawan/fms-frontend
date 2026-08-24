@@ -24,13 +24,15 @@ const DEFAULT_STALE_MS = 5 * 60_000 // 5 menit
 
 /**
  * Hook untuk mengambil Activity Summary kendaraan dari endpoint
- * GET /fms/api/tracking/activity_summary.
+ * GET /fms/api/equipment-logs/activity_summary.
  *
  * Periode yang dipakai mengikuti `selectedDate` dari TrackingPage
  * (parameter `start_date` / `end_date`).
+ * `selectedShift` digunakan untuk filter shift.
  */
 export const useActivitySummary = (
   selectedDate: Dayjs,
+  selectedShift?: string,
   options?: UseActivitySummaryOptions,
 ): UseActivitySummaryResult => {
   const { refreshInterval = 60_000, enabled = true } = options ?? {}
@@ -43,12 +45,18 @@ export const useActivitySummary = (
   const lastFetchedAtRef = useRef<Record<string, number>>({})
 
   const buildParams = useCallback(
-    (equipmentId: string) => ({
-      equipment_id: equipmentId,
-      start_date: selectedDate.startOf('day').format('YYYY-MM-DD'),
-      end_date: selectedDate.endOf('day').format('YYYY-MM-DD'),
-    }),
-    [selectedDate],
+    (equipmentId: string) => {
+      const params: Record<string, string> = {
+        equipment_id: equipmentId,
+        start_date: selectedDate.startOf('day').format('YYYY-MM-DD'),
+        end_date: selectedDate.endOf('day').format('YYYY-MM-DD'),
+      }
+      if (selectedShift) {
+        params.shift = selectedShift
+      }
+      return params
+    },
+    [selectedDate, selectedShift],
   )
 
   const fetchSummary = useCallback(
@@ -97,17 +105,17 @@ export const useActivitySummary = (
   )
 
   // Fetch ulang semua summary yang sudah pernah diambil
-  // saat `selectedDate` berubah.
+  // saat `selectedDate` atau `selectedShift` berubah.
   useEffect(() => {
     const ids = Object.keys(lastFetchedAtRef.current)
     if (ids.length > 0) {
-      // Hapus cache agar dipaksa fetch ulang (period berubah).
+      // Hapus cache agar dipaksa fetch ulang (period/shift berubah).
       lastFetchedAtRef.current = {}
       setSummaries({})
       ids.forEach((id) => void fetchSummary(id, true))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate])
+  }, [selectedDate, selectedShift])
 
   // Interval refresh otomatis.
   useEffect(() => {

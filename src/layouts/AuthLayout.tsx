@@ -15,8 +15,8 @@ const AuthLayout = () => {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.logo}>
-          <img src="/logo.svg" alt="CH" height={40} />
-          <h1 className={styles.appName}>CH</h1>
+          <img src="/logo.svg" alt="HORSE" height={40} />
+          <h1 className={styles.appName}>HORSE</h1>
         </div>
         <Outlet />
       </div>

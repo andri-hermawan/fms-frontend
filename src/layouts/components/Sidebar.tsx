@@ -325,7 +325,7 @@ const Sidebar = () => {
               fontSize: 15,
             }}
           >
-            CHRS
+            HORSE
           </span>
         )}
       </div>

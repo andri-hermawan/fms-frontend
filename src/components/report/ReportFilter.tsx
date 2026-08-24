@@ -86,14 +86,6 @@ const ReportFilter = ({
               <RangePicker style={{ width: '100%' }} />
             </Form.Item>
 
-            <Form.Item name="projectId" label="Project">
-              <Select
-                placeholder="Pilih project"
-                allowClear
-                options={[]}
-              />
-            </Form.Item>
-
             <Form.Item name="equipmentId" label="Equipment">
               <Select
                 placeholder="Pilih equipment"
@@ -107,9 +99,8 @@ const ReportFilter = ({
                 placeholder="Pilih shift"
                 allowClear
                 options={[
-                  { label: 'Shift 1', value: '1' },
-                  { label: 'Shift 2', value: '2' },
-                  { label: 'Shift 3', value: '3' },
+                  { label: 'Shift 1', value: 'Shift 1' },
+                  { label: 'Shift 2', value: 'Shift 2' },
                 ]}
               />
             </Form.Item>

@@ -10,6 +10,8 @@ export interface EquipmentMarkerData {
   speed: number
   vessel_status: string
   status: string
+  gsm_signal: number
+  breakdown: boolean
   engine_status: boolean
   alert_count: number
   fuel_level: number

@@ -12,11 +12,16 @@ const equipmentLogsByDateShiftApi = {
     axiosInstance.get<ApiResponse<EquipmentLog[]>>('/fms/api/equipment-logs/by-date-shift', { params }),
 }
 
+const equipmentLogsAllApi = {
+  getAll: (params?: EquipmentLogParams) =>
+    axiosInstance.get<ApiResponse<EquipmentLog[]>>('/fms/api/equipment-logs', { params }),
+}
+
 const segmentSpeedSummaryApi = {
   getSegmentSpeedSummaryByDateShift: (params: EquipmentLogParams) =>
     axiosInstance.get<ApiResponse<SegmentSpeedSummary[]>>('/fms/api/equipment-logs/segment-speed-summary', { params }),
 }
 
-export { equipmentLogsByDateShiftApi, segmentSpeedSummaryApi }
+export { equipmentLogsByDateShiftApi, equipmentLogsAllApi, segmentSpeedSummaryApi }
 
 export default equipmentLogsApi

@@ -83,7 +83,7 @@ const LoginPage = () => {
       <Divider style={{ margin: '20px 0' }} />
 
       <Text type="secondary" style={{ display: 'block', textAlign: 'center', fontSize: 12 }}>
-        Fleet Management System © {new Date().getFullYear()}
+        HORSE © {new Date().getFullYear()}
       </Text>
     </>
   )

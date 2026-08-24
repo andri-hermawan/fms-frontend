@@ -154,7 +154,7 @@ const TrackingPage = () => {
     summaries: activitySummaries,
     loadingIds: activityLoadingIds,
     refresh: refreshActivitySummary,
-  } = useActivitySummary(selectedDate)
+  } = useActivitySummary(selectedDate, currentShift.data?.shift_name)
 
   // Fetch summary saat equipment dipilih / berubah.
   useEffect(() => {

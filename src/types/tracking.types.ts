@@ -40,6 +40,7 @@ export interface ActivitySummaryParams {
   equipment_id: string
   start_date: string
   end_date: string
+  shift?: string
 }
 
 export interface ActivitySummaryData {
@@ -51,14 +52,23 @@ export interface ActivitySummaryData {
   }
   summary: {
     running_time: number // jam
+    running_empty: number // jam
+    running_loaded: number // jam
     idling_time: number // jam
+    idling_empty: number // jam
+    idling_loaded: number // jam
     mileage: number // km
     avg_running_speed: number // km/h
+    avg_running_speed_empty: number // km/h
+    avg_running_speed_loaded: number // km/h
     max_running_speed: number // km/h
-    fuel_decrease: number // liter
-    fuel_ratio: number // %
+    max_running_speed_empty: number // km/h
+    max_running_speed_loaded: number // km/h
+    fuel_start_run: number // liter
     fuel_remaining: number // liter
-    fuel_remaining_percentage: number // %
+    fuel_increase: number // liter
+    fuel_decrease: number // liter
+    fuel_burn_ratio: number // liter/hour
   }
 }
 

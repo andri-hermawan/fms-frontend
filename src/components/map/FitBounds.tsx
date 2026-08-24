@@ -13,7 +13,7 @@ const FitBounds = ({ geoJson, equipments, disabled }: Props) => {
   const initialized = useRef(false)
 
   useEffect(() => {
-    if (disabled) return // <-- skip total kalau ada equipment terpilih
+    if (disabled || initialized.current) return
 
     const bounds = new LatLngBounds([])
 
@@ -32,13 +32,8 @@ const FitBounds = ({ geoJson, equipments, disabled }: Props) => {
 
     if (!bounds.isValid()) return
 
-    if (!initialized.current) {
-      initialized.current = true
-      map.fitBounds(bounds, { padding: [30, 30] })
-      return
-    }
-
-    map.flyToBounds(bounds, { padding: [30, 30], duration: 0.5 })
+    initialized.current = true
+    map.fitBounds(bounds, { padding: [30, 30] })
   }, [geoJson, equipments, map, disabled])
 
   return null

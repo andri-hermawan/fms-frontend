@@ -25,6 +25,8 @@ export interface EquipmentLiveStatus {
   engine_status: boolean
   status: MovementStatus
   vessel_status: string   
+  gsm_signal: number
+  breakdown: boolean
   recorded_at: string     // ISO timestamp
   device_code?: string
 }

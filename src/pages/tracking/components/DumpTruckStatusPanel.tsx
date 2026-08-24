@@ -172,8 +172,8 @@ const DumpTruckStatusPanel = ({ equipment, equipments, totalCount }: Props) => {
                       src={group.iconUrl}
                       alt={group.iconName}
                       style={{
-                        width: 20,
-                        height: 20,
+                        width: 30,
+                        height: 30,
                         objectFit: 'contain',
                         flexShrink: 0,
                       }}

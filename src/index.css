@@ -60,6 +60,19 @@ html {
   z-index: 401;
 }
 
+.equipment-code-tooltip {
+  padding: 1px 3px !important;
+  border: 1px solid rgba(0, 0, 0, 0.35) !important;
+  border-radius: 2px !important;
+  font-size: 13px;
+  line-height: 1.1;
+  margin-top: -2px !important;
+}
+
+.equipment-code-tooltip::before {
+  display: none !important;
+}
+
 /* ===========================
    Custom Ant Design Table
 =========================== */

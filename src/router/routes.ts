@@ -36,7 +36,7 @@ export const ROUTES = {
 
   // Report
   REPORT: '/report',
-  REPORT_A: '/report/a',
+  REPORT_EQUIPMENT_LOGS: '/report/report-equipment-logs',
   REPORT_B: '/report/b',
   REPORT_C: '/report/c',
   REPORT_D: '/report/d',

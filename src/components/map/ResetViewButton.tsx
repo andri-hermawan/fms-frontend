@@ -16,14 +16,14 @@ const ResetViewButton = ({
 
   return (
     <Button
-      size="large"
+      size="medium"
       icon={<AimOutlined />}
       onClick={() =>
         map.flyTo(defaultCenter, defaultZoom, { duration: 0.6 })
       }
       style={{
         position: 'absolute',
-        top: 90,
+        top: 80,
         left: 10,
         zIndex: 1000,
         boxShadow: '0 1px 4px rgba(0,0,0,.3)',

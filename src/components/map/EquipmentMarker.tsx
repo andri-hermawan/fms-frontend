@@ -4,7 +4,7 @@ import {
   Tooltip,
   useMap,
 } from 'react-leaflet'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Marker as LeafletMarker } from 'leaflet'
 
 import type { EquipmentMarkerProps } from '@/types/map.types'
@@ -16,10 +16,24 @@ const EquipmentMarker = ({
   onSelectEquipment,
 }: EquipmentMarkerProps) => {
   const map = useMap()
+  const [iconSize, setIconSize] = useState(
+    map.getZoom() >= 19 ? 64 : 32,
+  )
 
   const markerRefs = useRef<
     Record<string, LeafletMarker | null>
   >({})
+
+  useEffect(() => {
+    const updateIconSize = () => {
+      setIconSize(map.getZoom() >= 19 ? 64 : 32)
+    }
+
+    map.on('zoomend', updateIconSize)
+    return () => {
+      map.off('zoomend', updateIconSize)
+    }
+  }, [map])
 
   useEffect(() => {
     Object.values(markerRefs.current).forEach(
@@ -54,7 +68,7 @@ const EquipmentMarker = ({
             item.latitude,
             item.longitude,
           ]}
-          icon={getMarkerIcon(item)}
+          icon={getMarkerIcon(item, iconSize)}
           zIndexOffset={
             item.equipment_id ===
             selectedEquipment
@@ -90,14 +104,16 @@ const EquipmentMarker = ({
           </Tooltip> */}
 
           <Tooltip
+            key={`${item.equipment_id}-${iconSize}`}
             permanent
             direction="top"
-            offset={[0, -5]}
+            offset={[0, 0]}
+            className="equipment-code-tooltip"
           >
             <span
               style={{
                 fontWeight: 600,
-                fontSize: 11,
+                fontSize: 9,
               }}
             >
               {item.equipment_code}
@@ -188,7 +204,7 @@ const EquipmentMarker = ({
                       Fuel
                     </td>
                     <td style={{ padding: '4px 0' }}>
-                      {item.fuel_percentage} %
+                      {item.fuel_volume} liter , {item.fuel_percentage} %
                     </td>
                   </tr>
 
