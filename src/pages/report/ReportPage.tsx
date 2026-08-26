@@ -31,12 +31,12 @@ const reports: ReportItem[] = [
     route: '/report/report-equipment-logs',
   },
   {
-    key: 'report-b',
-    title: 'Report B',
-    description: 'Ringkasan performa equipment harian',
+    key: 'report/report-alert-summary',
+    title: 'Report Alert Summary',
+    description: 'Ringkasan alert dan pelanggaran per periode',
     icon: <DashboardOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
-    route: '/report/b',
+    route: '/report/report-alert-summary',
   },
   {
     key: 'report-c',

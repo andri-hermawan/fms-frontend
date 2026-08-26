@@ -33,7 +33,7 @@ const ROUTE_TITLE: Record<string, string> = {
   [ROUTES.WEIGHBRIDGE]: 'Weighbridge',
   [ROUTES.REPORT]: 'Report',
   [ROUTES.POSITION_HISTORY]: 'Position History',
-  [ROUTES.SPEED_PER_SEGMENT]: 'Speed per Segment',
+  [ROUTES.SPEED_PER_SEGMENT]: 'Speed Heatmap',
 }
 
 const SIDEBAR_WIDTH = 260

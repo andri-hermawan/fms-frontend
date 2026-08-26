@@ -13,6 +13,7 @@ import SegmentTooltipLayer from './SegmentTooltipLayer'
 import SpeedPerSegmentList from './components/SpeedPerSegmentList'
 import { useAuthStore } from '@/stores/auth.store'
 import { useEquipmentLogsByDateShift, useSegmentSpeedSummary } from '@/hooks/useEquipmentLogs'
+import { getSpeedColor, getSpeedBand, SPEED_COLOR_BANDS } from '@/utils/speed-color'
 
 const SpeedPerSegmentPage = () => {
   const navigate = useNavigate()
@@ -20,6 +21,7 @@ const SpeedPerSegmentPage = () => {
   const [showPanel, setShowPanel] = useState(true)
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
   const [shift, setShift] = useState<string | undefined>(undefined)
+  const [speedFilter, setSpeedFilter] = useState<string | undefined>(undefined)
 
   const syncUrl = useCallback(
     (date?: dayjs.Dayjs | null, shiftVal?: string) => {
@@ -48,22 +50,45 @@ const SpeedPerSegmentPage = () => {
 
   const { data: logsData } = useEquipmentLogsByDateShift(logsParams)
   const logs = logsData?.data ?? []
-
+  console.log("logs:", logs)
   const { data: speedSummaryData } = useSegmentSpeedSummary(logsParams)
   const speedData = speedSummaryData?.data ?? []
+
+  const filteredLogs = useMemo(() => {
+    if (!speedFilter) return logs
+    return logs.filter(
+      (log) => getSpeedBand(Number(log.speed) || 0).label === speedFilter,
+    )
+  }, [logs, speedFilter])
+
+  const speedFilterOptions = useMemo(
+    () => [
+      { value: '', label: 'All Speeds' },
+      ...SPEED_COLOR_BANDS.map((band) => ({
+        value: band.label,
+        label: (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: band.color,
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+            {band.label}
+          </span>
+        ),
+      })),
+    ],
+    [],
+  )
 
   // console.log('[SpeedPerSegmentPage] speedSummaryData:', speedSummaryData, 'speedData:', speedData)
 
   const defaultMapCenter = useMemo(() => [-3.487, 103.869] as [number, number], [])
-
-  const getSpeedColor = (speed: number): string => {
-    if (speed <= 10) return '#000000'
-    if (speed <= 20) return '#FFA500'
-    if (speed <= 30) return '#55FF00'
-    if (speed <= 40) return '#00C8FF'
-    if (speed <= 50) return '#0055FF'
-    return '#FF0000'
-  }
 
   const getSpeedIcon = (speed: number) =>
     L.divIcon({
@@ -95,7 +120,7 @@ const SpeedPerSegmentPage = () => {
           paddingBottom: 16,
         }}
       >
-        <PageHeader title="Speed Per Segment" />
+        <PageHeader title="Speed Heatmap" />
 
         <div style={{ display: 'flex', gap: 8 }}>
           <Button
@@ -135,7 +160,7 @@ const SpeedPerSegmentPage = () => {
             <MapController defaultCenter={defaultMapCenter} defaultZoom={14} />
             <MapResize deps={showPanel} />
             <SegmentTooltipLayer geoJson={geoJson} speedData={speedData} />
-            {logs.map((log) =>
+            {filteredLogs.map((log) =>
               log.latitude && log.longitude ? (
                 <Marker
                   key={log.id}
@@ -184,6 +209,15 @@ const SpeedPerSegmentPage = () => {
               style={{ width: '100%' }}
               size="large"
             />
+            <Select
+              value={speedFilter ?? ''}
+              onChange={(val) => setSpeedFilter(val || undefined)}
+              allowClear
+              placeholder="Filter Kecepatan"
+              options={speedFilterOptions}
+              style={{ width: '100%' }}
+              size="large"
+            />
           </div>
 
           <div
@@ -201,8 +235,8 @@ const SpeedPerSegmentPage = () => {
               borderRadius: 8,
             }}
           >
-            <span>Speed Per Segment</span>
-            <span>{logs.length}</span>
+            <span>Speed Heatmap List</span>
+            <span>{filteredLogs.length}</span>
           </div>
 
           <div
@@ -217,7 +251,7 @@ const SpeedPerSegmentPage = () => {
               marginTop: 8,
             }}
           >
-            <SpeedPerSegmentList data={logs} />
+            <SpeedPerSegmentList data={filteredLogs} />
           </div>
         </div>
         )}

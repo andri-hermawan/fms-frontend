@@ -1,7 +1,7 @@
 // Socket.IO Configuration
 export const SOCKET_CONFIG = {
   // Socket server URL
-  url: import.meta.env.VITE_SOCKET_URL || 'http://localhost:3346',
+  url: import.meta.env.VITE_SOCKET_URL || window.location.origin,
   
   // Socket connection options
   options: {

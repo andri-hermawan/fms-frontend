@@ -7,6 +7,8 @@ interface UsePaginationReturn {
   setLimit: (limit: number) => void
   setSearch: (search: string) => void
   setDateRange: (created_at?: string, created_at_end?: string) => void
+  setDateAt: (date_at?: string) => void
+  setShift: (shift?: string) => void
   setAlertCategory: (value: string) => void
   resetParams: () => void
 }
@@ -55,6 +57,20 @@ const usePagination = (
         page: 1,
         created_at,
         created_at_end,
+      })),
+
+    setDateAt: (date_at) =>
+      setParams((prev) => ({
+        ...prev,
+        page: 1,
+        ...(date_at ? { date_at } : { date_at: undefined }),
+      })),
+
+    setShift: (shift) =>
+      setParams((prev) => ({
+        ...prev,
+        page: 1,
+        ...(shift ? { shift } : { shift: undefined }),
       })),
 
     setAlertCategory: (value) =>

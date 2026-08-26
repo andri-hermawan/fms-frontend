@@ -7,6 +7,7 @@ import type { AlertCategorySummary } from '@/types/alert.types'
 import type { EquipmentMarkerData } from '@/types/map.types'
 import { useAlertSummaryByCategory } from '@/pages/alert/useAlert'
 import { selectSummary, useAlertStore } from '@/stores/alert.store'
+import { getAlertCategoryColor } from '@/utils/alert-category'
 
 interface Props {
   equipment?: EquipmentMarkerData
@@ -76,12 +77,12 @@ const AlertSectionsPanel = ({ equipment, selectedDate }: Props) => {
       width: '21%',
       align: 'center',
     },
-    {
-      title: 'Duration',
-      dataIndex: 'duration',
-      width: '23%',
-      align: 'center',
-    },
+    // {
+    //   title: 'Duration',
+    //   dataIndex: 'duration',
+    //   width: '23%',
+    //   align: 'center',
+    // },
   ]
 
   return (
@@ -135,6 +136,17 @@ const AlertSectionsPanel = ({ equipment, selectedDate }: Props) => {
           sticky
           scroll={{ y: '100%' }}
           locale={{ emptyText: 'No alert data available' }}
+          onRow={(record) => {
+            const color = getAlertCategoryColor(record.alert_category_name)
+            return color
+              ? {
+                  style: {
+                    background: color,
+                    color: '#fff',
+                  },
+                }
+              : {}
+          }}
         />
       </div>
     </div>

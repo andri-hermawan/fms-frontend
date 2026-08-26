@@ -3,7 +3,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import type { LoginRequest } from '@/types/auth.types'
 import useLogin from './useLogin'
 
-const { Text, Link } = Typography
+const { Text} = Typography
 
 const LoginPage = () => {
   const [form] = Form.useForm<LoginRequest>()
@@ -63,9 +63,9 @@ const LoginPage = () => {
           />
         </Form.Item>
 
-        <div style={{ textAlign: 'right', marginTop: -16, marginBottom: 16 }}>
+        {/* <div style={{ textAlign: 'right', marginTop: -16, marginBottom: 16 }}>
           <Link style={{ fontSize: 13 }}>Lupa password?</Link>
-        </div>
+        </div> */}
 
         <Form.Item style={{ marginBottom: 0 }}>
           <Button

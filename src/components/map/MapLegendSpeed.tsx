@@ -1,18 +1,10 @@
 import { useMemo } from 'react'
-
-const SPEED_COLORS = [
-  { label: '0–10 km/h', color: '#000000' },
-  { label: '11–20 km/h', color: '#FFA500' },
-  { label: '21–30 km/h', color: '#55FF00' },
-  { label: '31–40 km/h', color: '#00C8FF' },
-  { label: '41–50 km/h', color: '#0055FF' },
-  { label: '>50 km/h', color: '#FF0000' },
-]
+import { SPEED_COLOR_BANDS } from '@/utils/speed-color'
 
 const MapLegendSpeed = () => {
   const speedItems = useMemo(
     () =>
-      SPEED_COLORS.map((item) => (
+      SPEED_COLOR_BANDS.map((item) => (
         <div
           key={item.label}
           style={{

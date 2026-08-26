@@ -34,15 +34,12 @@ const GeofenceLayer = ({
         const props =
           feature.properties ?? {}
         const segName = props.Segment ?? props.segment ?? '-'
-        const stats = segmentStats?.[segName]
 
         layer.bindPopup(`
           <div style="min-width:180px">
             <b>Segment : ${segName}</b><br/>
             Location  : ${props.Category ?? '-'}<br/>
             Orig Fid : ${props.CODE ?? '-'}<br/>
-            Speed     : ${stats?.speed ?? '-'} km/h<br/>
-            Status    : ${stats?.status ?? '-'}
           </div>
         `)
       }}

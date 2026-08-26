@@ -18,7 +18,6 @@ import {
   SquareUser,
   Fuel,
   // File,
-  Road,
   Snail,
   Zap,
   ChartNoAxesCombined,
@@ -125,7 +124,7 @@ const MENU_CONFIG: MenuConfig[] = [
   {
     key: 'speed-per-segment',
     icon: <CircleGauge {...iconStyle} />,
-    label: 'Speed Per Segment',
+    label: 'Speed Heatmap',
     path: ROUTES.SPEED_PER_SEGMENT,
   },
   {
@@ -309,17 +308,19 @@ const Sidebar = () => {
           background: '#fff',
         }}
       >
-        <Road
-          size={20}
+        <img
+          src="/src/assets/logo.png"
+          alt="HORSE"
           style={{
-            color: '#1677ff',
+            height: 32,
+            width: 'auto',
           }}
         />
 
         {!collapsed && (
           <span
             style={{
-              color: '#111',
+              color: '#003366',
               marginLeft: 10,
               fontWeight: 600,
               fontSize: 15,

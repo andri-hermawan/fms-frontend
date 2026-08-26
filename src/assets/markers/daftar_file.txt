@@ -1,4 +1,4 @@
-daftar_file.txt
+
 idle_empty.png
 Idle_Empty_2Combine_Alert_Breakdown.png
 Idle_Empty_2Combine_Alert_Offline.png

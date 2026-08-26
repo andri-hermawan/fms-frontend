@@ -26,6 +26,8 @@ export interface PaginationParams {
   search?: string
   created_at?: string
   created_at_end?: string
+  date_at?: string
+  shift?: string
   alert_category?: string
   alert_category_id?: string
   is_read?: boolean

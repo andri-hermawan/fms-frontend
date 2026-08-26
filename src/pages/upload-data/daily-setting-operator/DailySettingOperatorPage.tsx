@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography } from 'antd'
+import { Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography, DatePicker, Select } from 'antd'
 import type { UploadFile } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, UploadOutlined, DownloadOutlined, InboxOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -13,6 +13,7 @@ import { useDailySettingOperators, useCreateDailySettingOperator, useUpdateDaily
 import DailySettingOperatorForm from './DailySettingOperatorForm'
 import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
+import { useShifts } from '@/pages/master/shift/useShift'
 import { formatDate } from '@/utils/format'
 import type { DailySettingOperator, DailySettingOperatorFormValues } from '@/types/daily-setting-operator.types'
 
@@ -22,9 +23,11 @@ const DailySettingOperatorPage = () => {
   const [selected, setSelected] = useState<DailySettingOperator | null>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [importFile, setImportFile] = useState<UploadFile | null>(null)
-  const { params, setSearch, setPage, setLimit } = usePagination()
+  const { params, setSearch, setPage, setLimit, setDateAt, setShift } = usePagination({ date_at: dayjs().format('YYYY-MM-DD') })
 
   const { data, isLoading, refetch } = useDailySettingOperators(params)
+  const { data: shiftData } = useShifts({ limit: 100 })
+  const shiftOptions = (shiftData?.data ?? []).map((s) => ({ label: s.shift_name, value: s.shift_name }))
   const createM = useCreateDailySettingOperator()
   const updateM = useUpdateDailySettingOperator()
   const deleteM = useDeleteDailySettingOperator()
@@ -45,7 +48,7 @@ const DailySettingOperatorPage = () => {
     form.validateFields().then((values) => {
       const payload: DailySettingOperatorFormValues = {
         ...values,
-        date_at: dayjs(values.date_at as unknown as string).toISOString(),
+        date_at: dayjs(values.date_at as unknown as string).format('YYYY-MM-DD'),
       }
       if (isEdit) {
         updateM.mutate({ id: selected.id, payload }, { onSuccess: closeDrawer })
@@ -181,6 +184,25 @@ const DailySettingOperatorPage = () => {
         loading={isLoading} searchable
         searchPlaceholder="Cari equipment atau operator..."
         onSearch={setSearch}
+        toolbar={
+          <Space>
+            <DatePicker
+              value={params.date_at ? dayjs(params.date_at) : null}
+              onChange={(date) => setDateAt(date ? date.format('YYYY-MM-DD') : undefined)}
+              placeholder="Filter Tanggal"
+              allowClear
+              style={{ width: 150 }}
+            />
+            <Select
+              value={params.shift || undefined}
+              onChange={(value) => setShift(value)}
+              placeholder="Filter Shift"
+              allowClear
+              style={{ width: 140 }}
+              options={shiftOptions}
+            />
+          </Space>
+        }
         pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
       />
       <FormDrawer open={open} title={isEdit ? 'Edit Daily Setting Operator' : 'Add Daily Setting Operator'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'}>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Badge, Button, Card, Empty, Select, Space, Spin } from 'antd'
+import { Button, Card, Empty, Select, Space, Spin } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
 import { CircleMarker, Popup } from 'react-leaflet'
 import dayjs from 'dayjs'
@@ -15,44 +15,42 @@ import AlertSummary from './components/AlertSummary'
 import alertApi from '@/services/api/alert.api'
 import alertCategoryApi from '@/services/api/alert-category.api'
 import type { Alert } from '@/types/alert.types'
+import { getAlertCategoryColor } from '@/utils/alert-category'
 
-const categoryColors: Record<string, string> = {
-  Overspeed: 'red',
-  Underspeed: 'blue',
-  Offtrack: 'orange',
-  'Fuel Decrease': 'gold',
+// Dot marker untuk distribusi lokasi alert, warna mengikuti kategori.
+const AlertDotMarker = ({ alert }: { alert: Alert }) => {
+  const color =
+    getAlertCategoryColor(
+      alert.alert_categories?.alert_category_name ?? alert.status,
+    ) ?? '#ff4d4f'
+
+  return (
+    <CircleMarker
+      center={[alert.latitude, alert.longitude]}
+      radius={6}
+      pathOptions={{
+        color,
+        weight: 2,
+        fillColor: color,
+        fillOpacity: 0.85,
+      }}
+    >
+      <Popup minWidth={200} autoPan closeButton>
+        <div style={{ fontSize: 12, fontFamily: 'Segoe UI, sans-serif', color: '#333' }}>
+          <div style={{ fontWeight: 600, marginBottom: 4 }}>
+            {alert.equipments?.equipment_code ?? alert.vessel}
+          </div>
+          <div>
+            {alert.alert_categories?.alert_category_name ?? alert.status}
+          </div>
+          <div style={{ marginTop: 4 }}>
+            Zone: {alert.segment} · Speed: {alert.speed} km/h
+          </div>
+        </div>
+      </Popup>
+    </CircleMarker>
+  )
 }
-
-// Red dot marker untuk distribusi lokasi alert
-const AlertDotMarker = ({ alert }: { alert: Alert }) => (
-  <CircleMarker
-    center={[alert.latitude, alert.longitude]}
-    radius={6}
-    pathOptions={{
-      color: '#ff4d4f',
-      weight: 2,
-      fillColor: '#ff4d4f',
-      fillOpacity: 0.85,
-    }}
-  >
-    <Popup minWidth={200} autoPan closeButton>
-      <div style={{ fontSize: 12, fontFamily: 'Segoe UI, sans-serif', color: '#333' }}>
-        <div style={{ fontWeight: 600, marginBottom: 4 }}>
-          {alert.equipments?.equipment_code ?? alert.vessel}
-        </div>
-        <div>
-          <Badge
-            color={categoryColors[alert.status] ?? 'default'}
-            text={alert.alert_categories?.alert_category_name ?? alert.status}
-          />
-        </div>
-        <div style={{ marginTop: 4 }}>
-          Zone: {alert.segment} · Speed: {alert.speed} km/h
-        </div>
-      </div>
-    </Popup>
-  </CircleMarker>
-)
 
 const DistributionMapPage = () => {
   const [showPanel, setShowPanel] = useState(true)
@@ -104,11 +102,13 @@ const DistributionMapPage = () => {
   })
 
   const categoryOptions = useMemo(
-    () =>
-      (categoriesData?.data ?? []).map((c) => ({
+    () => [
+      { label: 'All Alerts', value: '' },
+      ...(categoriesData?.data ?? []).map((c) => ({
         label: c.alert_category_name,
         value: c.id,
       })),
+    ],
     [categoriesData],
   )
 
@@ -256,7 +256,7 @@ const DistributionMapPage = () => {
               size="large"
               allowClear
               placeholder="Filter by Alert Category"
-              value={category}
+              value={category ?? ''}
               onChange={(v) => setCategory(v || undefined)}
               options={categoryOptions}
             />
@@ -281,53 +281,59 @@ const DistributionMapPage = () => {
               <Empty description="No alert found" style={{ marginTop: 48 }} />
             ) : (
               <Space orientation="vertical" size={8} style={{ width: '100%' }}>
-                {alerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      border: '1px solid #f0f0f0',
-                      background: '#fff',
-                      transition: 'background .2s',
-                    }}
-                  >
+                {alerts.map((alert) => {
+                  const rowColor =
+                    getAlertCategoryColor(
+                      alert.alert_categories?.alert_category_name ?? alert.status,
+                    ) ?? '#fff'
+
+                  return (
                     <div
+                      key={alert.id}
                       style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 6,
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        border: '1px solid #f0f0f0',
+                        background: rowColor,
+                        transition: 'background .2s',
                       }}
                     >
-                      <span style={{ fontWeight: 600 }}>
-                        {alert.equipments?.equipment_code ?? alert.vessel}
-                      </span>
-                      <Badge
-                        color={categoryColors[alert.status] ?? 'default'}
-                        text={alert.alert_categories?.alert_category_name ?? alert.status}
-                      />
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: 6,
+                        }}
+                      >
+                        <span style={{ fontWeight: 600, color: '#fff' }}>
+                          {alert.equipments?.equipment_code ?? alert.vessel}
+                        </span>
+                        <span style={{ fontWeight: 600, fontSize: 12, color: '#fff' }}>
+                          {alert.alert_categories?.alert_category_name ?? alert.status}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: 4,
+                          fontSize: 12,
+                          color: 'rgba(255,255,255,0.92)',
+                        }}
+                      >
+                        <span>Zone: {alert.segment}</span>
+                        <span>Speed: {alert.speed} km/h</span>
+                        <span>Start: {formatTime(alert.created_at)}</span>
+                        <span>Stop: {formatTime(alert.resolved_at)}</span>
+                        <span>
+                          Duration: {formatDurationBetween(alert.created_at, alert.resolved_at)}
+                        </span>
+                        <span>Fuel: {alert.fuel_level}%</span>
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: 4,
-                        fontSize: 12,
-                        color: '#666',
-                      }}
-                    >
-                      <span>Zone: {alert.segment}</span>
-                      <span>Speed: {alert.speed} km/h</span>
-                      <span>Start: {formatTime(alert.created_at)}</span>
-                      <span>Stop: {formatTime(alert.resolved_at)}</span>
-                      <span>
-                        Duration: {formatDurationBetween(alert.created_at, alert.resolved_at)}
-                      </span>
-                      <span>Fuel: {alert.fuel_level}%</span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </Space>
             )}
           </div>

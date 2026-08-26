@@ -106,15 +106,29 @@ const ICONS = {
   },
 } as const
 
+// Normalisasi nilai `status` dari backend ke key ICONS (running | idle | stop).
+// Backend mengirim status dalam berbagai format (RUNNING/MOVING, IDLE,
+// STOP/STOPPED/OFFLINE), sedangkan ICONS memakai key lowercase.
+const STATUS_TO_ICON_KEY: Record<string, 'running' | 'idle' | 'stop'> = {
+  RUNNING: 'running',
+  MOVING: 'running',
+  IDLE: 'idle',
+  STOP: 'stop',
+  STOPPED: 'stop',
+  OFFLINE: 'stop',
+}
+
 export const getMarkerIcon = (equipment: EquipmentMarkerData, size = 32) => {
-  const status = equipment.status.toUpperCase() as keyof typeof ICONS
+  const rawStatus = equipment.status.toUpperCase()
+  const status = STATUS_TO_ICON_KEY[rawStatus] ?? 'idle'
+  console.log('status nya tracking', rawStatus, '→', status)
   const vessel = equipment.vessel_status.toUpperCase() === 'LOADED'
     ? 'loaded'
     : equipment.vessel_status.toUpperCase() === 'EMPTY' ? 'empty' : 'unknown'
   const isAlert = equipment.alert_count > 0
   const isOffline = equipment.gsm_signal === 0
   const isBreakdown = equipment.breakdown
-  const icons = (ICONS[status] ?? ICONS.idle)[vessel]
+  const icons = ICONS[status][vessel]
   const variant = isAlert && isOffline && isBreakdown ? 'alertOfflineBreakdown'
     : isAlert && isOffline ? 'alertOffline'
       : isAlert && isBreakdown ? 'alertBreakdown'

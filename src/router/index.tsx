@@ -20,7 +20,7 @@ const GraphicPage       = lazy(() => import('@/pages/graphic/GraphicPage'))
 const DistributionMapPage = lazy(() => import('@/pages/distribution-maps/DistributionMapPage'))
 const ReportPage        = lazy(() => import('@/pages/report/ReportPage'))
 const ReportEquipmentLogsPage       = lazy(() => import('@/pages/report/report-equipment-logs/ReportEquipmentLogsPage'))
-const ReportBPage       = lazy(() => import('@/pages/report/ReportBPage'))
+const ReportAlertSummaryPage = lazy(() => import('@/pages/report/report-alert-summary/ReportAlertSummary'))
 const ReportCPage       = lazy(() => import('@/pages/report/ReportCPage'))
 const ReportDPage       = lazy(() => import('@/pages/report/ReportDPage'))
 const ReportEPage       = lazy(() => import('@/pages/report/ReportEPage'))
@@ -114,7 +114,7 @@ const router = createBrowserRouter([
           { path: ROUTES.DISTRIBUTION_MAP,   element: withSuspense(DistributionMapPage) },
           { path: ROUTES.REPORT,    element: withSuspense(ReportPage) },
           { path: ROUTES.REPORT_EQUIPMENT_LOGS,  element: withSuspense(ReportEquipmentLogsPage) },
-          { path: ROUTES.REPORT_B,  element: withSuspense(ReportBPage) },
+          { path: ROUTES.REPORT_ALERT_SUMMARY,  element: withSuspense(ReportAlertSummaryPage) },
           { path: ROUTES.REPORT_C,  element: withSuspense(ReportCPage) },
           { path: ROUTES.REPORT_D,  element: withSuspense(ReportDPage) },
           { path: ROUTES.REPORT_E,  element: withSuspense(ReportEPage) },
