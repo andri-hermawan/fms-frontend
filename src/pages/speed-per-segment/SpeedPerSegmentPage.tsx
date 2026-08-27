@@ -50,7 +50,7 @@ const SpeedPerSegmentPage = () => {
 
   const { data: logsData } = useEquipmentLogsByDateShift(logsParams)
   const logs = logsData?.data ?? []
-  console.log("logs:", logs)
+  // console.log("logs:", logs)
   const { data: speedSummaryData } = useSegmentSpeedSummary(logsParams)
   const speedData = speedSummaryData?.data ?? []
 

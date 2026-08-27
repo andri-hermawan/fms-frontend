@@ -1,41 +1,12 @@
 import { PassingItem } from '@/types/geofence.types'
-import { Card, Table, Tag } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
+import { Card, Tag } from 'antd'
 
 interface Props {
   data: PassingItem[]
 }
 
 const EquipmentPassingTable = ({ data }: Props) => {
-  const columns: ColumnsType<PassingItem> = [
-    {
-      title: 'Equipment',
-      dataIndex: 'equipment_code',
-      width: '45%',
-      ellipsis: true,
-    },
-    {
-      title: 'Time',
-      dataIndex: 'time',
-      width: '30%',
-      align: 'center',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'event',
-      width: '25%',
-      align: 'center',
-      render: (value) => (
-        <Tag
-          color={value === 'IN' ? 'green' : 'red'}
-          style={{ margin: 0, width: '100%', textAlign: 'center' }}
-        >
-          {value}
-        </Tag>
-      ),
-    },
-  ]
-
+  // console.log("data passing", data)
   return (
     <Card
       title="EQUIPMENT PASSING"
@@ -80,16 +51,52 @@ const EquipmentPassingTable = ({ data }: Props) => {
           overflowX: 'hidden',
         }}
       >
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={data}
-          pagination={false}
-          size="small"
-          tableLayout="fixed"
-          sticky
-          locale={{ emptyText: 'No equipment passing available' }}
-        />
+        {data.length ? data.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              padding: '8px 12px',
+              borderBottom: '1px solid #f0f0f0',
+              fontSize: 12,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 12,
+                minWidth: 0,
+                fontWeight: 600,
+              }}
+            >
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item.equipment_code}
+              </span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item.segment || '-'}
+              </span>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 12,
+                marginTop: 4,
+                color: '#666',
+              }}
+            >
+              <span>{item.time}</span>
+              <Tag color={item.event === 'IN' ? 'green' : 'red'} style={{ margin: 0 }}>
+                {item.event}
+              </Tag>
+            </div>
+          </div>
+        )) : (
+          <div style={{ padding: '24px 12px', textAlign: 'center', color: '#999', fontSize: 12 }}>
+            No equipment passing available
+          </div>
+        )}
       </div>
 
       <div

@@ -18,7 +18,6 @@ import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
 
 import {
   BaseMap,
-  DrawControl,
   MapController,
   MapLayers,
   MapLegend,
@@ -38,7 +37,6 @@ import {
 } from '@/stores/equipment-status.store'
 
 import useSocketTracking from '@/pages/tracking/hooks/useSocketTracking'
-import type { GeofenceEventData } from '@/pages/tracking/hooks/useSocketTracking'
 import projectApi from '@/services/api/project.api'
 import geofenceApi from '@/services/api/geofence.api'
 import { useGeofenceStore } from '@/stores/geofence.store'
@@ -52,7 +50,7 @@ const GeofencePage = () => {
   const setPassing = useGeofenceStore((s) => s.setPassing)
   const setSummary = useGeofenceStore((s) => s.setSummary)
 
-  const refreshGeofenceData = useCallback(async (event?: GeofenceEventData) => {
+  const refreshGeofenceData = useCallback(async () => {
     try {
       const params = {
         page: 1,
@@ -70,11 +68,11 @@ const GeofencePage = () => {
       setPassing(passingRes.data.data)
       setSummary(summaryRes.data.data)
 
-      console.log('[GeofencePage] Realtime data refreshed:', {
-        event: event?.event ?? event?.event_type,
-        passing: passingRes.data.data.length,
-        summary: summaryRes.data.data.length,
-      })
+      // console.log('[GeofencePage] Realtime data refreshed:', {
+      //   event: event?.event ?? event?.event_type,
+      //   passing: passingRes.data.data.length,
+      //   summary: summaryRes.data.data.length,
+      // })
     } catch (err) {
       console.error('[GeofencePage] Failed to refresh geofence data:', err)
     }
@@ -129,7 +127,7 @@ const GeofencePage = () => {
   const isConnected = useEquipmentStatusStore((s) => s.isConnected)
   const isLoading = equipments.length === 0 && !isConnected
 
-  const [drawingGeoJson, setDrawingGeoJson] =
+  const [drawingGeoJson] =
     useState<GeoJSON.GeoJSON | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -356,7 +354,10 @@ const GeofencePage = () => {
               }}
             >
               <EquipmentPassingTable data={filteredPassing} />
-              <HourlySummaryTable data={hourlySummary} />
+              <HourlySummaryTable
+                data={hourlySummary}
+                shift={currentShift.data?.shift_name}
+              />
             </div>
 
             <div
@@ -366,7 +367,10 @@ const GeofencePage = () => {
                 minWidth: 0,
               }}
             >
-              <HourlyTrafficChart data={hourlySummary} />
+              <HourlyTrafficChart
+                data={hourlySummary}
+                shift={currentShift.data?.shift_name}
+              />
             </div>
           </div>
         )}

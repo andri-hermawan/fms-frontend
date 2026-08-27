@@ -36,23 +36,23 @@ const useEquipmentStatusLive = ({ projectId, enabled = true }: Options = {}) => 
     // Akses store via getState() — TIDAK subscribe, tidak trigger re-render
     const fetchPositions = async () => {
       try {
-        console.log('[EquipmentLive] Fetching live positions...', { projectId })
+        // console.log('[EquipmentLive] Fetching live positions...', { projectId })
         const response = await equipmentStatusApi.getLive(projectId)
-        console.log('[EquipmentLive] API response:', response.data)
+        // console.log('[EquipmentLive] API response:', response.data)
 
         // Axios response.data is the API envelope: { statusCode, message, data }.
         // Pass the envelope to extractList; passing the inner `data` array would
         // make extractList read `array.data` and return an empty list.
         const list = extractList(response.data as ResponseWithData)
-        console.log('[EquipmentLive] Extracted positions:', list.length)
+        // console.log('[EquipmentLive] Extracted positions:', list.length)
 
         // Pakai getState() lagi agar tidak stale closure
         useEquipmentStatusStore.getState().setBulkPositions(list)
         useEquipmentStatusStore.getState().setConnected(true)
-        console.log(
-          '[EquipmentLive] Store positions:',
-          Object.keys(useEquipmentStatusStore.getState().positions).length,
-        )
+        // console.log(
+        //   '[EquipmentLive] Store positions:',
+        //   Object.keys(useEquipmentStatusStore.getState().positions).length,
+        // )
       } catch (error) {
         console.error('[EquipmentLive] Failed to fetch positions:', error)
         useEquipmentStatusStore.getState().setConnected(false)

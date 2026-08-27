@@ -7,6 +7,10 @@ const shiftApi = {
     axiosInstance.get<PaginatedResponse<Shift>>('/fms/api/shifts', { params }),
   getById: (id: string) =>
     axiosInstance.get<ApiResponse<Shift>>(`/fms/api/shifts/${id}`),
+  getByName: (name: string) =>
+    axiosInstance.get<ApiResponse<Shift[]>>(
+      `/fms/api/shifts/by-name/${encodeURIComponent(name)}`,
+    ),
   create: (payload: ShiftFormValues) =>
     axiosInstance.post<ApiResponse<Shift>>('/fms/api/shifts', payload),
   update: (id: string, payload: Partial<ShiftFormValues>) =>

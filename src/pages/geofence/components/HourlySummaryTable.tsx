@@ -4,9 +4,10 @@ import type { ColumnsType } from 'antd/es/table'
 
 interface Props {
   data: PassingSummaryItem[]
+  shift?: string
 }
 
-const HourlySummaryTable = ({ data }: Props) => {
+const HourlySummaryTable = ({ data, shift }: Props) => {
   const columns: ColumnsType<PassingSummaryItem> = [
     {
       title: 'Hour',
@@ -16,7 +17,7 @@ const HourlySummaryTable = ({ data }: Props) => {
       ellipsis: true,
     },
     {
-      title: 'IN',
+      title: 'In',
       dataIndex: 'in',
       width: '24%',
       align: 'center',
@@ -27,7 +28,7 @@ const HourlySummaryTable = ({ data }: Props) => {
       ),
     },
     {
-      title: 'OUT',
+      title: 'Out',
       dataIndex: 'out',
       width: '24%',
       align: 'center',
@@ -37,22 +38,22 @@ const HourlySummaryTable = ({ data }: Props) => {
         </Tag>
       ),
     },
-    {
-      title: 'Total',
-      dataIndex: 'total',
-      width: '24%',
-      align: 'center',
-      render: (value) => (
-        <Tag color="blue" style={{ margin: 0, width: '100%', textAlign: 'center' }}>
-          {value}
-        </Tag>
-      ),
-    },
+    // {
+    //   title: 'Total',
+    //   dataIndex: 'total',
+    //   width: '24%',
+    //   align: 'center',
+    //   render: (value) => (
+    //     <Tag color="blue" style={{ margin: 0, width: '100%', textAlign: 'center' }}>
+    //       {value}
+    //     </Tag>
+    //   ),
+    // },
   ]
 
   return (
     <Card
-      title="HOURLY PASSING SUMMARY"
+      title={`HOURLY PASSING SUMMARY${shift ? ` - ${shift}` : ''}`}
       size="small"
       style={{
         height: '100%',

@@ -1,6 +1,6 @@
 // TrackingPage.tsx
 import { useEffect, useMemo, useState } from 'react'
-import { Button, Card, Select, Spin } from 'antd'
+import { Button, Card, Form, Select, Spin } from 'antd'
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -9,6 +9,7 @@ import dayjs from 'dayjs'
 
 import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
+import FormDrawer from '@/components/ui/FormDrawer'
 
 import {
   BaseMap,
@@ -27,6 +28,9 @@ import {
 } from '@/stores/equipment-status.store'
 import equipmentStatusApi from '@/services/api/equipment-status.api'
 import type { EquipmentLiveStatus } from '@/types/equipment-status.types'
+import type { EquipmentMarkerData } from '@/types/map.types'
+import type { BreakdownStatusFormValues } from '@/types/breakdown-status.types'
+import { useCreateBreakdownStatus } from '@/pages/upload-data/status-breakdown/useBreakdownStatus'
 
 import useSocketTracking from '@/pages/tracking/hooks/useSocketTracking'
 import { useActivitySummary } from '@/pages/tracking/hooks/useActivitySummary'
@@ -35,6 +39,7 @@ import EquipmentSearch from './components/EquipmentSearch'
 import EquipmentListPanel from './components/EquipmentListPanel'
 import DumpTruckStatusPanel from './components/DumpTruckStatusPanel'
 import AlertSectionsPanel from './components/AlertSectionsPanel'
+import BreakdownStatusForm from '@/pages/upload-data/status-breakdown/BreakdownStatusForm'
 
 type LiveResponse = {
   statusCode?: number
@@ -53,6 +58,48 @@ const TrackingPage = () => {
   const [selectedDate] = useState(dayjs()) //setSelectedDate
   const [selectedEquipment, setSelectedEquipment] = useState<string>()
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string>()
+
+  // ─── Breakdown Form ────────────────────────────────────────
+  const [breakdownForm] = Form.useForm<BreakdownStatusFormValues>()
+  const [breakdownOpen, setBreakdownOpen] = useState(false)
+  const [breakdownEquipment, setBreakdownEquipment] =
+    useState<EquipmentMarkerData>()
+  const createBreakdownM = useCreateBreakdownStatus()
+
+  const handleOpenBreakdown = (equipment: EquipmentMarkerData) => {
+    setBreakdownEquipment(equipment)
+    breakdownForm.resetFields()
+    breakdownForm.setFieldsValue({
+      date_at: dayjs(),
+      equipment_code: equipment.equipment_code,
+    })
+    setBreakdownOpen(true)
+  }
+
+  const closeBreakdown = () => {
+    setBreakdownOpen(false)
+    setBreakdownEquipment(undefined)
+    breakdownForm.resetFields()
+  }
+
+  const handleSubmitBreakdown = () => {
+    breakdownForm.validateFields().then((values) => {
+      const payload: BreakdownStatusFormValues = {
+        ...values,
+        date_at: dayjs(values.date_at as unknown as string).toISOString(),
+        time_start: values.time_start
+          ? dayjs(values.time_start).format('HH:mm')
+          : null,
+        time_end: values.time_end
+          ? dayjs(values.time_end).format('HH:mm')
+          : null,
+        duration: values.duration
+          ? dayjs(values.duration).format('HH:mm')
+          : null,
+      }
+      createBreakdownM.mutate(payload, { onSuccess: closeBreakdown })
+    })
+  }
 
   // One-time initial snapshot. Socket.IO remains responsible for realtime updates.
   useEffect(() => {
@@ -148,6 +195,11 @@ const TrackingPage = () => {
     if (equipment) {
       setSelectedEquipment(equipment.equipment_code)
     }
+  }
+
+  const handleClearEquipmentSelection = () => {
+    setSelectedEquipment(undefined)
+    setSelectedEquipmentId(undefined)
   }
   // ─── Activity Summary ───────────────────────────────────────
   const {
@@ -327,9 +379,11 @@ const TrackingPage = () => {
                 equipments={filteredEquipments}
                 selectedEquipmentId={selectedEquipmentId}
                 onSelectEquipment={handleSelectEquipment}
+                onClearSelection={handleClearEquipmentSelection}
                 activitySummaries={activitySummaries}
                 activityLoadingIds={activityLoadingIds}
                 onRefreshActivity={refreshActivitySummary}
+                onOpenBreakdown={handleOpenBreakdown}
               />
 
               <div
@@ -371,6 +425,18 @@ const TrackingPage = () => {
           </div>
         )}
       </div>
+
+      <FormDrawer
+        open={breakdownOpen}
+        title="Input Breakdown"
+        onClose={closeBreakdown}
+        onSubmit={handleSubmitBreakdown}
+        isSubmitting={createBreakdownM.isPending}
+        submitText="Simpan"
+        width={560}
+      >
+        <BreakdownStatusForm form={breakdownForm} />
+      </FormDrawer>
     </div>
   )
 }

@@ -5,7 +5,7 @@ import type { ColumnsType } from 'antd/es/table'
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
 import usePagination from '@/hooks/usePagination'
-import { formatDate, formatDurationBetween, formatTime } from '@/utils/format'
+import { formatDate, formatDurationMinutes, formatTime } from '@/utils/format'
 import type { Alert } from '@/types/alert.types'
 import { useAlerts } from '../useAlert'
 import { useEffect, useState } from 'react'
@@ -44,7 +44,7 @@ const UnderspeedAlertPage = () => {
       render: (_, record) => record.alert_categories?.alert_category_name ?? '-',
     },
     {
-      title: 'Unit Code',
+      title: 'Equipment Code',
       width: 120,
       align: 'left',
       render: (_, record) => record.equipments?.equipment_code ?? '-',
@@ -57,25 +57,25 @@ const UnderspeedAlertPage = () => {
       render: (value) => formatDate(value),
     },
     {
-      title: 'Start',
+      title: 'Start Time',
       dataIndex: 'created_at',
       width: 120,
       align: 'center',
       render: (value) => formatTime(value),
     },
     {
-      title: 'Stop',
+      title: 'Stop Time',
       dataIndex: 'resolved_at',
       width: 120,
       align: 'center',
       render: (value) => formatTime(value),
     },
     {
-      title: 'Duration',
+      title: 'Duration (minutes)',
       width: 120,
       align: 'center',
       render: (_, record) => {
-        return formatDurationBetween(
+        return formatDurationMinutes(
           record.created_at,
           record.resolved_at,
         )
@@ -88,13 +88,13 @@ const UnderspeedAlertPage = () => {
       align: 'center',
     },
     {
-      title: 'Fuel',
-      dataIndex: 'fuel_level',
+      title: 'Fuel (liter)',
+      dataIndex: 'fuel_volume',
       width: 120,
       align: 'center',
     },
     {
-      title: 'Initial Zone',
+      title: 'Segment',
       dataIndex: 'segment',
       width: 140,
       align: 'left',

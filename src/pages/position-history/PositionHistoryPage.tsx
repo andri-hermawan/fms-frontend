@@ -143,7 +143,7 @@ const PositionHistoryPage = () => {
         alertStatus,
       }
     })
-    console.log('[PositionHistoryPage] chartData sample:', result.slice(0, 3).map(d => ({ time: d.time, alertStatus: d.alertStatus })))
+    // console.log('[PositionHistoryPage] chartData sample:', result.slice(0, 3).map(d => ({ time: d.time, alertStatus: d.alertStatus })))
     return result
   }, [filteredLogs])
 

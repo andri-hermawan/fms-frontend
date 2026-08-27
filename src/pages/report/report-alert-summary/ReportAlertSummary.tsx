@@ -117,23 +117,6 @@ const dummyData = {
       loaded: { events: 5, dt: 3 }
     }
   ],
-  locations: [
-    "Jalan Ea", "T00", "Tis. BU Am T", "Tis BU Am", "Tr", "Trs EIW Lama", 
-    "Selatan", "CPE", "Tn. Un", ". TPE", "Tez TPB Tengah", "Tr. TFB Salata", 
-    "HOM DEU", "NOM SWE", "ROSE CPR", "ROM SEL", "RIOM SPE Lama", "Bare"
-  ],
-  hourlyFrequency: [
-    "Abnormal Fuel Decrease Event",
-    "Off Track Event",
-    "Overspeed Event",
-    "Underspeed Event"
-  ],
-  hourlyQuantity: [
-    "DT Abnormal Fuel Decrease",
-    "DT Off Track",
-    "DT Overspeed",
-    "DT Underspeed"
-  ]
 };
 
 const ReportAlertSummaryPage = () => {

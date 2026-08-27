@@ -9,6 +9,11 @@ export interface Shift {
   created_by: string | null
   updated_at: string | null
   updated_by: string | null
+  project_id?: string
+  start_time?: string
+  end_time?: string
+  sequence?: number
+  timezone?: string
 }
 
 export interface ShiftFormValues {

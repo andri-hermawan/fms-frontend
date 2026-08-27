@@ -121,7 +121,7 @@ const STATUS_TO_ICON_KEY: Record<string, 'running' | 'idle' | 'stop'> = {
 export const getMarkerIcon = (equipment: EquipmentMarkerData, size = 32) => {
   const rawStatus = equipment.status.toUpperCase()
   const status = STATUS_TO_ICON_KEY[rawStatus] ?? 'idle'
-  console.log('status nya tracking', rawStatus, '→', status)
+  // console.log('status nya tracking', rawStatus, '→', status)
   const vessel = equipment.vessel_status.toUpperCase() === 'LOADED'
     ? 'loaded'
     : equipment.vessel_status.toUpperCase() === 'EMPTY' ? 'empty' : 'unknown'

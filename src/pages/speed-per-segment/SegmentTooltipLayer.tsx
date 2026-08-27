@@ -35,7 +35,7 @@ const SegmentTooltipLayer = ({ geoJson, speedData }: Props) => {
         const emptySpeed = match?.avg_speed_empty ?? '-'
         const loadedSpeed = match?.avg_speed_loaded ?? '-'
 
-        console.log('[SegmentTooltipLayer] segName raw:', JSON.stringify(segName), '| speedData segments:', JSON.stringify(speedData?.map(s => s.segment)), '| match:', match, '| emptySpeed:', emptySpeed, '| loadedSpeed:', loadedSpeed, '| speedData:', speedData)
+        // console.log('[SegmentTooltipLayer] segName raw:', JSON.stringify(segName), '| speedData segments:', JSON.stringify(speedData?.map(s => s.segment)), '| match:', match, '| emptySpeed:', emptySpeed, '| loadedSpeed:', loadedSpeed, '| speedData:', speedData)
 
         layer.bindTooltip(
           `<div style="font-size:10px;line-height:1.3">

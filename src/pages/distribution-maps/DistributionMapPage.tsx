@@ -76,14 +76,14 @@ const DistributionMapPage = () => {
         ...(category ? { alert_category_id: category } : {}),
         ...(search ? { search } : {}),
       }
-      console.log('[DistributionMapPage] query params:', params)
+      // console.log('[DistributionMapPage] query params:', params)
       return alertApi.getAll(params).then((r) => {
-        console.log(
-          '[DistributionMapPage] response total:',
-          r.data?.meta?.total,
-          'data count:',
-          r.data?.data?.length,
-        )
+        // console.log(
+        //   '[DistributionMapPage] response total:',
+        //   r.data?.meta?.total,
+        //   'data count:',
+        //   r.data?.data?.length,
+        // )
         return r.data
       })
     },

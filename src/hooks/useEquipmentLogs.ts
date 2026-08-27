@@ -41,9 +41,9 @@ export const useSegmentSpeedSummary = (params: Pick<EquipmentLogParams, 'created
     queryKey: ['segment-speed-summary', params],
     queryFn: () => {
       if (!params) return Promise.resolve(null)
-      console.log('[useSegmentSpeedSummary] params:', params)
+      // console.log('[useSegmentSpeedSummary] params:', params)
       return segmentSpeedSummaryApi.getSegmentSpeedSummaryByDateShift(params).then((r) => {
-        console.log('[useSegmentSpeedSummary] response:', r.data)
+        // console.log('[useSegmentSpeedSummary] response:', r.data)
         return r.data as ApiResponse<SegmentSpeedSummary[]>
       })
     },

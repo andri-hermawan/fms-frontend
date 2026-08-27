@@ -83,6 +83,64 @@ export const formatDurationBetween = (
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
+/**
+ * Durasi antara dua datetime dalam satuan menit
+ * Contoh:
+ * Start : 7:13:30
+ * Stop  : 7:14:30
+ * Hasil : 1.00 menit
+ */
+export const formatDurationMinutes = (
+  start?: string | Date,
+  end?: string | Date,
+): string => {
+  if (!start || !end) return '-'
+
+  const diffMinutes = diffInMinutes(start, end)
+
+  if (diffMinutes < 0) return '-'
+
+  return diffMinutes.toFixed(2)
+}
+
+/**
+ * Hitung selisih waktu dalam menit (desimal).
+ * Mendukung datetime penuh maupun string waktu "H:mm:ss".
+ */
+const diffInMinutes = (
+  start: string | Date,
+  end: string | Date,
+): number => {
+  const startTime = parseTime(start)
+  const endTime = parseTime(end)
+
+  if (startTime === null || endTime === null) return -1
+
+  return (endTime - startTime) / 60000
+}
+
+/**
+ * Parse datetime atau waktu "H:mm:ss" menjadi timestamp (ms).
+ * Mengembalikan null jika tidak valid.
+ */
+const parseTime = (value: string | Date): number | null => {
+  const parsed = dayjs.utc(value)
+
+  if (parsed.isValid()) return parsed.valueOf()
+
+  const match = /^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/.exec(String(value))
+
+  if (!match) return null
+
+  const h = Number(match[1])
+  const m = Number(match[2])
+  const s = Number(match[3] ?? 0)
+
+  if (h > 23 || m > 59 || s > 59) return null
+
+  return (h * 3600 + m * 60 + s) * 1000
+}
+
 export const formatNumber = (num: number): string =>
   new Intl.NumberFormat('id-ID').format(num)
 

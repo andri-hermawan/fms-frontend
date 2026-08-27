@@ -30,10 +30,10 @@ interface PositionHistoryChartProps {
 const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryChartProps) => {
   const chartRef = useRef<ReactECharts | null>(null)
 
-  useEffect(() => {
-    const alertCount = data.filter(d => !!d.alertStatus).length
-    console.log('[PositionHistoryChart] data length:', data.length, 'alertCount:', alertCount)
-  }, [data])
+  // useEffect(() => {
+  //   const alertCount = data.filter(d => !!d.alertStatus).length
+  //   console.log('[PositionHistoryChart] data length:', data.length, 'alertCount:', alertCount)
+  // }, [data])
 
   useEffect(() => {
     const ro = new ResizeObserver(() => {

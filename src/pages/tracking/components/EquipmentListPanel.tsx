@@ -1,5 +1,6 @@
 // components/EquipmentListPanel.tsx
-import { InfoCircleFilled } from '@ant-design/icons'
+import { Tooltip } from 'antd'
+import { CloseOutlined, InfoCircleFilled, ToolFilled } from '@ant-design/icons'
 
 import type { EquipmentMarkerData } from '@/types/map.types'
 import type { ActivitySummaryData } from '@/types/tracking.types'
@@ -10,18 +11,22 @@ interface Props {
   equipments: EquipmentMarkerData[]
   selectedEquipmentId?: string
   onSelectEquipment: (equipmentId: string) => void
+  onClearSelection: () => void
   activitySummaries?: Record<string, ActivitySummaryData>
   activityLoadingIds?: string[]
   onRefreshActivity?: (equipmentId?: string) => void
+  onOpenBreakdown?: (equipment: EquipmentMarkerData) => void
 }
 
 const EquipmentListPanel = ({
   equipments,
   selectedEquipmentId,
   onSelectEquipment,
+  onClearSelection,
   activitySummaries = {},
   activityLoadingIds = [],
   onRefreshActivity,
+  onOpenBreakdown,
 }: Props) => {
   return (
     <div
@@ -119,13 +124,54 @@ const EquipmentListPanel = ({
                   </div>
                 </div>
 
-                <InfoCircleFilled
+                <div
                   style={{
-                    color: isActive ? '#064596' : '#bbb',
-                    fontSize: 16,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
                     flexShrink: 0,
                   }}
-                />
+                >
+                  {isActive && onOpenBreakdown && (
+                    <Tooltip title="Input Breakdown">
+                      <ToolFilled
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onOpenBreakdown(item)
+                        }}
+                        style={{
+                          color: '#064596',
+                          fontSize: 16,
+                          cursor: 'pointer',
+                        }}
+                      />
+                    </Tooltip>
+                  )}
+
+                  {isActive ? (
+                    <CloseOutlined
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onClearSelection()
+                      }}
+                      style={{
+                        color: '#064596',
+                        fontSize: 16,
+                        flexShrink: 0,
+                        cursor: 'pointer',
+                      }}
+                      title="Clear selection"
+                    />
+                  ) : (
+                    <InfoCircleFilled
+                      style={{
+                        color: '#bbb',
+                        fontSize: 16,
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                </div>
               </div>
 
               {isActive && (
@@ -257,12 +303,6 @@ const subValueStyle: React.CSSProperties = {
   display: 'inline-block',
   width: 62,
   textAlign: 'right',
-}
-
-const dividerStyle: React.CSSProperties = {
-  height: 1,
-  background: '#eee',
-  margin: '4px 0',
 }
 
 const ActivitySummaryRows = ({
