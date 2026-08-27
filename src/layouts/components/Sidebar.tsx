@@ -309,8 +309,8 @@ const Sidebar = () => {
         }}
       >
         <img
-          src="/src/assets/logo.png"
-          alt="HORSE"
+          src="/src/assets/rmko/RMKO_logo.png"
+          alt="PT Royaltama Mulia Kontraktorindo Tbk"
           style={{
             height: 32,
             width: 'auto',
@@ -326,7 +326,7 @@ const Sidebar = () => {
               fontSize: 15,
             }}
           >
-            HORSE
+            PT Royaltama Mulia Kontraktorindo Tbk
           </span>
         )}
       </div>

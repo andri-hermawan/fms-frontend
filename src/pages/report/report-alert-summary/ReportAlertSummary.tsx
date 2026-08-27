@@ -200,14 +200,14 @@ const ReportAlertSummaryPage = () => {
       <div style={{color: 'black', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
         {/* Kiri: Logo */}
         <div style={{ flex: '0 0 auto' }}>
-          <img src="/src/assets/RMKO.png" alt="HORSE" style={{ height: 64, width: 'auto' }} />
+          <img src="/src/assets/rmko/RMKO_logo.png" alt="PT Royaltama Mulia Kontraktorindo Tbk" style={{ height: 64, width: 'auto' }} />
         </div>
 
         {/* Tengah: Judul + info */}
         <div style={{ textAlign: 'center', flex: 1 }}>
-          <h1 style={{ margin: '0 0 4px 0', fontSize: '26px', letterSpacing: 1, fontWeight: 700 }}>HORSE</h1>
+          <h1 style={{ margin: '0 0 4px 0', fontSize: '26px', letterSpacing: 1, fontWeight: 700 }}>RMKO</h1>
           <p style={{ margin: '0 0 8px 0', fontSize: '13px', opacity: 0.9 }}>
-            Hauling Optimization, Reporting, &amp; Surveillance Engineering System
+            PT Royaltama Mulia Kontraktorindo Tbk
           </p>
           <p style={{ margin: '0', fontSize: '13px', opacity: 0.85 }}>
             <strong>Date:</strong> {new Date().toLocaleDateString('en-GB')} |{' '}
@@ -217,9 +217,9 @@ const ReportAlertSummaryPage = () => {
         </div>
 
         {/* Kanan: Logo */}
-        <div style={{ flex: '0 0 auto' }}>
+        {/* <div style={{ flex: '0 0 auto' }}>
           <img src="/src/assets/logo.png" alt="HORSE" style={{ height: 64, width: 'auto' }} />
-        </div>
+        </div> */}
       </div>
 
       {/* Alert Summary Cards */}

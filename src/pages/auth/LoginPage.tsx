@@ -83,7 +83,7 @@ const LoginPage = () => {
       <Divider style={{ margin: '20px 0' }} />
 
       <Text type="secondary" style={{ display: 'block', textAlign: 'center', fontSize: 12 }}>
-        HORSE © {new Date().getFullYear()}
+        PT Royaltama Mulia Kontraktorindo Tbk © {new Date().getFullYear()}
       </Text>
     </>
   )
