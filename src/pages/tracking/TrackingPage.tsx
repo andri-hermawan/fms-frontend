@@ -29,7 +29,10 @@ import {
 import equipmentStatusApi from '@/services/api/equipment-status.api'
 import type { EquipmentLiveStatus } from '@/types/equipment-status.types'
 import type { EquipmentMarkerData } from '@/types/map.types'
-import type { BreakdownStatusFormValues } from '@/types/breakdown-status.types'
+import type {
+  BreakdownFormValues,
+  BreakdownStatusFormValues,
+} from '@/types/breakdown-status.types'
 import { useCreateBreakdownStatus } from '@/pages/upload-data/status-breakdown/useBreakdownStatus'
 
 import useSocketTracking from '@/pages/tracking/hooks/useSocketTracking'
@@ -60,14 +63,11 @@ const TrackingPage = () => {
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string>()
 
   // ─── Breakdown Form ────────────────────────────────────────
-  const [breakdownForm] = Form.useForm<BreakdownStatusFormValues>()
+  const [breakdownForm] = Form.useForm<BreakdownFormValues>()
   const [breakdownOpen, setBreakdownOpen] = useState(false)
-  const [breakdownEquipment, setBreakdownEquipment] =
-    useState<EquipmentMarkerData>()
   const createBreakdownM = useCreateBreakdownStatus()
 
   const handleOpenBreakdown = (equipment: EquipmentMarkerData) => {
-    setBreakdownEquipment(equipment)
     breakdownForm.resetFields()
     breakdownForm.setFieldsValue({
       date_at: dayjs(),
@@ -78,7 +78,6 @@ const TrackingPage = () => {
 
   const closeBreakdown = () => {
     setBreakdownOpen(false)
-    setBreakdownEquipment(undefined)
     breakdownForm.resetFields()
   }
 
@@ -93,9 +92,7 @@ const TrackingPage = () => {
         time_end: values.time_end
           ? dayjs(values.time_end).format('HH:mm')
           : null,
-        duration: values.duration
-          ? dayjs(values.duration).format('HH:mm')
-          : null,
+        duration: values.duration ?? null,
       }
       createBreakdownM.mutate(payload, { onSuccess: closeBreakdown })
     })

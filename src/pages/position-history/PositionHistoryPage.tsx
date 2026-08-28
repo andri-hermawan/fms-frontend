@@ -30,6 +30,8 @@ const toMarkerData = (log: EquipmentLog): EquipmentMarkerData => ({
   speed: Number(log.speed) || 0,
   vessel_status: log.vessel_status ?? '',
   status: log.status ?? '',
+  gsm_signal: log.gsm_signal ?? 0,
+  breakdown: false,
   engine_status: log.engine_status ?? false,
   alert_count: log.alerts?.length ?? 0,
   fuel_level: Number(log.fuel_level) || 0,

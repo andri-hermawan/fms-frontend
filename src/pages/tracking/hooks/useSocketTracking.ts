@@ -266,6 +266,12 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
       // );
 
       // Update equipment status in store
+      // gsm_signal & breakdown tidak dikirim socket → pertahankan nilai lama
+      // dari store agar ikon (offline/breakdown) tidak berubah.
+      const prev = useEquipmentStatusStore.getState().positions[
+        data.equipment_id
+      ]
+
       const equipmentStatus: EquipmentLiveStatus = {
         equipment_id: data.equipment_id,
         log_id: data.log_id,
@@ -291,6 +297,8 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
         engine_status: data.engine_status,
         status: data.status,
         vessel_status: data.vessel_status,
+        gsm_signal: prev?.gsm_signal ?? 0,
+        breakdown: prev?.breakdown ?? false,
         recorded_at: data.recorded_at,
         device_code: data.device_code,
       }

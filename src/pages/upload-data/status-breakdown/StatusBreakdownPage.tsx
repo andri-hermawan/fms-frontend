@@ -14,10 +14,10 @@ import BreakdownStatusForm from './BreakdownStatusForm'
 import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
 import { formatDate, formatTime } from '@/utils/format'
-import type { BreakdownStatus, BreakdownStatusFormValues } from '@/types/breakdown-status.types'
+import type { BreakdownStatus, BreakdownFormValues, BreakdownStatusFormValues } from '@/types/breakdown-status.types'
 
 const BreakdownStatusPage = () => {
-  const [form] = Form.useForm<BreakdownStatusFormValues>()
+  const [form] = Form.useForm<BreakdownFormValues>()
   const [open, setOpen]         = useState(false)
   const [selected, setSelected] = useState<BreakdownStatus | null>(null)
   const [importOpen, setImportOpen] = useState(false)
@@ -48,7 +48,7 @@ const BreakdownStatusPage = () => {
         date_at: dayjs(values.date_at as unknown as string).toISOString(),
         time_start: values.time_start ? dayjs(values.time_start).format('HH:mm') : null,
         time_end: values.time_end ? dayjs(values.time_end).format('HH:mm') : null,
-        duration: values.duration ? dayjs(values.duration).format('HH:mm') : null,
+        duration: values.duration ?? null,
       }
       if (isEdit) {
         updateM.mutate({ id: selected.id, payload }, { onSuccess: closeDrawer })
@@ -90,24 +90,6 @@ const BreakdownStatusPage = () => {
     setImportFile(null)
   }
 
-  const formatTimeDisplay = (value: string | null | undefined) => {
-    if (!value) return '—'
-
-    const normalized = String(value).trim()
-    if (!normalized) return '—'
-
-    if (/^\d{2}:\d{2}(:\d{2})?$/.test(normalized)) {
-      return normalized.slice(0, 5)
-    }
-
-    const parsed = new Date(normalized)
-    if (!Number.isNaN(parsed.getTime())) {
-      return formatTime(parsed)
-    }
-
-    return normalized
-  }
-
   const columns: ColumnsType<BreakdownStatus> = [
     {
       title: 'Tanggal',
@@ -121,7 +103,6 @@ const BreakdownStatusPage = () => {
       dataIndex: 'shift',
       width: 100,
       align: 'center',
-      render: (value) => <Tag color="blue">{value}</Tag>,
     },
     {
       title: 'Equipment',
@@ -135,9 +116,6 @@ const BreakdownStatusPage = () => {
       dataIndex: 'status',
       width: 120,
       align: 'center',
-      render: (value) => (
-        <Tag color={value === 'Breakdown' ? 'red' : 'green'}>{value}</Tag>
-      ),
     },
     {
       title: 'Category',
@@ -150,21 +128,21 @@ const BreakdownStatusPage = () => {
       dataIndex: 'time_start',
       width: 100,
       align: 'center',
-      render: (value) => formatTimeDisplay(value),
+      render: (value) => formatTime(value),
     },
     {
       title: 'End',
       dataIndex: 'time_end',
       width: 100,
       align: 'center',
-      render: (value) => formatTimeDisplay(value),
+      render: (value) => formatTime(value),
     },
     {
       title: 'Duration',
       dataIndex: 'duration',
       width: 100,
       align: 'center',
-      render: (value) => formatTimeDisplay(value),
+      render: (value) => formatTime(value),
     },
     {
       title: 'Repair Status',
