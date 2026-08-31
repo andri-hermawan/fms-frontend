@@ -1,4 +1,4 @@
-import { createElement, Fragment, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import io, { Socket } from 'socket.io-client'
 import { useEquipmentStatusStore } from '@/stores/equipment-status.store'
 import { useAlertStore } from '@/stores/alert.store'
@@ -7,7 +7,6 @@ import queryClient from '@/config/queryClient'
 import { ALERT_SUMMARY_KEY } from '@/pages/alert/useAlert'
 import type { EquipmentLiveStatus } from '@/types/equipment-status.types'
 import type { Alert, AlertCategorySummary } from '@/types/alert.types'
-import { message } from 'antd'
 
 interface ResponseWithData {
   data: EquipmentLiveStatus[] | { data: EquipmentLiveStatus[] }
@@ -103,6 +102,7 @@ interface NewAlertData {
   engine_status: boolean
   is_read: boolean
   status: 'Overspeed' | 'Underspeed' | 'Offtrack' | 'Fuel Decrease'
+  shift?: string
   created_at: string
   metadata?: Record<string, unknown>
 }
@@ -342,6 +342,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
         vessel_status: data.vessel_status,
         engine_status: data.engine_status,
         status: data.status,
+        shift: data.shift ?? '',
         created_at: data.created_at,
         resolved_at: '',
         is_read: data.is_read,

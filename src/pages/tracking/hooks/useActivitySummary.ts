@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import dayjs, { Dayjs } from 'dayjs'
 import trackingApi from '@/services/api/tracking.api'
-import type { ActivitySummaryData } from '@/types/tracking.types'
+import type { ActivitySummaryData, ActivitySummaryParams } from '@/types/tracking.types'
 
 interface UseActivitySummaryOptions {
   /** Refetch otomatis tiap interval ms. Default 60_000 (1 menit). */
@@ -45,8 +45,8 @@ export const useActivitySummary = (
   const lastFetchedAtRef = useRef<Record<string, number>>({})
 
   const buildParams = useCallback(
-    (equipmentId: string) => {
-      const params: Record<string, string> = {
+    (equipmentId: string): ActivitySummaryParams => {
+      const params: ActivitySummaryParams = {
         equipment_id: equipmentId,
         start_date: selectedDate.startOf('day').format('YYYY-MM-DD'),
         end_date: selectedDate.endOf('day').format('YYYY-MM-DD'),

@@ -11,8 +11,6 @@ interface Props {
 const FuelForm = ({ form, initialValues }: Props) => {
   const { data: equipmentData, isLoading: loadingEquipment } = useEquipments({ page: 1, limit: 100 })
 
-  const isEdit = !!initialValues
-
   const equipmentOptions =
     equipmentData?.data?.map((eq) => ({
       value: eq.id,

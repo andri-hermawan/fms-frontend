@@ -1,7 +1,6 @@
 import type { ColumnsType } from 'antd/es/table'
 
 import DataTable from '@/components/ui/DataTable'
-import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
 import HistoricalGraphic, { type SpeedDataPoint } from './HistoricalGraphic'
 

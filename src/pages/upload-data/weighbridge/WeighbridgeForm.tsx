@@ -21,7 +21,7 @@ const WeighbridgeForm = ({ form, initialValues }: Props) => {
   useEffect(() => {
     if (initialValues) {
       form.setFieldsValue({
-        date_at: dayjs(initialValues.date_at),
+        date_at: dayjs(initialValues.date_at) as unknown as string,
         shift: initialValues.shift,
         ticket_no: initialValues.ticket_no,
         equipment_code: initialValues.equipment_code,
@@ -32,8 +32,8 @@ const WeighbridgeForm = ({ form, initialValues }: Props) => {
         recipient: initialValues.recipient,
         customer: initialValues.customer,
         transporter: initialValues.transporter,
-        gross_time: initialValues.gross_time ? dayjs(initialValues.gross_time) : null,
-        tare_time: initialValues.tare_time ? dayjs(initialValues.tare_time) : null,
+        gross_time: (initialValues.gross_time ? dayjs(initialValues.gross_time) : null) as unknown as string | null,
+        tare_time: (initialValues.tare_time ? dayjs(initialValues.tare_time) : null) as unknown as string | null,
         gross_operator: initialValues.gross_operator,
         tare_operator: initialValues.tare_operator,
         description: initialValues.description ?? null,

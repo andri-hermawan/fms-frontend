@@ -87,8 +87,8 @@ const AlertDropdown = () => {
     navigate(ROUTES.ALERT)
   }
 
-  const handleAlertClick = (id: string, equipmentCode: string | undefined, today: string, shift: string | undefined) => {
-    // console.log('handleAlertClick id:', id)
+  const handleAlertClick = (_id: string, equipmentCode: string | undefined, today: string, shift: string | undefined) => {
+    // console.log('handleAlertClick id:', _id)
     // console.log('equipmentCode:', equipmentCode)
     // console.log('today:', today)
     // console.log('shift:', shift)

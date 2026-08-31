@@ -21,7 +21,7 @@ const DailySettingOperatorForm = ({ form, initialValues }: Props) => {
   useEffect(() => {
     if (initialValues) {
       form.setFieldsValue({
-        date_at: initialValues.date_at ? dayjs(initialValues.date_at) : null,
+        date_at: (initialValues.date_at ? dayjs(initialValues.date_at) : null) as unknown as string,
         shift: initialValues.shift,
         equipment_code: initialValues.equipment_code,
         operator_name: initialValues.operator_name,

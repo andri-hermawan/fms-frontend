@@ -5,7 +5,7 @@ import type { GeofenceLayerProps } from '@/types/map.types'
 
 const GeofenceLayer = ({
   geoJson,
-  segmentStats,
+  segmentStats: _segmentStats,
 }: GeofenceLayerProps) => {
   if (!geoJson) return null
 

@@ -10,18 +10,6 @@ import type { EquipmentLog } from '@/types/equipment-logs.types'
 
 const { Text } = Typography
 
-const STATUS_COLORS: Record<string, string> = {
-  MOVING: '#389e0d',
-  IDLE: '#d48806',
-  STOP: '#cf1322',
-  OFFLINE: '#595959',
-}
-
-const VESSEL_COLORS: Record<string, string> = {
-  LOADED: '#1677ff',
-  EMPTY: '#fa8c16',
-}
-
 const ReportEquipmentLogsPage = () => {
   const [filterOpen, setFilterOpen] = useState(true)
   const [filterValues, setFilterValues] = useState<ReportFilterValues>({})
