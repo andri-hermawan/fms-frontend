@@ -77,6 +77,7 @@ interface EquipmentStatusUpdateData {
   engine_status: boolean
   status: 'OFFLINE' | 'IDLE' | 'MOVING'
   vessel_status: string
+  gsm_signal?: number
   recorded_at: string
   device_code?: string
 }
@@ -297,7 +298,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
         engine_status: data.engine_status,
         status: data.status,
         vessel_status: data.vessel_status,
-        gsm_signal: prev?.gsm_signal ?? 0,
+        gsm_signal: data.gsm_signal ?? prev?.gsm_signal ?? 1,
         breakdown: prev?.breakdown ?? false,
         recorded_at: data.recorded_at,
         device_code: data.device_code,
