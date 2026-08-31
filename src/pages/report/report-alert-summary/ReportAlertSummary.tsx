@@ -6,6 +6,7 @@ import { getAlertCategoryColor } from '@/utils/alert-category';
 import PageHeader from '@/components/ui/PageHeader';
 import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter';
 import { useNavigate } from 'react-router-dom';
+import rmkoLogo from '@/assets/rmko/RMKO_logo.png';
 
 const { Text } = Typography;
 
@@ -200,7 +201,7 @@ const ReportAlertSummaryPage = () => {
       <div style={{color: 'black', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
         {/* Kiri: Logo */}
         <div style={{ flex: '0 0 auto' }}>
-          <img src="/src/assets/rmko/RMKO_logo.png" alt="PT Royaltama Mulia Kontraktorindo Tbk" style={{ height: 64, width: 'auto' }} />
+          <img src={rmkoLogo} alt="PT Royaltama Mulia Kontraktorindo Tbk" style={{ height: 64, width: 'auto' }} />
         </div>
 
         {/* Tengah: Judul + info */}

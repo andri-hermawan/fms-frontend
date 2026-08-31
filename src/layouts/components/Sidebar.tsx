@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
+import rmkoLogo from '@/assets/rmko/RMKO_logo.png'
 import { 
   Map as MapIcon, 
   RouteOff, 
@@ -309,7 +310,7 @@ const Sidebar = () => {
         }}
       >
         <img
-          src="/src/assets/rmko/RMKO_logo.png"
+          src={rmkoLogo}
           alt="PT Royaltama Mulia Kontraktorindo Tbk"
           style={{
             height: 32,
