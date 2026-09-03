@@ -17,13 +17,12 @@ const GeofenceLayer = ({
       data={data}
       style={(feature) => ({
         color:
-          feature?.properties?.color ??
+          feature?.properties.HEX_Line ??
           '#6b7280',
         weight: 2,
         opacity: 1,
         fillColor:
-          feature?.properties
-            ?.fillColor ??
+          feature?.properties.HEX_Fill ??
           '#d1d5db',
         fillOpacity: 0.25,
       })}

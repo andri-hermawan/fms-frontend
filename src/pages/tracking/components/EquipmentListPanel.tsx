@@ -132,7 +132,7 @@ const EquipmentListPanel = ({
                     flexShrink: 0,
                   }}
                 >
-                  {isActive && onOpenBreakdown && (
+                  {/* {isActive && onOpenBreakdown && (
                     <Tooltip title="Input Breakdown">
                       <ToolFilled
                         onClick={(e) => {
@@ -146,7 +146,7 @@ const EquipmentListPanel = ({
                         }}
                       />
                     </Tooltip>
-                  )}
+                  )} */}
 
                   {isActive ? (
                     <CloseOutlined

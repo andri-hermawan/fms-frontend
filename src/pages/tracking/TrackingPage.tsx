@@ -143,7 +143,7 @@ const TrackingPage = () => {
   )
 
   // Debug: Log equipment data
-  // console.log('[geoJson] geoJson:', geoJson)
+  console.log('[geoJson] geoJson:', geoJson)
   // console.log('[TrackingPage] equipments count:', equipments.length)
   // console.log('[TrackingPage] equipments:', equipments)
 
