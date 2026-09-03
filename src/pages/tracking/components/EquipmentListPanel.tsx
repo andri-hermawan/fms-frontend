@@ -1,6 +1,6 @@
 // components/EquipmentListPanel.tsx
-import { Tooltip } from 'antd'
-import { CloseOutlined, InfoCircleFilled, ToolFilled } from '@ant-design/icons'
+// import { Tooltip } from 'antd'
+import { CloseOutlined, InfoCircleFilled } from '@ant-design/icons'
 
 import type { EquipmentMarkerData } from '@/types/map.types'
 import type { ActivitySummaryData } from '@/types/tracking.types'
@@ -26,7 +26,7 @@ const EquipmentListPanel = ({
   activitySummaries = {},
   activityLoadingIds = [],
   onRefreshActivity,
-  onOpenBreakdown,
+  // onOpenBreakdown,
 }: Props) => {
   return (
     <div
