@@ -76,6 +76,7 @@ interface EquipmentStatusUpdateData {
   engine_status: boolean
   status: 'OFFLINE' | 'IDLE' | 'MOVING'
   vessel_status: string
+  breakdown?: boolean
   gsm_signal?: number
   recorded_at: string
   device_code?: string
@@ -227,14 +228,9 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
       console.error('💥 Socket.IO reconnection failed')
     })
 
-    // Connect only after all listeners are registered. The backend emits
-    // initial-data immediately from handleConnection().
-    // console.log('🔌 Starting Socket.IO connection after registering listeners')
-    socket.connect()
-
     // Equipment status update
     socket.on(SOCKET_CONFIG.events.EQUIPMENT_STATUS_UPDATE, (data: EquipmentStatusUpdateData) => {
-      console.log('📍 Equipment Status Update:', data)
+      console.log('[SOCKET equipment-status-update]', data)
       // console.log('  - Equipment:', data.equipment_code)
       // console.log('  - Alias:', data.equipment_alias)
       // console.log('  - Location:', data.latitude, data.longitude)
@@ -299,7 +295,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
         status: data.status,
         vessel_status: data.vessel_status,
         gsm_signal: data.gsm_signal ?? prev?.gsm_signal ?? 1,
-        breakdown: prev?.breakdown ?? false,
+        breakdown: data.breakdown ?? prev?.breakdown ?? false,
         recorded_at: data.recorded_at,
         device_code: data.device_code,
       }
@@ -426,6 +422,11 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
 
       geofenceEventHandlerRef.current?.(data)
     })
+
+    // Connect only after all listeners are registered. The backend emits
+    // initial-data immediately from handleConnection().
+    // console.log('🔌 Starting Socket.IO connection after registering listeners')
+    socket.connect()
 
     // Cleanup on unmount
     return () => {
