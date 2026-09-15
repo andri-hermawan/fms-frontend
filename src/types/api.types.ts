@@ -31,6 +31,7 @@ export interface PaginationParams {
   alert_category?: string
   alert_category_id?: string
   is_read?: boolean
+  orig_fid?: number
 }
 
 export type ApiError = {

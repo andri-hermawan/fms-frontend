@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { ReloadOutlined, MenuOutlined } from '@ant-design/icons'
 import type { EquipmentMarkerData } from '@/types/map.types'
 import { getMarkerIcon } from '@/utils/marker-icon'
-import { formatTime } from '@/utils/format'
+import { formatTimeUtc } from '@/utils/format'
 
 interface Props {
   equipment?: EquipmentMarkerData
@@ -60,7 +60,7 @@ const DumpTruckStatusPanel = ({ equipment, equipments, totalCount }: Props) => {
       return acc
     }, {}),
   ).sort((a, b) => b.items.length - a.items.length)
-  // console.log(groups, 'groups')
+  console.log(groups, 'groups')
 
   const handleToggleGroup = (iconName: string) => {
     setExpandedGroup((prev) => (prev === iconName ? undefined : iconName))
@@ -220,7 +220,7 @@ const DumpTruckStatusPanel = ({ equipment, equipments, totalCount }: Props) => {
                       marginBottom: 6,
                     }}
                   >
-                    Last Update {formatTime(group.lastUpdate)}
+                    Last Update {formatTimeUtc(group.lastUpdate)}
                   </div>
 
                   <div

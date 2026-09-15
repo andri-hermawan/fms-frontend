@@ -23,7 +23,7 @@ const EquipmentMarker = ({
   const markerRefs = useRef<
     Record<string, LeafletMarker | null>
   >({})
-
+  
   useEffect(() => {
     const updateIconSize = () => {
       setIconSize(map.getZoom() >= 19 ? 64 : 32)
@@ -125,6 +125,7 @@ const EquipmentMarker = ({
             maxWidth={240}
             autoPan
             closeButton
+            className="equipment-popup"
           >
             <div
               style={{
@@ -137,15 +138,20 @@ const EquipmentMarker = ({
               {/* Header */}
               <div
                 style={{
-                  padding: '8px 10px',
-                  margin: '-9px -9px 8px -9px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '2px 24px 2px 8px',
+                  margin: '-8px -8px 7px -8px',
                   fontWeight: 600,
                   fontSize: 13,
                   textAlign: 'left',
                   borderRadius: '4px 4px 0 0',
                 }}
               >
-                {item.equipment_code}
+                <span>{item.equipment_code}</span>
+                <span>{item.operator_name?.trim() || 'No Operator Set'}</span>
               </div>
 
               <table
@@ -155,6 +161,48 @@ const EquipmentMarker = ({
                 }}
               >
                 <tbody>
+
+                  <tr>
+                    <td
+                      style={{
+                        fontWeight: 600,
+                        color: '#666',
+                        padding: '4px 0',
+                      }}
+                    >
+                      Segment
+                    </td>
+                    <td style={{ padding: '4px 0' }}>
+                      {item.segment}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td
+                      style={{
+                        fontWeight: 600,
+                        color: '#666',
+                        padding: '4px 0',
+                      }}
+                    >
+                      Coordinate
+                    </td>
+                    <td style={{ padding: '4px 0' }}>
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: '#1677ff',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {item.latitude.toFixed(6)}, {item.longitude.toFixed(6)}
+                      </a>
+                    </td>
+                  </tr>
+
                   <tr>
                     <td
                       style={{
@@ -204,7 +252,7 @@ const EquipmentMarker = ({
                       Fuel
                     </td>
                     <td style={{ padding: '4px 0' }}>
-                      {item.fuel_volume} liter , {item.fuel_percentage} %
+                      {item.fuel_volume} L &middot; {item.fuel_percentage}%
                     </td>
                   </tr>
 
@@ -219,8 +267,9 @@ const EquipmentMarker = ({
                       Vessel
                     </td>
                     <td style={{ padding: '4px 0' }}>
-                      {item.vessel_status}
-                    </td>
+                      {item.vessel_status} 
+                    </td> 
+                    {/* &middot; {item.vessel ? item.vessel: 0} ton */}
                   </tr>
 
                   <tr>

@@ -56,6 +56,7 @@ interface EquipmentStatusUpdateData {
   equipment_code: string
   equipment_alias: string
   equipment_type: string
+  operator_name?: string
   project_id: string
   project_code?: string
   project_name?: string
@@ -275,6 +276,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
         equipment_code: data.equipment_code,
         equipment_alias: data.equipment_alias,
         equipment_type: data.equipment_type,
+        operator_name: data.operator_name ?? prev?.operator_name ?? '',
         project_id: data.project_id,
         project_code: data.project_code,
         project_name: data.project_name,

@@ -37,6 +37,7 @@ import { useCreateBreakdownStatus } from '@/pages/upload-data/status-breakdown/u
 
 import useSocketTracking from '@/pages/tracking/hooks/useSocketTracking'
 import { useActivitySummary } from '@/pages/tracking/hooks/useActivitySummary'
+import { getOperationalDate } from '@/utils/operational-date'
 
 import EquipmentSearch from './components/EquipmentSearch'
 import EquipmentListPanel from './components/EquipmentListPanel'
@@ -58,7 +59,6 @@ const extractInitialEquipment = (response: LiveResponse): EquipmentLiveStatus[] 
 
 const TrackingPage = () => {
   const [showPanel, setShowPanel] = useState(true)
-  const [selectedDate] = useState(dayjs()) //setSelectedDate
   const [selectedEquipment, setSelectedEquipment] = useState<string>()
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string>()
 
@@ -133,7 +133,32 @@ const TrackingPage = () => {
   const project = useAuthStore((s) => s.project)
   const geoJson = project?.geojson_origin ?? null
 
-  const currentShift = useCurrentShift(project?.id, dayjs().format('HH:mm'))
+  const currentShiftQueryTime = dayjs().format('HH:mm')
+  const currentShift = useCurrentShift(project?.id, currentShiftQueryTime)
+
+  const selectedDate = useMemo(
+    () => getOperationalDate(dayjs(), currentShift.data),
+    [currentShift.data],
+  )
+
+  console.log('[TrackingPage] parameters:', {
+    currentShiftQuery: {
+      projectId: project?.id,
+      currentTime: currentShiftQueryTime,
+    },
+    currentShiftResponse: currentShift.data,
+    currentDateDisplay: selectedDate.format('YYYY-MM-DD'),
+    shiftSelect: {
+      value: currentShift.data?.shift_name,
+      label: currentShift.data?.shift_name,
+      loading: currentShift.isLoading,
+    },
+    activitySummary: {
+      start_date: selectedDate.startOf('day').format('YYYY-MM-DD'),
+      end_date: selectedDate.endOf('day').format('YYYY-MM-DD'),
+      shift: currentShift.data?.shift_name,
+    },
+  })
 
   const positionsMap = useEquipmentStatusStore(selectPositions)
 
@@ -143,7 +168,7 @@ const TrackingPage = () => {
   )
 
   // Debug: Log equipment data
-  console.log('[geoJson] geoJson:', geoJson)
+  // console.log('[geoJson] geoJson:', geoJson)
   // console.log('[TrackingPage] equipments count:', equipments.length)
   // console.log('[TrackingPage] equipments:', equipments)
 

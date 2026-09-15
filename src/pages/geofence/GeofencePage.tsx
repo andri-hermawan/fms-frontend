@@ -28,6 +28,7 @@ import {
 import EquipmentPassingTable from './components/EquipmentPassingTable'
 import HourlySummaryTable from './components/HourlySummaryTable'
 import HourlyTrafficChart from './components/HourlyTrafficChart'
+import SegmentMapController from './components/SegmentMapController'
 
 import { useAuthStore } from '@/stores/auth.store'
 import { useCurrentShift } from '@/pages/master/shift/useShift'
@@ -40,17 +41,38 @@ import useSocketTracking from '@/pages/tracking/hooks/useSocketTracking'
 import projectApi from '@/services/api/project.api'
 import geofenceApi from '@/services/api/geofence.api'
 import { useGeofenceStore } from '@/stores/geofence.store'
+import { getOperationalDate } from '@/utils/operational-date'
+import { useAttributes } from '@/hooks/useAttributes'
 import SegmentSearch from './components/SegmentSearch'
+
+const ALL_SEGMENTS = 'all'
 
 const GeofencePage = () => {
   const [showPanel, setShowPanel] = useState(true)
-  const [selectedDate] = useState(dayjs())
-  const [selectedSegment, setSelectedSegment] = useState<string>()
+  const [selectedSegment, setSelectedSegment] = useState(ALL_SEGMENTS)
+
+  const project = useAuthStore((s) => s.project)
+  const currentShift = useCurrentShift(project?.id, dayjs().format('HH:mm'))
+  const selectedDate = useMemo(
+    () => getOperationalDate(dayjs(), currentShift.data),
+    [currentShift.data],
+  )
+  const attributes = useAttributes({
+    page: 1,
+    limit: 99999,
+    orig_fid: 0,
+  })
 
   const setPassing = useGeofenceStore((s) => s.setPassing)
   const setSummary = useGeofenceStore((s) => s.setSummary)
 
   const refreshGeofenceData = useCallback(async () => {
+    if (selectedSegment === ALL_SEGMENTS) {
+      setPassing([])
+      setSummary([])
+      return
+    }
+
     try {
       const params = {
         page: 1,
@@ -82,10 +104,7 @@ const GeofencePage = () => {
     onGeofenceEvent: refreshGeofenceData,
   })
 
-  const project = useAuthStore((s) => s.project)
   const geoJson = project?.geojson_origin ?? null
-
-  const currentShift = useCurrentShift(project?.id, dayjs().format('HH:mm'))
 
   const positionsMap = useEquipmentStatusStore(selectPositions)
 
@@ -97,32 +116,20 @@ const GeofencePage = () => {
   const segmentOptions = useMemo(() => {
     const uniqueSegments = Array.from(
       new Set(
-        equipments
-          .map((x) => x.segment)
+        (attributes.data?.data ?? [])
+          .map((attribute) => attribute.segment)
           .filter((x): x is string => Boolean(x)),
       ),
     ).sort((a, b) => a.localeCompare(b))
 
-    return uniqueSegments.map((segment) => ({
-      label: segment,
-      value: segment,
-    }))
-  }, [equipments])
-
-  const filteredEquipments = useMemo(() => {
-    if (!selectedSegment) return equipments
-
-    return equipments.filter(
-      (x) => x.segment === selectedSegment,
-    )
-  }, [equipments, selectedSegment])
-
-  // TIDAK fallback ke filteredEquipments[0] lagi.
-  // undefined saat load pertama -> MapController pakai defaultCenter/defaultZoom (tidak zoom in).
-  // terisi saat user pilih segment -> MapController flyTo zoom ke marker pertama segment tsb.
-  const selectedMarker = selectedSegment
-    ? filteredEquipments[0]
-    : undefined
+    return [
+      { label: 'All', value: ALL_SEGMENTS },
+      ...uniqueSegments.map((segment) => ({
+        label: segment,
+        value: segment,
+      })),
+    ]
+  }, [attributes.data])
 
   const isConnected = useEquipmentStatusStore((s) => s.isConnected)
   const isLoading = equipments.length === 0 && !isConnected
@@ -180,9 +187,9 @@ const GeofencePage = () => {
 
   const passingData = passing ?? []
 
-  const filteredPassing = selectedSegment
+  const filteredPassing = selectedSegment !== ALL_SEGMENTS
     ? passingData.filter((x) => x.segment === selectedSegment)
-    : passingData
+    : []
 
   const hourlySummary = summary ?? []
 
@@ -272,9 +279,12 @@ const GeofencePage = () => {
             <MapResize deps={showPanel} />
 
             <MapController
-              latitude={selectedMarker?.latitude}
-              longitude={selectedMarker?.longitude}
               zoom={19}
+            />
+
+            <SegmentMapController
+              geoJson={geoJson}
+              segment={selectedSegment}
             />
 
             <ResetViewButton />
@@ -290,7 +300,7 @@ const GeofencePage = () => {
 
             <MapLayers
               geoJson={geoJson}
-              equipments={filteredEquipments}
+              equipments={equipments}
               selectedEquipment={undefined}
               onSelectEquipment={handleSelectEquipment}
             />
@@ -322,7 +332,7 @@ const GeofencePage = () => {
                 value={selectedSegment}
                 options={segmentOptions}
                 onChange={(segment) => {
-                  setSelectedSegment(segment)
+                  setSelectedSegment(segment ?? ALL_SEGMENTS)
                 }}
               />
 

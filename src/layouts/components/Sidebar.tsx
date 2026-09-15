@@ -113,7 +113,7 @@ const MENU_CONFIG: MenuConfig[] = [
   {
     key: 'graphic',
     icon: <ChartNoAxesCombined {...iconStyle} />,
-    label: 'Graphic',
+    label: 'Position History',
     path: ROUTES.POSITION_HISTORY,
   },
   {
@@ -131,7 +131,7 @@ const MENU_CONFIG: MenuConfig[] = [
   {
     key: 'fuel',
     icon: <Fuel {...iconStyle} />,
-    label: 'Fuel',
+    label: 'Fuel History',
     path: ROUTES.FUEL,
   },
   {

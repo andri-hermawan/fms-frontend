@@ -25,6 +25,11 @@ export const formatTime = (date?: string | Date): string => {
   return dayjs(date).format('HH:mm')
 }
 
+export const formatTimeUtc = (date?: string | Date): string => {
+  if (!date) return '-'
+  return dayjs.utc(date).format('HH:mm')
+}
+
 export const formatRelative = (date: string | Date): string => {
   if (!date) return '-'
   return dayjs.utc(date).fromNow()

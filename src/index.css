@@ -73,6 +73,14 @@ html {
   display: none !important;
 }
 
+.equipment-popup .leaflet-popup-close-button {
+  top: 0 !important;
+  right: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+}
+
 /* ===========================
    Custom Ant Design Table
 =========================== */

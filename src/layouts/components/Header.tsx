@@ -1,4 +1,4 @@
-import { Layout, Button, Avatar, Dropdown, Space, Typography } from 'antd'
+import { Layout, Button, Avatar, Dropdown, Space } from 'antd'
 import type { MenuProps } from 'antd'
 import {
   MenuFoldOutlined,
@@ -14,13 +14,13 @@ import { ROUTES } from '@/router/routes'
 import AlertDropdown from './AlertDropdown'
 
 const { Header: AntHeader } = Layout
-const { Text } = Typography
+// const { Text } = Typography
 
 const Header = () => {
   const navigate = useNavigate()
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
-  const pageTitle = useUiStore((s) => s.pageTitle)
+  // const pageTitle = useUiStore((s) => s.pageTitle)
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
 
@@ -80,7 +80,7 @@ const Header = () => {
           }}
         />
 
-        <Text
+        {/* <Text
           strong
           style={{
             fontSize: 20,
@@ -89,7 +89,7 @@ const Header = () => {
           }}
         >
           {pageTitle}
-        </Text>
+        </Text> */}
       </Space>
 
       {/* Right: notif + user */}

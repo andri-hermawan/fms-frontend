@@ -4,10 +4,13 @@ import type { GeoJsonObject } from 'geojson'
 export interface EquipmentMarkerData {
   equipment_id: string
   equipment_code: string
+  operator_name: string
+  segment: string
   latitude: number
   longitude: number
   heading: number
   speed: number
+  vessel: number
   vessel_status: string
   status: string
   gsm_signal: number

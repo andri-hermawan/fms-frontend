@@ -120,7 +120,8 @@ const AlertSectionsPanel = ({ equipment, selectedDate }: Props) => {
         style={{
           flex: 1,
           minHeight: 0,
-          overflow: 'hidden',
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
         <Table
@@ -133,8 +134,6 @@ const AlertSectionsPanel = ({ equipment, selectedDate }: Props) => {
           pagination={false}
           size="small"
           tableLayout="fixed"
-          sticky
-          scroll={{ y: '100%' }}
           locale={{ emptyText: 'No alert data available' }}
           onRow={(record) => {
             const color = getAlertCategoryColor(record.alert_category_name)
@@ -142,7 +141,6 @@ const AlertSectionsPanel = ({ equipment, selectedDate }: Props) => {
               ? {
                   style: {
                     background: color,
-                    color: '#fff',
                   },
                 }
               : {}

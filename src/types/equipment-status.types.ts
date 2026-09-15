@@ -6,6 +6,7 @@ export interface EquipmentLiveStatus {
   equipment_code: string
   equipment_alias: string
   equipment_type: string
+  operator_name: string
   project_id: string
   project_code?: string
   project_name?: string

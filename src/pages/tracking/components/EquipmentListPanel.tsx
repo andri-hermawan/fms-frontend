@@ -5,7 +5,7 @@ import { CloseOutlined, InfoCircleFilled } from '@ant-design/icons'
 import type { EquipmentMarkerData } from '@/types/map.types'
 import type { ActivitySummaryData } from '@/types/tracking.types'
 import { getMarkerIcon } from '@/utils/marker-icon'
-import { formatTime } from '@/utils/format'
+import { formatTimeUtc } from '@/utils/format'
 
 interface Props {
   equipments: EquipmentMarkerData[]
@@ -231,7 +231,7 @@ const EquipmentListPanel = ({
                       }}
                       title="Klik untuk refresh"
                     >
-                      {formatTime(item.recorded_at)}
+                      {formatTimeUtc(item.recorded_at)}
                     </span>
                   </div>
 
