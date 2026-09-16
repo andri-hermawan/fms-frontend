@@ -4,9 +4,15 @@ import type { EquipmentLog } from '@/types/equipment-logs.types'
 
 interface PositionHistoryListProps {
   data: EquipmentLog[]
+  selectedId?: string | null
+  onSelect?: (log: EquipmentLog) => void
 }
 
-const PositionHistoryList = ({ data }: PositionHistoryListProps) => {
+const PositionHistoryList = ({
+  data,
+  selectedId,
+  onSelect,
+}: PositionHistoryListProps) => {
   if (data.length === 0) {
     return <Empty description="No data available" style={{ marginTop: 48 }} />
   }
@@ -16,12 +22,20 @@ const PositionHistoryList = ({ data }: PositionHistoryListProps) => {
       {data.map((log) => (
         <div
           key={log.id}
+          onClick={() => onSelect?.(log)}
           style={{
             padding: '10px 12px',
             borderRadius: 8,
             border: '1px solid #f0f0f0',
             background: '#fff',
             transition: 'background .2s',
+            cursor: onSelect ? 'pointer' : 'default',
+            ...(selectedId === log.id
+              ? {
+                  border: '1px solid #064596',
+                  background: '#e6f4ff',
+                }
+              : {}),
           }}
         >
           <div

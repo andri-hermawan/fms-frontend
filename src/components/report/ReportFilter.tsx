@@ -1,6 +1,7 @@
 import { Drawer, Button, Flex, Form, DatePicker, Select, Spin } from 'antd'
 import type { ReactNode } from 'react'
 import type { Dayjs } from 'dayjs'
+import { useEquipments } from '@/pages/master/equipment/useEquipment'
 
 const { RangePicker } = DatePicker
 
@@ -49,6 +50,18 @@ const ReportFilter = ({
   children,
 }: ReportFilterProps) => {
   const [form] = Form.useForm<ReportFilterFormValues>()
+
+  // Ambil daftar equipment untuk pilihan Equipment Code
+  const { data: equipmentsData, isLoading: equipmentsLoading } = useEquipments({
+    limit: 999999,
+  })
+  const equipmentOptions = [
+    { label: 'ALL', value: '' },
+    ...(equipmentsData?.data ?? []).map((e) => ({
+      label: e.equipment_code,
+      value: e.equipment_code,
+    })),
+  ]
 
   const handleApply = () => {
     form.validateFields().then((values) => {
@@ -112,8 +125,19 @@ const ReportFilter = ({
             )}
 
             {showEquipment && (
-              <Form.Item name="equipmentId" label="Equipment">
-                <Select placeholder="Pilih equipment" allowClear options={[]} />
+              <Form.Item name="equipmentId" label="Equipment Code">
+                <Select
+                  placeholder="Pilih equipment code"
+                  allowClear
+                  loading={equipmentsLoading}
+                  options={equipmentOptions}
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? '')
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                />
               </Form.Item>
             )}
 

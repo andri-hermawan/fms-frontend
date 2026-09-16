@@ -6,25 +6,28 @@ import type { SegmentSpeedSummary } from '@/types/equipment-logs.types'
 interface Props {
   geoJson: GeoJsonObject | null
   speedData?: SegmentSpeedSummary[]
+  showAllLabels?: boolean
 }
 
-const SegmentTooltipLayer = ({ geoJson, speedData }: Props) => {
+const SegmentTooltipLayer = ({ geoJson, speedData, showAllLabels = false }: Props) => {
   if (!geoJson) return null
 
   const data = geoJson as Parameters<typeof L.geoJSON>[0]
   if (!data || Array.isArray(data)) return null
 
+  const baseStyle: L.PathOptions = {
+    color: '#6b7280',
+    weight: 2,
+    opacity: 1,
+    fillColor: '#d1d5db',
+    fillOpacity: 0.25,
+  }
+
   return (
     <GeoJSON
-      key={`geo-${speedData?.length ?? 0}`}
+      key={`geo-${speedData?.length ?? 0}-${showAllLabels ? 'labels' : 'hover'}`}
       data={data}
-      style={{
-        color: '#6b7280',
-        weight: 2,
-        opacity: 1,
-        fillColor: '#d1d5db',
-        fillOpacity: 0.25,
-      }}
+      style={baseStyle}
       onEachFeature={(feature, layer) => {
         const props = feature.properties ?? {}
         const segName = props.Segment ?? props.segment ?? '-'
@@ -37,6 +40,9 @@ const SegmentTooltipLayer = ({ geoJson, speedData }: Props) => {
 
         // console.log('[SegmentTooltipLayer] segName raw:', JSON.stringify(segName), '| speedData segments:', JSON.stringify(speedData?.map(s => s.segment)), '| match:', match, '| emptySpeed:', emptySpeed, '| loadedSpeed:', loadedSpeed, '| speedData:', speedData)
 
+        // Tooltip hanya tampil saat polygon di-hover (tanpa `permanent`),
+        // dan `sticky: true` membuatnya mengikuti kursor sehingga tidak
+        // menumpuk permanen di tengah polygon / menutupi marker.
         layer.bindTooltip(
           `<div style="font-size:10px;line-height:1.3">
             <b style="font-size:11px">${segName}</b><br/>
@@ -44,21 +50,31 @@ const SegmentTooltipLayer = ({ geoJson, speedData }: Props) => {
             <span style="color:#555">S,Loaded</span> <span style="color:#064596;font-weight:600">${loadedSpeed}</span>
           </div>`,
           {
-            permanent: true,
-            direction: 'center',
+            permanent: showAllLabels,
+            sticky: true,
+            direction: 'top',
+            offset: [0, -10],
             className: 'segment-tooltip-label',
-            opacity: 0.85,
+            opacity: 0.95,
           },
         )
 
-        // Open tooltip at polygon center
-        try {
-          const center = (layer as L.Polygon).getCenter?.()
-          if (center) {
-            layer.openTooltip(center)
-          }
-        } catch {
-          // fallback
+        // Highlight polygon saat hover agar area yang dibaca terlihat jelas
+        // (dihapus — cukup tooltip saja)
+
+        if (showAllLabels) {
+          // onEachFeature berjalan sebelum layer masuk ke map, sehingga
+          // openTooltip() saat ini akan error (map belum tersedia).
+          // Tunda sampai layer benar-benar ter-add ke map.
+          layer.once('add', () => {
+            // Anchor awal mengikuti label point polygon seperti ArcGIS,
+            // bukan posisi default tooltip yang dapat bergeser ke tepi layer.
+            const polygon = layer as L.Polygon
+            const center = polygon.getCenter?.()
+            if (center) {
+              layer.openTooltip(center)
+            }
+          })
         }
       }}
     />

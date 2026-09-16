@@ -90,6 +90,12 @@ export interface EquipmentSearchProps {
     value: string
   }[]
 
+  /**
+   * Bila true, tambahkan opsi "ALL" (value: '') di paling atas.
+   * Memilih ALL akan mengosongkan filter `search` pada request.
+   */
+  showAllOption?: boolean
+
   onChange?: (
     value?: string,
   ) => void

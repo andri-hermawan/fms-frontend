@@ -8,23 +8,59 @@ import dayjs from 'dayjs'
 
 import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
-import { BaseMap, MapController, MapResize, MapLegendSpeed } from '@/components/map'
+import { BaseMap, MapController, MapResize, MapLegendSpeed, ResetViewButton } from '@/components/map'
 import SegmentTooltipLayer from './SegmentTooltipLayer'
 import SpeedPerSegmentList from './components/SpeedPerSegmentList'
+import SegmentTooltipControl from './components/SegmentTooltipControl'
 import { useAuthStore } from '@/stores/auth.store'
+import { useCurrentShift } from '@/pages/master/shift/useShift'
+import { getOperationalDate } from '@/utils/operational-date'
 import { useEquipmentLogsByDateShift, useSegmentSpeedSummary } from '@/hooks/useEquipmentLogs'
 import { getSpeedColor, getSpeedBand, SPEED_COLOR_BANDS } from '@/utils/speed-color'
+
+// Ambil nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence
+const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): string | undefined => {
+  const parsed = shift?.shift_name?.match(/(\d+)\s*$/)?.[1]
+  if (parsed) return parsed
+  return shift?.sequence != null ? String(shift.sequence) : undefined
+}
 
 const SpeedPerSegmentPage = () => {
   const navigate = useNavigate()
 
   const [showPanel, setShowPanel] = useState(true)
-  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null)
-  const [shift, setShift] = useState<string | undefined>(undefined)
-  const [speedFilter, setSpeedFilter] = useState<string | undefined>(undefined)
 
+  // Override hanya terisi saat user mengubah filter.
+  // Selama null, nilai dipakai dari default operasional (current shift).
+  const [dateOverride, setDateOverride] = useState<dayjs.Dayjs | null>(null)
+  const [shiftOverride, setShiftOverride] = useState<string | null>(null)
+  const [speedFilter, setSpeedFilter] = useState<string | undefined>(undefined)
+  const [showAllLabels, setShowAllLabels] = useState(false)
+
+  const project = useAuthStore((s) => s.project)
+  const geoJson = project?.geojson_origin ?? null
+
+  // ─── Current shift (sumber default tanggal & shift operasional) ──
+  const currentShift = useCurrentShift(project?.id, dayjs().format('HH:mm'))
+
+  // Tanggal efektif: override user bila ada, selain itu tanggal operasional
+  // (mundur 1 hari bila shift malam sudah lewat tengah malam).
+  const selectedDate = useMemo(
+    () =>
+      dateOverride ??
+      (currentShift.data ? getOperationalDate(dayjs(), currentShift.data) : dayjs()),
+    [dateOverride, currentShift.data],
+  )
+
+  // Shift efektif: override user bila ada, selain itu shift yang sedang berjalan.
+  const shift = useMemo(
+    () => shiftOverride ?? toShiftValue(currentShift.data) ?? '1',
+    [shiftOverride, currentShift.data],
+  )
+
+  // Sync URL params when filter changes
   const syncUrl = useCallback(
-    (date?: dayjs.Dayjs | null, shiftVal?: string) => {
+    (date?: dayjs.Dayjs, shiftVal?: string) => {
       const params = new URLSearchParams()
       if (date) params.set('date', date.format('YYYY-MM-DD'))
       if (shiftVal) params.set('shift', `Shift ${shiftVal}`)
@@ -37,11 +73,8 @@ const SpeedPerSegmentPage = () => {
     syncUrl(selectedDate, shift)
   }, [selectedDate, shift, syncUrl])
 
-  const project = useAuthStore((s) => s.project)
-  const geoJson = project?.geojson_origin ?? null
-
-  const dateStr = selectedDate?.format('YYYY-MM-DD') ?? null
-  const shiftLabel = shift === '1' ? 'Shift 1' : shift === '2' ? 'Shift 2' : null
+  const dateStr = selectedDate.format('YYYY-MM-DD')
+  const shiftLabel = `Shift ${shift}`
 
   const logsParams = useMemo(() => {
     if (!dateStr || !shiftLabel) return null
@@ -49,7 +82,7 @@ const SpeedPerSegmentPage = () => {
   }, [dateStr, shiftLabel])
 
   const { data: logsData } = useEquipmentLogsByDateShift(logsParams)
-  const logs = logsData?.data ?? []
+  const logs = useMemo(() => logsData?.data ?? [], [logsData])
   // console.log("logs:", logs)
   const { data: speedSummaryData } = useSegmentSpeedSummary(logsParams)
   const speedData = speedSummaryData?.data ?? []
@@ -159,7 +192,16 @@ const SpeedPerSegmentPage = () => {
           <BaseMap>
             <MapController defaultCenter={defaultMapCenter} defaultZoom={14} />
             <MapResize deps={showPanel} />
-            <SegmentTooltipLayer geoJson={geoJson} speedData={speedData} />
+            <ResetViewButton />
+            <SegmentTooltipLayer
+              geoJson={geoJson}
+              speedData={speedData}
+              showAllLabels={showAllLabels}
+            />
+            <SegmentTooltipControl
+              enabled={showAllLabels}
+              onChange={setShowAllLabels}
+            />
             {filteredLogs.map((log) =>
               log.latitude && log.longitude ? (
                 <Marker
@@ -195,13 +237,12 @@ const SpeedPerSegmentPage = () => {
           >
             <CurrentDateDisplay
               value={selectedDate}
-              onChange={(date) => setSelectedDate(date)}
+              onChange={setDateOverride}
             />
             <Select
               value={shift}
-              onChange={(val) => setShift(val)}
-              allowClear
-              placeholder="Pilih Shift"
+              loading={currentShift.isLoading}
+              onChange={(val: string) => setShiftOverride(val)}
               options={[
                 { label: 'Shift 1', value: '1' },
                 { label: 'Shift 2', value: '2' },

@@ -2,15 +2,18 @@ import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Select, Spin } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
-import { Marker, useMap } from 'react-leaflet'
+import { Marker, Tooltip, useMap } from 'react-leaflet'
 import dayjs from 'dayjs'
+import L from 'leaflet'
 
 import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
 import { BaseMap, GeofenceLayer, MapController, MapResize, ResetViewButton } from '@/components/map'
 import { useAuthStore } from '@/stores/auth.store'
+import { useCurrentShift } from '@/pages/master/shift/useShift'
+import { getOperationalDate } from '@/utils/operational-date'
 import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
-import { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
+import useEquipmentLogs, { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
 import PositionHistoryChart from './components/PositionHistoryChart'
 import PositionHistoryList from './components/PositionHistoryList'
 import type { AlertDataPoint } from './components/PositionHistoryChart'
@@ -43,16 +46,67 @@ const toMarkerData = (log: EquipmentLog): EquipmentMarkerData => ({
   recorded_at: log.created_at,
 })
 
-// Marker dengan icon berdasarkan status & vessel_status (seperti TrackingPage)
-const LogMarker = ({ log }: { log: EquipmentLog }) => {
+// Marker dengan icon berdasarkan status & vessel_status (seperti TrackingPage).
+// Bila `selected` true, marker diberi lingkaran pulse supaya mudah dikenali
+// di antara banyak titik yang tumpang tindih.
+const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: boolean }) => {
   const markerData = toMarkerData(log)
   if (markerData.latitude === 0 && markerData.longitude === 0) return null
+
+  const tooltipContent = (
+    <div style={{ minWidth: 250, lineHeight: 1.6 }}>
+      <div>
+        <strong>Jam:</strong> {dayjs(log.created_at).format('HH:mm')}
+        {' - '}
+        <strong>Speed:</strong> {markerData.speed.toFixed(2)}
+        {' - '}
+        <strong>Fuel:</strong> {markerData.fuel_percentage.toFixed(0)}%
+      </div>
+      <div><strong>Segment:</strong> {markerData.segment || '-'}</div>
+      <div><strong>Coordinat:</strong> {markerData.latitude.toFixed(6)}, {markerData.longitude.toFixed(6)}</div>
+    </div>
+  )
+
+  if (selected) {
+    const baseIcon = getMarkerIcon(markerData)
+    const url = baseIcon.options.iconUrl as string
+    const html = `
+      <div class="position-history-selected-marker">
+        <span class="pulse-ring"></span>
+        <img src="${url}" alt="" />
+      </div>`
+    return (
+      <Marker
+        position={[markerData.latitude, markerData.longitude]}
+        icon={L.divIcon({
+          html,
+          className: '',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        })}
+        zIndexOffset={1000}
+      >
+        <Tooltip
+          direction="top"
+          offset={[0, -18]}
+          opacity={1}
+          permanent
+        >
+          {tooltipContent}
+        </Tooltip>
+      </Marker>
+    )
+  }
 
   return (
     <Marker
       position={[markerData.latitude, markerData.longitude]}
       icon={getMarkerIcon(markerData)}
-    />
+    >
+      <Tooltip direction="top" offset={[0, -18]}>
+        {tooltipContent}
+      </Tooltip>
+    </Marker>
   )
 }
 
@@ -67,28 +121,68 @@ const FlyToLogMarker = ({ lat, lng, trigger }: { lat: number; lng: number; trigg
   return null
 }
 
+// Ambil nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence
+const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): string | undefined => {
+  const parsed = shift?.shift_name?.match(/(\d+)\s*$/)?.[1]
+  if (parsed) return parsed
+  return shift?.sequence != null ? String(shift.sequence) : undefined
+}
+
+const getAlertStatus = (log: EquipmentLog): string | undefined => {
+  const alert = log.alerts?.find((item) => typeof item?.status === 'string' && item.status.trim())
+  const status = alert?.status?.trim()
+  return status || undefined
+}
+
 const PositionHistoryPage = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const initialCode = searchParams.get('equipmentCode') ?? ''
   const initialDate = searchParams.get('date')
-  const initialShift = searchParams.get('shift') ?? '1'
+  const initialShift = searchParams.get('shift')
 
   // Normalize: URL param bisa 'Shift 1' / 'Shift 2' atau '1' / '2'
-  const normalizedShift = initialShift === 'Shift 1' || initialShift === 'Shift 2'
+  const normalizedShift = initialShift
     ? initialShift.replace('Shift ', '')
-    : initialShift
+    : undefined
 
   const [showPanel, setShowPanel] = useState(true)
-  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs>(
-    initialDate && dayjs(initialDate).isValid() ? dayjs(initialDate) : dayjs(),
-  )
-  const [shift, setShift] = useState<string>(normalizedShift)
   const [search, setSearch] = useState<string>(initialCode || '')
+
+  // Override hanya terisi saat user mengubah filter (atau dari deep-link URL).
+  // Selama null, nilai dipakai dari default operasional (current shift).
+  const [dateOverride, setDateOverride] = useState<dayjs.Dayjs | null>(
+    initialDate && dayjs(initialDate).isValid() ? dayjs(initialDate) : null,
+  )
+  const [shiftOverride, setShiftOverride] = useState<string | null>(
+    normalizedShift ?? null,
+  )
   const [flyToIndex, setFlyToIndex] = useState<number>(0)
   const [flyToTrigger, setFlyToTrigger] = useState<number>(0)
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null)
 
   const defaultMapCenter = useMemo(() => [-3.585, 103.809] as [number, number], [])
+
+  const project = useAuthStore((s) => s.project)
+  const geoJson = project?.geojson_origin ?? null
+
+  // ─── Current shift (sumber default tanggal & shift operasional) ──
+  const currentShift = useCurrentShift(project?.id, dayjs().format('HH:mm'))
+
+  // Tanggal efektif: override user bila ada, selain itu tanggal operasional
+  // (mundur 1 hari bila shift malam sudah lewat tengah malam).
+  const selectedDate = useMemo(
+    () =>
+      dateOverride ??
+      (currentShift.data ? getOperationalDate(dayjs(), currentShift.data) : dayjs()),
+    [dateOverride, currentShift.data],
+  )
+
+  // Shift efektif: override user bila ada, selain itu shift yang sedang berjalan.
+  const shift = useMemo(
+    () => shiftOverride ?? toShiftValue(currentShift.data) ?? '1',
+    [shiftOverride, currentShift.data],
+  )
 
   // Sync URL params when filter changes
   const syncUrl = useCallback(
@@ -107,27 +201,52 @@ const PositionHistoryPage = () => {
     syncUrl(search, selectedDate, shift)
   }, [search, selectedDate, shift, syncUrl])
 
-  const project = useAuthStore((s) => s.project)
-  const geoJson = project?.geojson_origin ?? null
-
   const dateStr = selectedDate.format('YYYY-MM-DD')
 
   // ─── Data Equipment Logs (chart + map + list) ──────────────
-  const shiftLabel = shift === '1' ? 'Shift 1' : 'Shift 2'
+  const shiftLabel = `Shift ${shift}`
 
   const equipmentLogsParams = useMemo(() => {
+    if (!dateStr || !search) return null
+    return {
+      created_at: dateStr,
+      equipment_code: search,
+      shift: shiftLabel,
+    }
+  }, [dateStr, search, shiftLabel])
+
+  const { data: equipmentLogsData, isLoading: isEquipmentLogsLoading } = useEquipmentLogs(equipmentLogsParams)
+
+  const allLogsParams = useMemo(() => {
     if (!dateStr) return null
     return { created_at: dateStr, shift: shiftLabel }
   }, [dateStr, shiftLabel])
-
-  const { data: logsData, isLoading } = useEquipmentLogsByDateShift(equipmentLogsParams)
+  const { data: allLogsData } = useEquipmentLogsByDateShift(allLogsParams)
 
   // Filter logs by selected equipment code
   const filteredLogs = useMemo(() => {
-    const logs = logsData?.data ?? []
-    if (!search) return []
-    return logs.filter((log) => log.equipment_code === search)
-  }, [logsData, search])
+    return equipmentLogsData?.data ?? []
+  }, [equipmentLogsData])
+
+  useEffect(() => {
+    console.log(
+      'alert logs',
+      filteredLogs.filter((log) => log.alerts?.length > 0),
+    )
+  }, [filteredLogs])
+
+  // Pindahkan map ke log terpilih & tandai marker-nya sebagai terpilih.
+  const focusLog = useCallback(
+    (log: EquipmentLog | undefined) => {
+      if (!log) return
+      const idx = filteredLogs.findIndex((l) => l.id === log.id)
+      if (idx < 0) return
+      setSelectedLogId(log.id)
+      setFlyToIndex(idx)
+      setFlyToTrigger((prev) => prev + 1)
+    },
+    [filteredLogs],
+  )
 
   const chartData: AlertDataPoint[] = useMemo(() => {
     const logs = filteredLogs
@@ -135,7 +254,7 @@ const PositionHistoryPage = () => {
     const result = logs.map((log) => {
       const speed = Number(log.speed) || 0
       const fuel = Number(log.fuel_percentage) || 0
-      const alertStatus = log.alerts?.[0]?.status || log.status || undefined
+      const alertStatus = getAlertStatus(log)
       return {
         time: dayjs(log.created_at).format('HH:mm'),
         speed,
@@ -152,11 +271,11 @@ const PositionHistoryPage = () => {
     return result
   }, [filteredLogs])
 
-  // ─── Equipment Options (dari logsData) ─────────────────
+  // ─── Equipment Options (dari seluruh log tanggal dan shift) ──
 
   const equipmentOptions = useMemo(() => {
     const codes = new Set<string>()
-    const logs = logsData?.data ?? []
+    const logs = allLogsData?.data ?? []
     logs.forEach((log) => {
       const code = log.equipment_code ?? log.vessel
       if (code) codes.add(code)
@@ -164,7 +283,7 @@ const PositionHistoryPage = () => {
     return Array.from(codes)
       .sort()
       .map((code) => ({ label: code, value: code }))
-  }, [logsData])
+  }, [allLogsData])
 
   return (
     <div
@@ -235,7 +354,7 @@ const PositionHistoryPage = () => {
             }}
             styles={{ body: { padding: 0, height: '100%' } }}
           >
-            {isLoading && (
+            {isEquipmentLogsLoading && (
               <div
                 style={{
                   position: 'absolute',
@@ -262,7 +381,11 @@ const PositionHistoryPage = () => {
                 trigger={flyToTrigger}
               />
               {filteredLogs.map((log) => (
-                <LogMarker key={log.id} log={log} />
+                <LogMarker
+                  key={`${log.id}-${log.id === selectedLogId ? 'selected' : 'default'}`}
+                  log={log}
+                  selected={log.id === selectedLogId}
+                />
               ))}
             </BaseMap>
           </Card>
@@ -272,8 +395,7 @@ const PositionHistoryPage = () => {
             equipmentCode={search || 'No Equipment Selected'}
             data={chartData}
             onClick={(dataIndex) => {
-              setFlyToIndex(dataIndex)
-              setFlyToTrigger((prev) => prev + 1)
+              focusLog(filteredLogs[dataIndex])
             }}
           />
         </div>
@@ -306,12 +428,13 @@ const PositionHistoryPage = () => {
             />
             <CurrentDateDisplay
               value={selectedDate}
-              onChange={(date) => date && setSelectedDate(date)}
+              onChange={setDateOverride}
             />
             <Select
               size="large"
               value={shift}
-              onChange={setShift}
+              loading={currentShift.isLoading}
+              onChange={(val: string) => setShiftOverride(val)}
               options={[
                 { label: 'Shift 1', value: '1' },
                 { label: 'Shift 2', value: '2' },
@@ -352,7 +475,11 @@ const PositionHistoryPage = () => {
               marginTop: 8,
             }}
           >
-            <PositionHistoryList data={filteredLogs} />
+            <PositionHistoryList
+              data={filteredLogs}
+              selectedId={selectedLogId}
+              onSelect={focusLog}
+            />
           </div>
         </div>
         )}

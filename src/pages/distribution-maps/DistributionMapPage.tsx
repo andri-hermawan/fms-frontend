@@ -7,9 +7,11 @@ import dayjs from 'dayjs'
 
 import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
-import { BaseMap, GeofenceLayer, MapController, MapResize } from '@/components/map'
+import { BaseMap, GeofenceLayer, MapController, MapResize, ResetViewButton } from '@/components/map'
 import { formatDurationBetween, formatTime } from '@/utils/format'
 import { useAuthStore } from '@/stores/auth.store'
+import { useCurrentShift } from '@/pages/master/shift/useShift'
+import { getOperationalDate } from '@/utils/operational-date'
 import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
 import AlertSummary from './components/AlertSummary'
 import alertApi from '@/services/api/alert.api'
@@ -52,15 +54,44 @@ const AlertDotMarker = ({ alert }: { alert: Alert }) => {
   )
 }
 
+// Ambil nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence
+const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): string | undefined => {
+  const parsed = shift?.shift_name?.match(/(\d+)\s*$/)?.[1]
+  if (parsed) return parsed
+  return shift?.sequence != null ? String(shift.sequence) : undefined
+}
+
 const DistributionMapPage = () => {
   const [showPanel, setShowPanel] = useState(true)
-  const [selectedDate, setSelectedDate] = useState(dayjs())
-  const [shift, setShift] = useState<string>('1')
-  const [search, setSearch] = useState<string>()
+  // '' = ALL (tanpa filter equipment_code)
+  const [search, setSearch] = useState<string>('')
   const [category, setCategory] = useState<string>()
+
+  // Override hanya terisi saat user mengubah filter.
+  // Selama null, nilai dipakai dari default operasional (current shift).
+  const [dateOverride, setDateOverride] = useState<dayjs.Dayjs | null>(null)
+  const [shiftOverride, setShiftOverride] = useState<string | null>(null)
 
   const project = useAuthStore((s) => s.project)
   const geoJson = project?.geojson_origin ?? null
+
+  // ─── Current shift (sumber default tanggal & shift operasional) ──
+  const currentShift = useCurrentShift(project?.id, dayjs().format('HH:mm'))
+
+  // Tanggal efektif: override user bila ada, selain itu tanggal operasional
+  // (mundur 1 hari bila shift malam sudah lewat tengah malam).
+  const selectedDate = useMemo(
+    () =>
+      dateOverride ??
+      (currentShift.data ? getOperationalDate(dayjs(), currentShift.data) : dayjs()),
+    [dateOverride, currentShift.data],
+  )
+
+  // Shift efektif: override user bila ada, selain itu shift yang sedang berjalan.
+  const shift = useMemo(
+    () => shiftOverride ?? toShiftValue(currentShift.data) ?? '1',
+    [shiftOverride, currentShift.data],
+  )
 
   const dateStr = selectedDate.format('YYYY-MM-DD')
 
@@ -70,7 +101,7 @@ const DistributionMapPage = () => {
     queryFn: () => {
       const params = {
         page: 1,
-        limit: 100,
+        limit: 999999,
         created_at: dateStr,
         created_at_end: dateStr,
         ...(category ? { alert_category_id: category } : {}),
@@ -90,7 +121,8 @@ const DistributionMapPage = () => {
   })
 
   const alerts = (data?.data ?? []).filter((alert) => {
-    if (!search) return false
+    // '' = ALL → tampilkan seluruh alert pada tanggal tersebut
+    if (!search) return true
     const code = alert.equipments?.equipment_code ?? alert.vessel
     return code === search
   })
@@ -203,6 +235,7 @@ const DistributionMapPage = () => {
           <BaseMap>
             <MapResize deps={showPanel} />
             <MapController />
+            <ResetViewButton />
             <GeofenceLayer geoJson={geoJson} />
             {alerts.map((alert) => (
               <AlertDotMarker key={alert.id} alert={alert} />
@@ -234,17 +267,19 @@ const DistributionMapPage = () => {
             <EquipmentSearch
               value={search}
               options={equipmentOptions}
-              onChange={(code) => setSearch(code || undefined)}
+              showAllOption
+              onChange={(code) => setSearch(code ?? '')}
             />
             <div style={{ display: 'flex', gap: 8 }}>
               <CurrentDateDisplay
                 value={selectedDate}
-                onChange={(date) => date && setSelectedDate(date)}
+                onChange={setDateOverride}
               />
               <Select
                 size="large"
                 value={shift}
-                onChange={setShift}
+                loading={currentShift.isLoading}
+                onChange={(val: string) => setShiftOverride(val)}
                 options={[
                   { label: 'Shift 1', value: '1' },
                   { label: 'Shift 2', value: '2' },

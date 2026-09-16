@@ -7,8 +7,11 @@ import {
   DashboardOutlined,
   AlertOutlined,
 } from '@ant-design/icons'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '@/components/ui/PageHeader'
+import { useAuthStore } from '@/stores/auth.store'
+import type { Role } from '@/types/auth.types'
 
 const { Title, Text } = Typography
 
@@ -19,6 +22,8 @@ interface ReportItem {
   icon: React.ReactNode
   color: string
   route: string
+  /** Role yang boleh mengakses report ini. Kosong = semua role. */
+  roles?: Role[]
 }
 
 const reports: ReportItem[] = [
@@ -37,6 +42,7 @@ const reports: ReportItem[] = [
     icon: <DashboardOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/report/report-alert-summary',
+    roles: ['superadmin', 'admin'],
   },
   {
     key: 'report-c',
@@ -45,6 +51,7 @@ const reports: ReportItem[] = [
     icon: <LineChartOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/report/c',
+    roles: ['superadmin', 'admin'],
   },
   {
     key: 'report-d',
@@ -53,6 +60,7 @@ const reports: ReportItem[] = [
     icon: <AlertOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/report/d',
+    roles: ['superadmin', 'admin'],
   },
   {
     key: 'report-e',
@@ -61,6 +69,7 @@ const reports: ReportItem[] = [
     icon: <PieChartOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/report/e',
+    roles: ['superadmin', 'admin'],
   },
   {
     key: 'report-f',
@@ -69,11 +78,19 @@ const reports: ReportItem[] = [
     icon: <FileTextOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/report/f',
+    roles: ['superadmin', 'admin'],
   },
 ]
 
 const ReportPage = () => {
   const navigate = useNavigate()
+  const userRole = useAuthStore((s) => s.user?.role)
+
+  // Filter kartu report sesuai role user
+  const visibleReports = useMemo(
+    () => reports.filter((r) => !r.roles || (userRole && r.roles.includes(userRole))),
+    [userRole],
+  )
 
   return (
     <div style={{ overflow: 'hidden' }}>
@@ -82,7 +99,7 @@ const ReportPage = () => {
       />
       <br />
       <Row gutter={[16, 16]}>
-        {reports.map((report) => (
+        {visibleReports.map((report) => (
           <Col key={report.key} xs={24} sm={12} lg={8}>
             <Card
               hoverable

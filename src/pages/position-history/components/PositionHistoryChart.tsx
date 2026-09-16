@@ -19,7 +19,7 @@ const chartColors: Record<string, string> = {
   Fuel: '#ff7f00',
 }
 
-const ALERT_SYMBOL = 'triangle'
+const ALERT_COLOR = '#ff4d4f'
 
 interface PositionHistoryChartProps {
   equipmentCode: string
@@ -45,6 +45,25 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
 
     return () => ro.disconnect()
   }, [])
+
+  const speedAlertPoints = useMemo(
+    () =>
+      data.reduce<Array<{
+        name: string
+        coord: [number, number]
+        value: string
+      }>>((points, point, index) => {
+        if (!point.alertStatus) return points
+
+        points.push({
+          name: point.alertStatus,
+          coord: [index, point.speed],
+          value: point.alertStatus,
+        })
+        return points
+      }, []),
+    [data],
+  )
 
   const option = useMemo(() => ({
     tooltip: {
@@ -123,19 +142,13 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
         name: 'Speed',
         type: 'line',
         smooth: true,
-        data: data.map((d) => {
-          const hasAlert = !!d.alertStatus
-          return {
-            value: d.speed,
-            symbol: hasAlert ? ALERT_SYMBOL : 'circle',
-            symbolSize: hasAlert ? 16 : 6,
-            itemStyle: {
-              color: chartColors.Speed,
-              borderColor: hasAlert ? '#fff' : 'transparent',
-              borderWidth: hasAlert ? 2 : 0,
-            },
-          }
-        }),
+        showSymbol: true,
+        symbol: 'circle',
+        data: data.map((d) => ({
+          value: d.speed,
+          symbol: 'circle',
+          symbolSize: 6,
+        })),
         lineStyle: { color: chartColors.Speed, width: 2.5 },
         areaStyle: {
           color: {
@@ -150,29 +163,45 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
             ],
           },
         },
+        markPoint: {
+          silent: false,
+          symbol: 'triangle',
+          symbolSize: 18,
+          symbolRotate: 0,
+          label: {
+            show: false,
+          },
+          itemStyle: {
+            color: ALERT_COLOR,
+            borderColor: '#fff',
+            borderWidth: 2,
+            shadowBlur: 16,
+            shadowColor: 'rgba(255, 77, 79, 0.55)',
+          },
+          data: speedAlertPoints,
+        },
       },
       {
         name: 'Fuel',
         type: 'line',
         yAxisIndex: 1,
         smooth: true,
-        data: data.map((d) => {
-          const hasAlert = !!d.alertStatus
-          return {
-            value: d.fuel,
-            symbol: hasAlert ? ALERT_SYMBOL : 'circle',
-            symbolSize: hasAlert ? 16 : 6,
-            itemStyle: {
-              color: chartColors.Fuel,
-              borderColor: hasAlert ? '#fff' : 'transparent',
-              borderWidth: hasAlert ? 2 : 0,
-            },
-          }
-        }),
+        showSymbol: true,
+        symbol: 'circle',
+        data: data.map((d) => ({
+          value: d.fuel,
+          symbol: 'circle',
+          symbolSize: 6,
+          itemStyle: {
+            color: chartColors.Fuel,
+            borderColor: 'transparent',
+            borderWidth: 0,
+          },
+        })),
         lineStyle: { color: chartColors.Fuel, width: 2.5 },
       },
     ],
-  }), [data])
+  }), [data, speedAlertPoints])
 
   return (
     <Card

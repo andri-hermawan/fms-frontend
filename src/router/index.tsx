@@ -89,7 +89,6 @@ const router = createBrowserRouter([
               { path: ROUTES.FUEL_CALIBRATION, element: withSuspense(FuelCalibrationPage) },
               { path: ROUTES.STATUS_BREAKDOWN, element: withSuspense(StatusBreakdownPage) },
               { path: ROUTES.WEIGHBRIDGE, element: withSuspense(WeighbridgePage) },
-              { path: ROUTES.SPEED_PER_SEGMENT, element: withSuspense(SpeedPerSegmentPage) },
 
             ],
           },
@@ -99,6 +98,18 @@ const router = createBrowserRouter([
             element: <RoleGuard allowedRoles={['superadmin']} />,
             children: [
               { path: ROUTES.USER, element: withSuspense(UserListPage) },
+            ],
+          },
+
+          // Report — admin & superadmin (detail)
+          {
+            element: <RoleGuard allowedRoles={['superadmin', 'admin']} />,
+            children: [
+              { path: ROUTES.REPORT_ALERT_SUMMARY,  element: withSuspense(ReportAlertSummaryPage) },
+              { path: ROUTES.REPORT_C,  element: withSuspense(ReportCPage) },
+              { path: ROUTES.REPORT_D,  element: withSuspense(ReportDPage) },
+              { path: ROUTES.REPORT_E,  element: withSuspense(ReportEPage) },
+              { path: ROUTES.REPORT_F,  element: withSuspense(ReportFPage) },
             ],
           },
 
@@ -114,11 +125,6 @@ const router = createBrowserRouter([
           { path: ROUTES.DISTRIBUTION_MAP,   element: withSuspense(DistributionMapPage) },
           { path: ROUTES.REPORT,    element: withSuspense(ReportPage) },
           { path: ROUTES.REPORT_EQUIPMENT_LOGS,  element: withSuspense(ReportEquipmentLogsPage) },
-          { path: ROUTES.REPORT_ALERT_SUMMARY,  element: withSuspense(ReportAlertSummaryPage) },
-          { path: ROUTES.REPORT_C,  element: withSuspense(ReportCPage) },
-          { path: ROUTES.REPORT_D,  element: withSuspense(ReportDPage) },
-          { path: ROUTES.REPORT_E,  element: withSuspense(ReportEPage) },
-          { path: ROUTES.REPORT_F,  element: withSuspense(ReportFPage) },
           { path: ROUTES.FUEL, element: withSuspense(FuelPage) },
           { path: ROUTES.POSITION_HISTORY, element: withSuspense(PositionHistoryPage) },
           { path: ROUTES.SPEED_PER_SEGMENT, element: withSuspense(SpeedPerSegmentPage) },

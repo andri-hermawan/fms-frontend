@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Button, Card, Space, Table, Tag, Typography } from 'antd'
 import { FilterOutlined, DownloadOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 import PageHeader from '@/components/ui/PageHeader'
 import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
-import { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
+import useEquipmentLogs, { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
 import type { EquipmentLog } from '@/types/equipment-logs.types'
 
 const { Text } = Typography
@@ -16,21 +16,37 @@ const ReportEquipmentLogsPage = () => {
   const [page, setPage] = useState(1)
   const pageSize = 25
 
-  const hasFilter = !!(filterValues.dateRange?.[0] && filterValues.shift)
+  const hasFilter = !!(filterValues.date && filterValues.shift)
 
-  const queryParams = hasFilter
+  const baseParams = hasFilter
     ? {
-        created_at: filterValues.dateRange![0],
+        created_at: filterValues.date!,
         shift: filterValues.shift!,
-        equipment_code: filterValues.equipmentId,
       }
     : null
 
-  const { data, isLoading } = useEquipmentLogsByDateShift(queryParams)
+  // Bila user memilih equipment_code tertentu, gunakan endpoint
+  // by-equipment-date-shift (mengirim equipment_code). Selain itu (ALL)
+  // gunakan by-date-shift tanpa parameter equipment_code.
+  const hasEquipment = hasFilter && !!filterValues.equipmentId
+  const equipmentQuery = useEquipmentLogs(
+    hasEquipment && baseParams
+      ? { ...baseParams, equipment_code: filterValues.equipmentId }
+      : null,
+  )
+  const dateShiftQuery = useEquipmentLogsByDateShift(
+    !hasEquipment ? baseParams : null,
+  )
 
-  const list: EquipmentLog[] = data
-    ? (data as any)?.data ?? (Array.isArray(data) ? data : [])
-    : []
+  const data = hasEquipment ? equipmentQuery.data : dateShiftQuery.data
+  const isLoading = hasEquipment
+    ? equipmentQuery.isLoading
+    : dateShiftQuery.isLoading
+
+  const list = useMemo<EquipmentLog[]>(
+    () => (data ? data.data ?? [] : []),
+    [data],
+  )
   const total = list.length
   const paginatedData = list.slice((page - 1) * pageSize, page * pageSize)
 
@@ -43,36 +59,53 @@ const ReportEquipmentLogsPage = () => {
   const handleDownload = useCallback(() => {
     if (list.length === 0) return
 
-    const exportData = list.map((item) => ({
+    const exportData = list.map((item, index) => ({
+      No: index + 1,
       Time: dayjs(item.time).format('DD/MM/YYYY HH:mm:ss'),
+      Shift: item.shift,
       Equipment: item.equipment_code,
       Status: item.status,
       Vessel: item.vessel_status || '-',
       'Speed (km/h)': item.speed,
+      'Fuel (sensor)': item.fuel_level,
+      'Fuel (liter)': item.fuel_volume,
       'Fuel (%)': item.fuel_percentage,
       Segment: item.segment,
-      Latitude: item.latitude,
-      Longitude: item.longitude,
+      Location: `${item.latitude.toFixed(5)}, ${item.longitude.toFixed(5)}`,
       Engine: item.engine_status ? 'ON' : 'OFF',
-      Shift: item.shift,
     }))
 
     const ws = XLSX.utils.json_to_sheet(exportData)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Equipment Logs')
 
-    const dateStr = filterValues.dateRange?.[0] ?? dayjs().format('YYYY-MM-DD')
+    const dateStr = filterValues.date ?? dayjs().format('YYYY-MM-DD')
     const shiftStr = filterValues.shift ?? 'all'
     XLSX.writeFile(wb, `equipment-logs_${dateStr}_shift-${shiftStr}.xlsx`)
   }, [list, filterValues])
 
   const columns = [
     {
+      title: 'No',
+      key: 'index',
+      width: 60,
+      align: 'center' as const,
+      fixed: 'left' as const,
+      render: (_: unknown, __: EquipmentLog, index: number) =>
+        (page - 1) * pageSize + index + 1,
+    },
+    {
       title: 'Time',
       dataIndex: 'time',
       key: 'time',
       width: 160,
       render: (v: string) => dayjs(v).format('DD/MM/YYYY HH:mm:ss'),
+    },
+    {
+      title: 'Shift',
+      dataIndex: 'shift',
+      key: 'shift',
+      width: 70,
     },
     {
       title: 'Equipment',
@@ -105,7 +138,20 @@ const ReportEquipmentLogsPage = () => {
       render: (v: string) => `${v} km/h`,
     },
     {
-      title: 'Fuel',
+      title: 'Fuel (sensor)',
+      dataIndex: 'fuel_level',
+      key: 'fuel_level',
+      width: 80,
+    },
+    {
+      title: 'Fuel (liter)',
+      dataIndex: 'fuel_volume',
+      key: 'fuel_volume',
+      width: 80,
+      render: (v: string) => `${v} L`,
+    },
+    {
+      title: 'Fuel (%)',
       dataIndex: 'fuel_percentage',
       key: 'fuel_percentage',
       width: 80,
@@ -133,12 +179,6 @@ const ReportEquipmentLogsPage = () => {
         <Tag color={v ? '#389e0d' : '#cf1322'}>{v ? 'ON' : 'OFF'}</Tag>
       ),
     },
-    {
-      title: 'Shift',
-      dataIndex: 'shift',
-      key: 'shift',
-      width: 70,
-    },
   ]
 
   return (
@@ -162,6 +202,7 @@ const ReportEquipmentLogsPage = () => {
           <Text type="secondary">Terapkan filter untuk melihat data equipment logs.</Text>
         ) : (
           <Table
+            className="custom-table"
             rowKey="id"
             columns={columns}
             dataSource={paginatedData}
@@ -181,6 +222,7 @@ const ReportEquipmentLogsPage = () => {
       <ReportFilter
         open={filterOpen}
         title="Equipment Logs — Filter"
+        dateMode="single"
         onClose={() => setFilterOpen(false)}
         onApply={handleApply}
         isLoading={isLoading}

@@ -8,14 +8,21 @@ const EquipmentSearch = ({
   value,
   options,
   onChange,
+  showAllOption = false,
 }: EquipmentSearchProps) => {
+  // Opsi "ALL" hanya ditambahkan bila diminta. Value '' berarti tanpa
+  // filter equipment_code (request tanpa parameter `search`).
+  const mergedOptions = showAllOption
+    ? [{ label: 'ALL', value: '' }, ...options]
+    : options
+
   return (
     <Select
-      allowClear
+      allowClear={!showAllOption}
       showSearch
       size="large"
-      value={value || undefined}
-      options={options}
+      value={showAllOption ? (value ?? '') : value || undefined}
+      options={mergedOptions}
       placeholder="Search Equipment..."
       style={{
         width: '100%',
