@@ -29,6 +29,7 @@ export const useAlertSummaryByCategory = (
         params?.created_at,
         params?.created_at_end,
         params?.search,
+        params?.shift,
       ],
       queryFn: () => {
         // console.log('[useAlertSummaryByCategory] queryFn params:', params)

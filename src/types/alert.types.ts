@@ -40,6 +40,7 @@ export interface AlertSummaryByCategoryParams {
   created_at?: string
   created_at_end?: string
   search?: string
+  shift?: string
 }
 export interface AlertCategorySummary {
   alert_category_name: string

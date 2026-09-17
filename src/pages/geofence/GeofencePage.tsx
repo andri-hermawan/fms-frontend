@@ -47,6 +47,13 @@ import SegmentSearch from './components/SegmentSearch'
 
 const ALL_SEGMENTS = 'all'
 
+// Ambil nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence.
+const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): string | undefined => {
+  const parsed = shift?.shift_name?.match(/(\d+)\s*$/)?.[1]
+  if (parsed) return parsed
+  return shift?.sequence != null ? String(shift.sequence) : undefined
+}
+
 const GeofencePage = () => {
   const [showPanel, setShowPanel] = useState(true)
   const [selectedSegment, setSelectedSegment] = useState(ALL_SEGMENTS)
@@ -57,6 +64,13 @@ const GeofencePage = () => {
     () => getOperationalDate(dayjs(), currentShift.data),
     [currentShift.data],
   )
+
+  // Label shift yang ditampilkan selalu "Shift 1" / "Shift 2".
+  const shiftLabel = useMemo(() => {
+    const value = toShiftValue(currentShift.data)
+    return value ? `Shift ${value}` : ''
+  }, [currentShift.data])
+
   const attributes = useAttributes({
     page: 1,
     limit: 99999,
@@ -340,14 +354,10 @@ const GeofencePage = () => {
 
               <Select
                 size="large"
-                value={currentShift.data?.id}
+                value={shiftLabel || undefined}
                 loading={currentShift.isLoading}
                 disabled
-                options={
-                  currentShift.data
-                    ? [{ label: currentShift.data.shift_name, value: currentShift.data.id }]
-                    : []
-                }
+                options={shiftLabel ? [{ label: shiftLabel, value: shiftLabel }] : []}
               />
             </div>
 
@@ -364,10 +374,7 @@ const GeofencePage = () => {
               }}
             >
               <EquipmentPassingTable data={filteredPassing} />
-              <HourlySummaryTable
-                data={hourlySummary}
-                shift={currentShift.data?.shift_name}
-              />
+              <HourlySummaryTable data={hourlySummary} shift={shiftLabel} />
             </div>
 
             <div
@@ -377,10 +384,7 @@ const GeofencePage = () => {
                 minWidth: 0,
               }}
             >
-              <HourlyTrafficChart
-                data={hourlySummary}
-                shift={currentShift.data?.shift_name}
-              />
+              <HourlyTrafficChart data={hourlySummary} shift={shiftLabel} />
             </div>
           </div>
         )}

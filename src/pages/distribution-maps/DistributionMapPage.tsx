@@ -94,16 +94,18 @@ const DistributionMapPage = () => {
   )
 
   const dateStr = selectedDate.format('YYYY-MM-DD')
+  const shiftLabel = `Shift ${shift}`
 
   // ─── Data Alert (kosong saat pertama load) ─────────────────
   const { data, isLoading } = useQuery({
-    queryKey: ['alerts', dateStr, category, search],
+    queryKey: ['alerts', dateStr, shiftLabel, category, search],
     queryFn: () => {
       const params = {
         page: 1,
         limit: 999999,
         created_at: dateStr,
         created_at_end: dateStr,
+        shift: shiftLabel,
         ...(category ? { alert_category_id: category } : {}),
         ...(search ? { search } : {}),
       }

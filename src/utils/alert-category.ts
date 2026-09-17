@@ -3,7 +3,8 @@
  * Dipakai di AlertSectionsPanel dan komponen lain yang menampilkan kategori alert.
  */
 export const ALERT_CATEGORY_ROW_COLOR: Record<string, string> = {
-  'Fuel Decrease': '#5186B3',
+  'Fuel Decrease Engine Off': '#5186B3',
+  'Fuel Decrease Engine On': '#5186B3',
   'Off Track': '#8A8A8A',
   'Overspeed': '#C87033',
   'Underspeed': '#DCA62D',

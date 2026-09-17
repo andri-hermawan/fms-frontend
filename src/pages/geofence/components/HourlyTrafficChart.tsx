@@ -1,22 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { PassingSummaryItem } from '@/types/geofence.types'
 import { Card, Empty } from 'antd'
 import ReactECharts from 'echarts-for-react'
-import shiftApi from '@/services/api/shift.api'
+import { useShifts } from '@/pages/master/shift/useShift'
 
 interface Props {
   data: PassingSummaryItem[]
   shift?: string
-}
-
-interface ShiftTime {
-  start_time: string
-  end_time: string
-}
-
-interface LoadedShiftTime {
-  name: string
-  time: ShiftTime
 }
 
 const getHour = (value?: string) => {
@@ -24,46 +14,75 @@ const getHour = (value?: string) => {
   return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : undefined
 }
 
+// Ambil nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence.
+// Sama seperti PositionHistoryPage supaya pencocokan shift konsisten.
+const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): string | undefined => {
+  const parsed = shift?.shift_name?.match(/(\d+)\s*$/)?.[1]
+  if (parsed) return parsed
+  return shift?.sequence != null ? String(shift.sequence) : undefined
+}
+
+const buildShiftHours = (startHour: number, endHour: number): number[] => {
+  const hours: number[] = []
+  let hour = startHour
+
+  do {
+    hours.push(hour)
+    hour = (hour + 1) % 24
+  } while (hour !== (endHour + 1) % 24)
+
+  return hours
+}
+
+const detectShiftWindow = (items: PassingSummaryItem[]) => {
+  const hours = Array.from(
+    new Set(
+      items
+        .map((item) => getHour(item.hour))
+        .filter((hour): hour is number => hour !== undefined),
+    ),
+  ).sort((a, b) => a - b)
+
+  if (hours.length === 0) return undefined
+  if (hours.length === 1) return { startHour: hours[0], endHour: hours[0] }
+
+  let maxGap = -1
+  let maxGapIndex = -1
+
+  for (let i = 0; i < hours.length - 1; i += 1) {
+    const gap = hours[i + 1] - hours[i]
+    if (gap > maxGap) {
+      maxGap = gap
+      maxGapIndex = i
+    }
+  }
+
+  const wrapGap = 24 - hours[hours.length - 1] + hours[0]
+  if (wrapGap > maxGap) {
+    return { startHour: hours[0], endHour: hours[hours.length - 1] }
+  }
+
+  return { startHour: hours[maxGapIndex + 1], endHour: hours[maxGapIndex] }
+}
+
 const HourlyTrafficChart = ({ data, shift }: Props) => {
   const chartRef = useRef<ReactECharts | null>(null)
-  const [loadedShiftTime, setLoadedShiftTime] = useState<LoadedShiftTime>()
 
-  useEffect(() => {
-    let cancelled = false
+  // Sama seperti PositionHistoryPage: ambil daftar shift untuk dapatkan
+  // start_time & end_time (bukan fetch terpisah per nama shift).
+  const { data: shiftList } = useShifts({ page: 1, limit: 100 })
 
-    if (!shift) return () => {
-      cancelled = true
-    }
+  // Prop `shift` berformat "Shift 1" / "Shift 2"; bandingkan nomornya saja.
+  const activeShift = useMemo(
+    () =>
+      shiftList?.data?.find(
+        (s) => toShiftValue(s) === shift?.replace('Shift ', ''),
+      ),
+    [shiftList, shift],
+  )
 
-    const loadShiftTime = async () => {
-      try {
-        const response = await shiftApi.getByName(shift)
-        const shiftData = response.data.data?.[0]
-
-        if (!cancelled) {
-          if (shiftData?.start_time && shiftData.end_time) {
-            setLoadedShiftTime({
-              name: shift,
-              time: {
-                start_time: shiftData.start_time,
-                end_time: shiftData.end_time,
-              },
-            })
-          }
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error('[HourlyTrafficChart] Failed to load shift time:', error)
-        }
-      }
-    }
-
-    void loadShiftTime()
-
-    return () => {
-      cancelled = true
-    }
-  }, [shift])
+  const startHour = getHour(activeShift?.start_time)
+  const endHour = getHour(activeShift?.end_time)
 
   useEffect(() => {
     const ro = new ResizeObserver(() => {
@@ -76,27 +95,19 @@ const HourlyTrafficChart = ({ data, shift }: Props) => {
     return () => ro.disconnect()
   }, [])
 
-  const shiftTime = loadedShiftTime && loadedShiftTime.name === shift
-    ? loadedShiftTime.time
-    : undefined
-  const startHour = getHour(shiftTime?.start_time)
-  const endHour = getHour(shiftTime?.end_time)
-
   const chartData = useMemo(() => {
-    if (startHour === undefined || endHour === undefined) return data
+    const window =
+      startHour !== undefined && endHour !== undefined
+        ? { startHour, endHour }
+        : detectShiftWindow(data)
+
+    if (!window) return data
 
     const dataByHour = new Map(
       data.map((item) => [getHour(item.hour), item] as const),
     )
-    const hours: number[] = []
-    let hour = startHour
 
-    do {
-      hours.push(hour)
-      hour = (hour + 1) % 24
-    } while (hour !== (endHour + 1) % 24)
-
-    return hours.map((hourValue) => {
+    return buildShiftHours(window.startHour, window.endHour).map((hourValue) => {
       const item = dataByHour.get(hourValue)
       return {
         hour: `${String(hourValue).padStart(2, '0')}:00`,
@@ -105,7 +116,7 @@ const HourlyTrafficChart = ({ data, shift }: Props) => {
         total: item?.total ?? 0,
       }
     })
-  }, [data, endHour, startHour])
+  }, [data, startHour, endHour])
 
   const isEmpty = chartData.length === 0
 

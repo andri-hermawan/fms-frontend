@@ -10,7 +10,7 @@ import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
 import { BaseMap, GeofenceLayer, MapController, MapResize, ResetViewButton } from '@/components/map'
 import { useAuthStore } from '@/stores/auth.store'
-import { useCurrentShift } from '@/pages/master/shift/useShift'
+import { useCurrentShift, useShifts } from '@/pages/master/shift/useShift'
 import { getOperationalDate } from '@/utils/operational-date'
 import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
 import useEquipmentLogs, { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
@@ -128,6 +128,12 @@ const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): strin
   return shift?.sequence != null ? String(shift.sequence) : undefined
 }
 
+// Menit dalam satu hari (0-1439) dari timestamp ISO, untuk urutkan jam mengikuti shift
+const minutesOfDay = (value: string): number => {
+  const d = dayjs(value)
+  return d.hour() * 60 + d.minute()
+}
+
 const getAlertStatus = (log: EquipmentLog): string | undefined => {
   const alert = log.alerts?.find((item) => typeof item?.status === 'string' && item.status.trim())
   const status = alert?.status?.trim()
@@ -203,6 +209,9 @@ const PositionHistoryPage = () => {
 
   const dateStr = selectedDate.format('YYYY-MM-DD')
 
+  // ─── Data Shift (untuk ketahui start_time agar urutan jam benar) ──
+  const { data: shiftList } = useShifts({ page: 1, limit: 100 })
+
   // ─── Data Equipment Logs (chart + map + list) ──────────────
   const shiftLabel = `Shift ${shift}`
 
@@ -228,6 +237,29 @@ const PositionHistoryPage = () => {
     return equipmentLogsData?.data ?? []
   }, [equipmentLogsData])
 
+  // Urutkan log mengikuti start_time shift, bukan urutan ascending API.
+  // Contoh Shift 2 (start 19:00): 19,20,...,23,00,01,...,06
+  const orderedLogs = useMemo(() => {
+    if (filteredLogs.length === 0) return filteredLogs
+
+    // Cari start_time shift yang aktif (session/override), fallback ke 0
+    const activeShift = shiftList?.data?.find((s) => toShiftValue(s) === shift)
+    const startTime = activeShift?.start_time
+    if (!startTime) return filteredLogs
+
+    const startMinutes =
+      Number(startTime.slice(0, 2)) * 60 + Number(startTime.slice(3, 5))
+    if (!Number.isFinite(startMinutes)) return filteredLogs
+
+    // Cari log pertama dengan waktu >= start_time sebagai titik awal urutan
+    const anchorIndex = filteredLogs.findIndex(
+      (log) => minutesOfDay(log.created_at) >= startMinutes,
+    )
+    if (anchorIndex <= 0) return filteredLogs
+
+    return [...filteredLogs.slice(anchorIndex), ...filteredLogs.slice(0, anchorIndex)]
+  }, [filteredLogs, shiftList, shift])
+
   useEffect(() => {
     console.log(
       'alert logs',
@@ -239,17 +271,17 @@ const PositionHistoryPage = () => {
   const focusLog = useCallback(
     (log: EquipmentLog | undefined) => {
       if (!log) return
-      const idx = filteredLogs.findIndex((l) => l.id === log.id)
+      const idx = orderedLogs.findIndex((l) => l.id === log.id)
       if (idx < 0) return
       setSelectedLogId(log.id)
       setFlyToIndex(idx)
       setFlyToTrigger((prev) => prev + 1)
     },
-    [filteredLogs],
+    [orderedLogs],
   )
 
   const chartData: AlertDataPoint[] = useMemo(() => {
-    const logs = filteredLogs
+    const logs = orderedLogs
 
     const result = logs.map((log) => {
       const speed = Number(log.speed) || 0
@@ -269,7 +301,7 @@ const PositionHistoryPage = () => {
     })
     // console.log('[PositionHistoryPage] chartData sample:', result.slice(0, 3).map(d => ({ time: d.time, alertStatus: d.alertStatus })))
     return result
-  }, [filteredLogs])
+  }, [orderedLogs])
 
   // ─── Equipment Options (dari seluruh log tanggal dan shift) ──
 
@@ -376,11 +408,11 @@ const PositionHistoryPage = () => {
               <GeofenceLayer geoJson={geoJson} />
               <ResetViewButton />
               <FlyToLogMarker
-                lat={Number(filteredLogs[flyToIndex]?.latitude ?? 0)}
-                lng={Number(filteredLogs[flyToIndex]?.longitude ?? 0)}
+                lat={Number(orderedLogs[flyToIndex]?.latitude ?? 0)}
+                lng={Number(orderedLogs[flyToIndex]?.longitude ?? 0)}
                 trigger={flyToTrigger}
               />
-              {filteredLogs.map((log) => (
+              {orderedLogs.map((log) => (
                 <LogMarker
                   key={`${log.id}-${log.id === selectedLogId ? 'selected' : 'default'}`}
                   log={log}
@@ -395,7 +427,7 @@ const PositionHistoryPage = () => {
             equipmentCode={search || 'No Equipment Selected'}
             data={chartData}
             onClick={(dataIndex) => {
-              focusLog(filteredLogs[dataIndex])
+              focusLog(orderedLogs[dataIndex])
             }}
           />
         </div>
@@ -476,7 +508,7 @@ const PositionHistoryPage = () => {
             }}
           >
             <PositionHistoryList
-              data={filteredLogs}
+              data={orderedLogs}
               selectedId={selectedLogId}
               onSelect={focusLog}
             />

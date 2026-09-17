@@ -440,6 +440,7 @@ const TrackingPage = () => {
                   <AlertSectionsPanel
                     equipment={selectedEquipmentData}
                     selectedDate={selectedDate}
+                    shift={currentShift.data?.shift_name}
                   />
                 </div>
               </div>

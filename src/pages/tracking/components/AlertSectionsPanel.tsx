@@ -12,9 +12,10 @@ import { getAlertCategoryColor } from '@/utils/alert-category'
 interface Props {
   equipment?: EquipmentMarkerData
   selectedDate: Dayjs
+  shift?: string
 }
 
-const AlertSectionsPanel = ({ equipment, selectedDate }: Props) => {
+const AlertSectionsPanel = ({ equipment, selectedDate, shift }: Props) => {
   const dateStr = selectedDate.format('YYYY-MM-DD')
   const searchCode = equipment?.equipment_code
   // console.log('[AlertSectionsPanel] dateStr:', dateStr)
@@ -23,6 +24,7 @@ const AlertSectionsPanel = ({ equipment, selectedDate }: Props) => {
     created_at: dateStr,
     created_at_end: dateStr,
     search: searchCode,
+    shift,
   })
 
   // Latest summary pushed by the ALERT_SUMMARY_UPDATE socket event. When the
@@ -62,19 +64,19 @@ const AlertSectionsPanel = ({ equipment, selectedDate }: Props) => {
     {
       title: 'Event',
       dataIndex: 'alert_category_name',
-      width: '30%',
+      width: '35%',
       ellipsis: true,
     },
     {
       title: 'Equipment',
       dataIndex: 'equipment_code',
-      width: '26%',
+      width: '20%',
       ellipsis: true,
     },
     {
       title: 'Count',
       dataIndex: 'alert_count',
-      width: '21%',
+      width: '14%',
       align: 'center',
     },
     // {
