@@ -13,7 +13,7 @@ cd D:\RMK\FMS\FRONTEND\fms-frontend
 ```
 
 Setelah selesai mengubah kode, lakukan validasi dan push:
-
+ lakukan dulu
 ```powershell
 npm run lint
 npm run build
