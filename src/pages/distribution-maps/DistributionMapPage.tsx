@@ -1,23 +1,52 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Card, Empty, Select, Space, Spin } from 'antd'
+import { Button, Card, Select, Spin } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
-import { CircleMarker, Popup } from 'react-leaflet'
+import { CircleMarker, Marker, Popup, Tooltip, useMap } from 'react-leaflet'
+import L from 'leaflet'
 import dayjs from 'dayjs'
 
 import PageHeader from '@/components/ui/PageHeader'
 import CurrentDateDisplay from '@/components/ui/CurrentDateDisplay'
 import { BaseMap, GeofenceLayer, MapController, MapResize, ResetViewButton } from '@/components/map'
-import { formatDurationBetween, formatTime } from '@/utils/format'
 import { useAuthStore } from '@/stores/auth.store'
 import { useCurrentShift } from '@/pages/master/shift/useShift'
 import { getOperationalDate } from '@/utils/operational-date'
 import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
 import AlertSummary from './components/AlertSummary'
+import DistributionAlertList from './components/DistributionAlertList'
 import alertApi from '@/services/api/alert.api'
 import alertCategoryApi from '@/services/api/alert-category.api'
 import type { Alert } from '@/types/alert.types'
 import { getAlertCategoryColor } from '@/utils/alert-category'
+
+// Isi popup marker, dipakai baik oleh dot biasa maupun marker terpilih.
+const AlertPopupContent = ({ alert }: { alert: Alert }) => (
+
+    <div style={{ minWidth: 250, lineHeight: 1.6 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 12,
+          marginBottom: 2,
+        }}
+      >
+        <strong>{alert.equipments?.equipment_code}</strong>
+        <strong>{alert.alert_categories?.alert_category_name ?? alert.status}</strong>
+      </div>
+      <div>
+        <strong>Jam:</strong> {dayjs(alert.created_at).format('HH:mm')}
+        {' - '}
+        <strong>Speed:</strong> {alert.speed}
+        {' - '}
+        <strong>Fuel:</strong> {alert.fuel_percentage}%
+      </div>
+      <div><strong>Map Segment:</strong> {alert.segment || '-'}</div>
+      <div><strong>Coordinat:</strong> {alert.latitude.toFixed(6)}, {alert.longitude.toFixed(6)}</div>
+    </div>
+)
 
 // Dot marker untuk distribusi lokasi alert, warna mengikuti kategori.
 const AlertDotMarker = ({ alert }: { alert: Alert }) => {
@@ -38,20 +67,62 @@ const AlertDotMarker = ({ alert }: { alert: Alert }) => {
       }}
     >
       <Popup minWidth={200} autoPan closeButton>
-        <div style={{ fontSize: 12, fontFamily: 'Segoe UI, sans-serif', color: '#333' }}>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>
-            {alert.equipments?.equipment_code ?? alert.vessel}
-          </div>
-          <div>
-            {alert.alert_categories?.alert_category_name ?? alert.status}
-          </div>
-          <div style={{ marginTop: 4 }}>
-            Zone: {alert.segment} · Speed: {alert.speed} km/h
-          </div>
-        </div>
+        <AlertPopupContent alert={alert} />
       </Popup>
     </CircleMarker>
   )
+}
+
+// Marker terpilih: dot berkedip (animasi pulse) + popup otomatis terbuka.
+// `trigger` ikut berubah tiap kali list diklik agar popup tetap terbuka
+// walau alert yang sama dipilih ulang setelah popup ditutup manual.
+const SelectedAlertMarker = ({ alert, trigger }: { alert: Alert; trigger: number }) => {
+  const color =
+    getAlertCategoryColor(
+      alert.alert_categories?.alert_category_name ?? alert.status,
+    ) ?? '#ff4d4f'
+  const markerRef = useRef<L.Marker>(null)
+
+  // Buka popup otomatis setiap kali marker terpilih berubah.
+  // Harus lewat `marker.openPopup()`: popup yang di-bind ke marker belum punya
+  // latlng sendiri, jadi memanggil map.openPopup() langsung bikin Leaflet
+  // gagal memproyeksi posisi (error reading 'lat').
+  useEffect(() => {
+    markerRef.current?.openPopup()
+  }, [alert.id, trigger])
+
+  return (
+    <Marker
+      ref={markerRef}
+      position={[alert.latitude, alert.longitude]}
+      zIndexOffset={1000}
+      icon={L.divIcon({
+        className: '',
+        html: `<div class="map-pulse-marker" style="--pulse-color:${color}"><span class="pulse-ring"></span><span class="pulse-dot"></span></div>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+        popupAnchor: [0, -18],
+      })}
+    >
+      <Popup minWidth={200} autoPan={false} closeButton>
+        <AlertPopupContent alert={alert} />
+      </Popup>
+      <Tooltip direction="top" offset={[0, -20]}>
+        {alert.equipments?.equipment_code ?? alert.vessel ?? '-'}
+      </Tooltip>
+    </Marker>
+  )
+}
+
+// FlyTo komponen: pindahkan map ke koordinat tertentu saat trigger berubah
+const FlyToAlert = ({ lat, lng, trigger }: { lat: number; lng: number; trigger: number }) => {
+  const map = useMap()
+  useEffect(() => {
+    if (lat !== 0 && lng !== 0) {
+      map.flyTo([lat, lng], 17, { animate: true, duration: 0.5 })
+    }
+  }, [lat, lng, trigger, map])
+  return null
 }
 
 // Ambil nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence
@@ -71,6 +142,10 @@ const DistributionMapPage = () => {
   // Selama null, nilai dipakai dari default operasional (current shift).
   const [dateOverride, setDateOverride] = useState<dayjs.Dayjs | null>(null)
   const [shiftOverride, setShiftOverride] = useState<string | null>(null)
+
+  // Alert terpilih dari list: memicu marker berkedip, flyTo, dan popup.
+  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null)
+  const [flyToTrigger, setFlyToTrigger] = useState(0)
 
   const project = useAuthStore((s) => s.project)
   const geoJson = project?.geojson_origin ?? null
@@ -128,6 +203,17 @@ const DistributionMapPage = () => {
     const code = alert.equipments?.equipment_code ?? alert.vessel
     return code === search
   })
+
+  const selectedAlert = useMemo(
+    () => alerts.find((a) => a.id === selectedAlertId) ?? null,
+    [alerts, selectedAlertId],
+  )
+
+  // Pindahkan map ke alert terpilih & tandai marker-nya sebagai terpilih.
+  const focusAlert = useCallback((alert: Alert) => {
+    setSelectedAlertId(alert.id)
+    setFlyToTrigger((prev) => prev + 1)
+  }, [])
 
   // ─── Filter Alert Category ─────────────────────────────────
   const { data: categoriesData } = useQuery({
@@ -239,9 +325,23 @@ const DistributionMapPage = () => {
             <MapController />
             <ResetViewButton />
             <GeofenceLayer geoJson={geoJson} />
-            {alerts.map((alert) => (
-              <AlertDotMarker key={alert.id} alert={alert} />
-            ))}
+            <FlyToAlert
+              lat={Number(selectedAlert?.latitude ?? 0)}
+              lng={Number(selectedAlert?.longitude ?? 0)}
+              trigger={flyToTrigger}
+            />
+            {alerts.map((alert) =>
+              alert.id === selectedAlertId ? null : (
+                <AlertDotMarker key={alert.id} alert={alert} />
+              ),
+            )}
+            {selectedAlert && (
+              <SelectedAlertMarker
+                key={`selected-${selectedAlert.id}`}
+                alert={selectedAlert}
+                trigger={flyToTrigger}
+              />
+            )}
           </BaseMap>
         </Card>
 
@@ -292,7 +392,7 @@ const DistributionMapPage = () => {
               style={{ width: '100%' }}
               size="large"
               allowClear
-              placeholder="Filter by Alert Category"
+              placeholder="Filter by Abnormal Alert Category"
               value={category ?? ''}
               onChange={(v) => setCategory(v || undefined)}
               options={categoryOptions}
@@ -314,65 +414,11 @@ const DistributionMapPage = () => {
               padding: 8,
             }}
           >
-            {alerts.length === 0 ? (
-              <Empty description="No alert found" style={{ marginTop: 48 }} />
-            ) : (
-              <Space orientation="vertical" size={8} style={{ width: '100%' }}>
-                {alerts.map((alert) => {
-                  const rowColor =
-                    getAlertCategoryColor(
-                      alert.alert_categories?.alert_category_name ?? alert.status,
-                    ) ?? '#fff'
-
-                  return (
-                    <div
-                      key={alert.id}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: 8,
-                        border: '1px solid #f0f0f0',
-                        background: rowColor,
-                        transition: 'background .2s',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: 6,
-                        }}
-                      >
-                        <span style={{ fontWeight: 600, color: '#fff' }}>
-                          {alert.equipments?.equipment_code ?? alert.vessel}
-                        </span>
-                        <span style={{ fontWeight: 600, fontSize: 12, color: '#fff' }}>
-                          {alert.alert_categories?.alert_category_name ?? alert.status}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr',
-                          gap: 4,
-                          fontSize: 12,
-                          color: 'rgba(255,255,255,0.92)',
-                        }}
-                      >
-                        <span>Zone: {alert.segment}</span>
-                        <span>Speed: {alert.speed} km/h</span>
-                        <span>Start: {formatTime(alert.created_at)}</span>
-                        <span>Stop: {formatTime(alert.resolved_at)}</span>
-                        <span>
-                          Duration: {formatDurationBetween(alert.created_at, alert.resolved_at)}
-                        </span>
-                        <span>Fuel: {alert.fuel_level}%</span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </Space>
-            )}
+            <DistributionAlertList
+              data={alerts}
+              selectedId={selectedAlertId}
+              onSelect={focusAlert}
+            />
           </div>
         </div>
         )}

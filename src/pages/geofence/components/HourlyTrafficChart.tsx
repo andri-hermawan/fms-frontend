@@ -194,7 +194,7 @@ const HourlyTrafficChart = ({ data, shift }: Props) => {
 
   return (
     <Card
-      title={`HOURLY TRAFFIC CHART${shift ? ` - ${shift}` : ''}`}
+      title={`HOURLY TRAFFIC CHART`}
       size="small"
       style={{
         height: '100%',

@@ -1,6 +1,6 @@
 import { axiosInstance } from '@/services/http'
 
-import type { Fuel, FuelFormValues } from '@/types/fuel.types'
+import type { Fuel, FuelFilterParams, FuelFormValues } from '@/types/fuel.types'
 
 import type {
   ApiResponse,
@@ -13,6 +13,14 @@ const fuelApi = {
     axiosInstance.get<
       PaginatedResponse<Fuel>
     >('/fms/api/fuels', {
+      params,
+    }),
+
+  /** Riwayat fuel dengan rentang tanggal + filter asset/shift */
+  getByFilter: (params: FuelFilterParams) =>
+    axiosInstance.get<
+      PaginatedResponse<Fuel>
+    >('/fms/api/fuels/filter', {
       params,
     }),
 

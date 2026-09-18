@@ -115,7 +115,7 @@ const AlertSectionsPanel = ({ equipment, selectedDate, shift }: Props) => {
           background: '#064596', color: '#fff'
         }}
       >
-        <span>ALERT SUMMARY</span>
+        <span>ABNORMAL ALERT SUMMARY</span>
       </div>
 
       <div

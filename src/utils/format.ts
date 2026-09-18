@@ -15,6 +15,14 @@ export const formatDate = (
   return dayjs.utc(date).format(format)
 }
 
+export const formatDate1 = (
+  date: string | Date,
+  format = 'YYYY-MM-DD',
+): string => {
+  if (!date) return '-'
+  return dayjs.utc(date).format(format)
+}
+
 export const formatDateTime = (date: string | Date): string => {
   if (!date) return '-'
   return dayjs.utc(date).format('DD MMM YYYY HH:mm')
@@ -23,6 +31,11 @@ export const formatDateTime = (date: string | Date): string => {
 export const formatTime = (date?: string | Date): string => {
   if (!date) return '-'
   return dayjs(date).format('HH:mm')
+}
+
+export const formatTimeSecond = (date?: string | Date): string => {
+  if (!date) return '-'
+  return dayjs(date).format('HH:mm:ss')
 }
 
 export const formatTimeUtc = (date?: string | Date): string => {

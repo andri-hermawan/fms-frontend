@@ -74,6 +74,7 @@ function DataTable<T extends object>({
       <Table
         className="custom-table"
         size="middle"
+        sticky
         scroll={{ x: 'max-content' }}
         pagination={{
           showSizeChanger: true,

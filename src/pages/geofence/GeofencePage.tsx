@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Button,
   Card,
-  message,
+  // message,
   Select,
   Spin,
 } from 'antd'
@@ -38,7 +38,7 @@ import {
 } from '@/stores/equipment-status.store'
 
 import useSocketTracking from '@/pages/tracking/hooks/useSocketTracking'
-import projectApi from '@/services/api/project.api'
+// import projectApi from '@/services/api/project.api'
 import geofenceApi from '@/services/api/geofence.api'
 import { useGeofenceStore } from '@/stores/geofence.store'
 import { getOperationalDate } from '@/utils/operational-date'
@@ -148,9 +148,9 @@ const GeofencePage = () => {
   const isConnected = useEquipmentStatusStore((s) => s.isConnected)
   const isLoading = equipments.length === 0 && !isConnected
 
-  const [drawingGeoJson] =
-    useState<GeoJSON.GeoJSON | null>(null)
-  const [saving, setSaving] = useState(false)
+  // const [drawingGeoJson] =
+  //   useState<GeoJSON.GeoJSON | null>(null)
+  // const [saving, setSaving] = useState(false)
 
   const handleSelectEquipment = (equipmentId: string) => {
     const equipment = equipments.find(
@@ -162,28 +162,28 @@ const GeofencePage = () => {
     }
   }
 
-  const handleSavePolygon = async () => {
-    if (!project?.id) return
-    if (!drawingGeoJson) return
+  // const handleSavePolygon = async () => {
+  //   if (!project?.id) return
+  //   if (!drawingGeoJson) return
 
-    try {
-      setSaving(true)
+  //   try {
+  //     setSaving(true)
 
-      const { data } = await projectApi.updateGeoJson(
-        project.id,
-        drawingGeoJson,
-      )
+  //     const { data } = await projectApi.updateGeoJson(
+  //       project.id,
+  //       drawingGeoJson,
+  //     )
 
-      useAuthStore.setState({ project: data.data })
+  //     useAuthStore.setState({ project: data.data })
 
-      message.success('Polygon berhasil disimpan')
-    } catch (err) {
-      console.error(err)
-      message.error('Gagal menyimpan polygon')
-    } finally {
-      setSaving(false)
-    }
-  }
+  //     message.success('Polygon berhasil disimpan')
+  //   } catch (err) {
+  //     console.error(err)
+  //     message.error('Gagal menyimpan polygon')
+  //   } finally {
+  //     setSaving(false)
+  //   }
+  // }
 
   const passing = useGeofenceStore((s) => s.passing)
   const summary = useGeofenceStore((s) => s.summary)
@@ -229,17 +229,17 @@ const GeofencePage = () => {
           paddingBottom: 16,
         }}
       >
-        <PageHeader title="Geofence Monitoring" />
+        <PageHeader title="Geofencing" />
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button
+          {/* <Button
             type="primary"
             loading={saving}
             disabled={!drawingGeoJson}
             onClick={handleSavePolygon}
           >
             Save Polygon
-          </Button>
+          </Button> */}
 
           <Button
             icon={showPanel ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
@@ -285,7 +285,7 @@ const GeofencePage = () => {
                 background: 'rgba(255,255,255,.75)',
               }}
             >
-              <Spin size="large" description="Loading equipment..." />
+              <Spin size="large" description="Loading asset..." />
             </div>
           )}
 

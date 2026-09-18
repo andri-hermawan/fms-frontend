@@ -14,14 +14,12 @@ import { useCurrentShift, useShifts } from '@/pages/master/shift/useShift'
 import { getOperationalDate } from '@/utils/operational-date'
 import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
 import useEquipmentLogs, { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
-import PositionHistoryChart from './components/PositionHistoryChart'
-import PositionHistoryList from './components/PositionHistoryList'
-import type { AlertDataPoint } from './components/PositionHistoryChart'
+import FuelHistoryChart from './components/FuelHistoryChart'
+import FuelHistoryList from './components/FuelHistoryList'
+import type { AlertDataPoint } from './components/FuelHistoryChart'
 import type { EquipmentLog } from '@/types/equipment-logs.types'
 import type { EquipmentMarkerData } from '@/types/map.types'
 import { getMarkerIcon } from '@/utils/marker-icon'
-
-
 
 // Convert EquipmentLog ke EquipmentMarkerData untuk getMarkerIcon
 const toMarkerData = (log: EquipmentLog): EquipmentMarkerData => ({
@@ -46,9 +44,7 @@ const toMarkerData = (log: EquipmentLog): EquipmentMarkerData => ({
   recorded_at: log.created_at,
 })
 
-// Marker dengan icon berdasarkan status & vessel_status (seperti TrackingPage).
-// Bila `selected` true, marker diberi lingkaran pulse supaya mudah dikenali
-// di antara banyak titik yang tumpang tindih.
+// Marker dengan icon berdasarkan status & vessel_status.
 const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: boolean }) => {
   const markerData = toMarkerData(log)
   if (markerData.latitude === 0 && markerData.longitude === 0) return null
@@ -111,7 +107,6 @@ const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: bo
   )
 }
 
-// FlyTo komponen: pindahkan map ke koordinat tertentu saat trigger berubah
 const FlyToLogMarker = ({ lat, lng, trigger }: { lat: number; lng: number; trigger: number }) => {
   const map = useMap()
   useEffect(() => {
@@ -122,14 +117,12 @@ const FlyToLogMarker = ({ lat, lng, trigger }: { lat: number; lng: number; trigg
   return null
 }
 
-// Ambil nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence
 const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): string | undefined => {
   const parsed = shift?.shift_name?.match(/(\d+)\s*$/)?.[1]
   if (parsed) return parsed
   return shift?.sequence != null ? String(shift.sequence) : undefined
 }
 
-// Menit dalam satu hari (0-1439) dari timestamp ISO, untuk urutkan jam mengikuti shift
 const minutesOfDay = (value: string): number => {
   const d = dayjs(value)
   return d.hour() * 60 + d.minute()
@@ -141,14 +134,13 @@ const getAlertStatus = (log: EquipmentLog): string | undefined => {
   return status || undefined
 }
 
-const PositionHistoryPage = () => {
+const FuelHistoryPage = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const initialCode = searchParams.get('equipmentCode') ?? ''
   const initialDate = searchParams.get('date')
   const initialShift = searchParams.get('shift')
 
-  // Normalize: URL param bisa 'Shift 1' / 'Shift 2' atau '1' / '2'
   const normalizedShift = initialShift
     ? initialShift.replace('Shift ', '')
     : undefined
@@ -156,8 +148,6 @@ const PositionHistoryPage = () => {
   const [showPanel, setShowPanel] = useState(true)
   const [search, setSearch] = useState<string>(initialCode || '')
 
-  // Override hanya terisi saat user mengubah filter (atau dari deep-link URL).
-  // Selama null, nilai dipakai dari default operasional (current shift).
   const [dateOverride, setDateOverride] = useState<dayjs.Dayjs | null>(
     initialDate && dayjs(initialDate).isValid() ? dayjs(initialDate) : null,
   )
@@ -173,11 +163,8 @@ const PositionHistoryPage = () => {
   const project = useAuthStore((s) => s.project)
   const geoJson = project?.geojson_origin ?? null
 
-  // ─── Current shift (sumber default tanggal & shift operasional) ──
   const currentShift = useCurrentShift(project?.id, dayjs().format('HH:mm'))
 
-  // Tanggal efektif: override user bila ada, selain itu tanggal operasional
-  // (mundur 1 hari bila shift malam sudah lewat tengah malam).
   const selectedDate = useMemo(
     () =>
       dateOverride ??
@@ -185,13 +172,11 @@ const PositionHistoryPage = () => {
     [dateOverride, currentShift.data],
   )
 
-  // Shift efektif: override user bila ada, selain itu shift yang sedang berjalan.
   const shift = useMemo(
     () => shiftOverride ?? toShiftValue(currentShift.data) ?? '1',
     [shiftOverride, currentShift.data],
   )
 
-  // Sync URL params when filter changes
   const syncUrl = useCallback(
     (code?: string, date?: dayjs.Dayjs, shiftVal?: string) => {
       const params = new URLSearchParams()
@@ -203,17 +188,14 @@ const PositionHistoryPage = () => {
     [navigate],
   )
 
-  // Sync URL on filter changes
   useEffect(() => {
     syncUrl(search, selectedDate, shift)
   }, [search, selectedDate, shift, syncUrl])
 
   const dateStr = selectedDate.format('YYYY-MM-DD')
 
-  // ─── Data Shift (untuk ketahui start_time agar urutan jam benar) ──
   const { data: shiftList } = useShifts({ page: 1, limit: 100 })
 
-  // ─── Data Equipment Logs (chart + map + list) ──────────────
   const shiftLabel = `Shift ${shift}`
 
   const equipmentLogsParams = useMemo(() => {
@@ -233,26 +215,20 @@ const PositionHistoryPage = () => {
   }, [dateStr, shiftLabel])
   const { data: allLogsData } = useEquipmentLogsByDateShift(allLogsParams)
 
-  // Filter logs by selected equipment code
   const filteredLogs = useMemo(() => {
     return equipmentLogsData?.data ?? []
   }, [equipmentLogsData])
 
-  // Urutkan log mengikuti start_time shift, bukan urutan ascending API.
-  // Contoh Shift 2 (start 19:00): 19,20,...,23,00,01,...,06
   const orderedLogs = useMemo(() => {
     if (filteredLogs.length === 0) return filteredLogs
 
-    // Cari start_time shift yang aktif (session/override), fallback ke 0
     const activeShift = shiftList?.data?.find((s) => toShiftValue(s) === shift)
     const startTime = activeShift?.start_time
     if (!startTime) return filteredLogs
 
-    const startMinutes =
-      Number(startTime.slice(0, 2)) * 60 + Number(startTime.slice(3, 5))
+    const startMinutes = Number(startTime.slice(0, 2)) * 60 + Number(startTime.slice(3, 5))
     if (!Number.isFinite(startMinutes)) return filteredLogs
 
-    // Cari log pertama dengan waktu >= start_time sebagai titik awal urutan
     const anchorIndex = filteredLogs.findIndex(
       (log) => minutesOfDay(log.created_at) >= startMinutes,
     )
@@ -261,14 +237,6 @@ const PositionHistoryPage = () => {
     return [...filteredLogs.slice(anchorIndex), ...filteredLogs.slice(0, anchorIndex)]
   }, [filteredLogs, shiftList, shift])
 
-  useEffect(() => {
-    console.log(
-      'alert logs',
-      filteredLogs.filter((log) => log.alerts?.length > 0),
-    )
-  }, [filteredLogs])
-
-  // Pindahkan map ke log terpilih & tandai marker-nya sebagai terpilih.
   const focusLog = useCallback(
     (log: EquipmentLog | undefined) => {
       if (!log) return
@@ -284,7 +252,7 @@ const PositionHistoryPage = () => {
   const chartData: AlertDataPoint[] = useMemo(() => {
     const logs = orderedLogs
 
-    const result = logs.map((log) => {
+    return logs.map((log) => {
       const speed = Number(log.speed) || 0
       const fuel = Number(log.fuel_percentage) || 0
       const alertStatus = getAlertStatus(log)
@@ -300,11 +268,7 @@ const PositionHistoryPage = () => {
         alertStatus,
       }
     })
-    // console.log('[PositionHistoryPage] chartData sample:', result.slice(0, 3).map(d => ({ time: d.time, alertStatus: d.alertStatus })))
-    return result
   }, [orderedLogs])
-
-  // ─── Equipment Options (dari seluruh log tanggal dan shift) ──
 
   const equipmentOptions = useMemo(() => {
     const codes = new Set<string>()
@@ -340,7 +304,7 @@ const PositionHistoryPage = () => {
           paddingBottom: 16,
         }}
       >
-        <PageHeader title="Position History" />
+        <PageHeader title="Fuel History" />
 
         <div style={{ display: 'flex', gap: 8 }}>
           <Button
@@ -364,7 +328,6 @@ const PositionHistoryPage = () => {
           minWidth: 0,
         }}
       >
-        {/* ── Left: Map + Chart (75%) ──────────────────────── */}
         <div
           style={{
             display: 'flex',
@@ -374,7 +337,6 @@ const PositionHistoryPage = () => {
             gap: 16,
           }}
         >
-          {/* Map */}
           <Card
             style={{
               overflow: 'hidden',
@@ -404,7 +366,7 @@ const PositionHistoryPage = () => {
             )}
 
             <BaseMap>
-            <MapController defaultCenter={defaultMapCenter} defaultZoom={10} />
+              <MapController defaultCenter={defaultMapCenter} defaultZoom={10} />
               <MapResize deps={showPanel} />
               <GeofenceLayer geoJson={geoJson} />
               <ResetViewButton />
@@ -423,8 +385,7 @@ const PositionHistoryPage = () => {
             </BaseMap>
           </Card>
 
-          {/* Chart */}
-          <PositionHistoryChart
+          <FuelHistoryChart
             equipmentCode={search || 'No Asset Selected'}
             data={chartData}
             onClick={(dataIndex) => {
@@ -433,92 +394,88 @@ const PositionHistoryPage = () => {
           />
         </div>
 
-        {/* ── Right: Filters + Alert List (25%) ────────────── */}
         {showPanel && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: 0,
-            minWidth: 0,
-            overflow: 'hidden',
-          }}
-        >
-          {/* Filters — compact */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 8,
-              marginBottom: 12,
-              flexShrink: 0,
-            }}
-          >
-            <EquipmentSearch
-              value={search}
-              options={equipmentOptions}
-              onChange={(code) => setSearch(code ?? '')}
-            />
-            <CurrentDateDisplay
-              value={selectedDate}
-              onChange={setDateOverride}
-            />
-            <Select
-              size="large"
-              value={shift}
-              loading={currentShift.isLoading}
-              onChange={(val: string) => setShiftOverride(val)}
-              options={[
-                { label: 'Shift 1', value: '1' },
-                { label: 'Shift 2', value: '2' },
-              ]}
-            />
-          </div>
-
-          {/* Position History List */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '10px 14px',
-              flexShrink: 0,
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: 0.4,
-              background: '#064596',
-              color: '#fff',
-              borderRadius: 8,
-            }}
-          >
-            <span>Position History</span>
-            <span>{filteredLogs.length || 0}</span>
-          </div>
-
-          {/* Alert list */}
-          <div
-            style={{
-              flex: '1 1 0%',
               minHeight: 0,
               minWidth: 0,
-              overflowY: 'auto',
-              border: '1px solid #e5e5e5',
-              borderRadius: 8,
-              padding: 8,
-              marginTop: 8,
+              overflow: 'hidden',
             }}
           >
-            <PositionHistoryList
-              data={orderedLogs}
-              selectedId={selectedLogId}
-              onSelect={focusLog}
-            />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                marginBottom: 12,
+                flexShrink: 0,
+              }}
+            >
+              <EquipmentSearch
+                value={search}
+                options={equipmentOptions}
+                onChange={(code) => setSearch(code ?? '')}
+              />
+              <CurrentDateDisplay
+                value={selectedDate}
+                onChange={setDateOverride}
+              />
+              <Select
+                size="large"
+                value={shift}
+                loading={currentShift.isLoading}
+                onChange={(val: string) => setShiftOverride(val)}
+                options={[
+                  { label: 'Shift 1', value: '1' },
+                  { label: 'Shift 2', value: '2' },
+                ]}
+              />
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '10px 14px',
+                flexShrink: 0,
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: 0.4,
+                background: '#064596',
+                color: '#fff',
+                borderRadius: 8,
+              }}
+            >
+              <span>Fuel History</span>
+              <span>{filteredLogs.length || 0}</span>
+            </div>
+
+            <div
+              style={{
+                flex: '1 1 0%',
+                minHeight: 0,
+                minWidth: 0,
+                overflowY: 'auto',
+                border: '1px solid #e5e5e5',
+                borderRadius: 8,
+                padding: 8,
+                marginTop: 8,
+              }}
+            >
+              <FuelHistoryList
+                data={orderedLogs}
+                selectedId={selectedLogId}
+                onSelect={focusLog}
+              />
+            </div>
           </div>
-        </div>
         )}
       </div>
     </div>
   )
 }
 
-export default PositionHistoryPage
+export default FuelHistoryPage

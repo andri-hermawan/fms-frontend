@@ -13,7 +13,7 @@ const EquipmentSearch = ({
   // Opsi "ALL" hanya ditambahkan bila diminta. Value '' berarti tanpa
   // filter equipment_code (request tanpa parameter `search`).
   const mergedOptions = showAllOption
-    ? [{ label: 'ALL', value: '' }, ...options]
+    ? [{ label: 'All', value: '' }, ...options]
     : options
 
   return (
@@ -23,7 +23,7 @@ const EquipmentSearch = ({
       size="large"
       value={showAllOption ? (value ?? '') : value || undefined}
       options={mergedOptions}
-      placeholder="Search Equipment..."
+      placeholder="Search Asset..."
       style={{
         width: '100%',
       }}

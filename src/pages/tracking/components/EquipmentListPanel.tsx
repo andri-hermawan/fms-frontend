@@ -54,7 +54,7 @@ const EquipmentListPanel = ({
           color: '#fff',
         }}
       >
-        EQUIPMENT LIST
+        ASSET LIST
       </div>
 
       <div

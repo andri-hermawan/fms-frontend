@@ -21,18 +21,18 @@ const chartColors: Record<string, string> = {
 
 const ALERT_COLOR = '#ff4d4f'
 
-interface PositionHistoryChartProps {
+interface FuelHistoryChartProps {
   equipmentCode: string
   data: AlertDataPoint[]
   onClick?: (dataIndex: number) => void
 }
 
-const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryChartProps) => {
+const FuelHistoryChart = ({ equipmentCode, data, onClick }: FuelHistoryChartProps) => {
   const chartRef = useRef<ReactECharts | null>(null)
 
   // useEffect(() => {
   //   const alertCount = data.filter(d => !!d.alertStatus).length
-  //   console.log('[PositionHistoryChart] data length:', data.length, 'alertCount:', alertCount)
+  //   console.log('[FuelHistoryChart] data length:', data.length, 'alertCount:', alertCount)
   // }, [data])
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
     return () => ro.disconnect()
   }, [])
 
-  const speedAlertPoints = useMemo(
+  const alertPoints = useMemo(
     () =>
       data.reduce<Array<{
         name: string
@@ -57,7 +57,7 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
 
         points.push({
           name: point.alertStatus,
-          coord: [index, point.speed],
+          coord: [index, point.fuel],
           value: point.alertStatus,
         })
         return points
@@ -77,9 +77,7 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
         const hour = arr[0]?.axisValue ?? ''
         const lines = arr
           .map((p) => {
-            if (p.seriesName === 'Speed') {
-              return `${p.seriesName}: <b>${p.value.toFixed(1)}</b> km/h`
-            }
+
             if (p.seriesName === 'Fuel') {
               return `${p.seriesName}: <b>${p.value.toFixed(1)}%</b>`
             }
@@ -122,47 +120,32 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
     yAxis: [
       {
         type: 'value',
-        name: 'Speed (km/h)',
-        minInterval: 1,
-        axisLabel: { fontSize: 11 },
-        splitLine: { lineStyle: { type: 'dashed' } },
-      },
-      {
-        type: 'value',
         name: 'Fuel (%)',
         minInterval: 1,
         max: 100,
         axisLabel: { fontSize: 11, formatter: '{value}%' },
-        splitLine: { show: false },
+        splitLine: { lineStyle: { type: 'dashed' } },
       },
     ],
 
     series: [
       {
-        name: 'Speed',
+        name: 'Fuel',
         type: 'line',
         smooth: true,
         showSymbol: true,
         symbol: 'circle',
         data: data.map((d) => ({
-          value: d.speed,
+          value: d.fuel,
           symbol: 'circle',
           symbolSize: 6,
-        })),
-        lineStyle: { color: chartColors.Speed, width: 2.5 },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(6,69,150,0.35)' },
-              { offset: 1, color: 'rgba(6,69,150,0.02)' },
-            ],
+          itemStyle: {
+            color: chartColors.Fuel,
+            borderColor: 'transparent',
+            borderWidth: 0,
           },
-        },
+        })),
+        lineStyle: { color: chartColors.Fuel, width: 2.5 },
         markPoint: {
           silent: false,
           symbol: 'triangle',
@@ -178,34 +161,15 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
             shadowBlur: 16,
             shadowColor: 'rgba(255, 77, 79, 0.55)',
           },
-          data: speedAlertPoints,
+          data: alertPoints,
         },
       },
-      {
-        name: 'Fuel',
-        type: 'line',
-        yAxisIndex: 1,
-        smooth: true,
-        showSymbol: true,
-        symbol: 'circle',
-        data: data.map((d) => ({
-          value: d.fuel,
-          symbol: 'circle',
-          symbolSize: 6,
-          itemStyle: {
-            color: chartColors.Fuel,
-            borderColor: 'transparent',
-            borderWidth: 0,
-          },
-        })),
-        lineStyle: { color: chartColors.Fuel, width: 2.5 },
-      },
     ],
-  }), [data, speedAlertPoints])
+  }), [data, alertPoints])
 
   return (
     <Card
-      title={`Graph View Position History - ${equipmentCode}`}
+      title={`Graph View Fuel History - ${equipmentCode}`}
       size="small"
       style={{
         height: 290,
@@ -258,4 +222,4 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
   )
 }
 
-export default PositionHistoryChart
+export default FuelHistoryChart

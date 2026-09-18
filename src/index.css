@@ -176,6 +176,43 @@ html {
   100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
 }
 
+/* Marker terpilih generik (map manapun): dot berkedip + pulse ring.
+   Warna diatur lewat CSS variable --pulse-color. */
+.map-pulse-marker {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-pulse-marker .pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--pulse-color, rgba(6, 69, 150, 0.35));
+  opacity: 0.35;
+  z-index: 1;
+  animation: ph-pulse-ring 1.6s ease-out infinite;
+}
+
+.map-pulse-marker .pulse-dot {
+  position: relative;
+  z-index: 2;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--pulse-color, #064596);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--pulse-color, #064596);
+  animation: ph-marker-bounce 0.9s ease-in-out infinite;
+}
+
 /* Sidebar */
 
 .ant-layout-sider-light .ant-menu-item,

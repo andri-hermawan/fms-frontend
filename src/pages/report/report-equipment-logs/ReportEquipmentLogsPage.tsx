@@ -221,7 +221,7 @@ const ReportEquipmentLogsPage = () => {
       </Card>
       <ReportFilter
         open={filterOpen}
-        title="Equipment Logs — Filter"
+        title="Asset Logs — Filter"
         dateMode="single"
         onClose={() => setFilterOpen(false)}
         onApply={handleApply}

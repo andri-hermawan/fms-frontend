@@ -19,9 +19,9 @@ const AlertSummary = ({ count }: AlertSummaryProps) => (
       borderRadius: 8,
     }}
   >
-    <span>Alert List</span>
+    <span>Abnormal Alert List</span>
     <span>
-      {count} alert
+      {count} Total
     </span>
   </div>
 )

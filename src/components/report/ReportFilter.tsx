@@ -1,26 +1,31 @@
-import { Drawer, Button, Flex, Form, DatePicker, Select, Spin } from 'antd'
+import { Drawer, Button, Flex, Form, DatePicker, Input, Select, Spin } from 'antd'
 import type { ReactNode } from 'react'
-import type { Dayjs } from 'dayjs'
+import dayjs, { type Dayjs } from 'dayjs'
 import { useEquipments } from '@/pages/master/equipment/useEquipment'
+import { useAlertCategories } from '@/pages/master/alert-category/useAlertCategory'
 
 const { RangePicker } = DatePicker
 
 export interface ReportFilterValues {
+  search?: string
   date?: string
   dateRange?: [string, string]
   projectId?: string
   equipmentId?: string
   shift?: string
+  alertCategory?: string
 }
 
 export type ReportFilterDateMode = 'range' | 'single' | 'none'
 
 interface ReportFilterFormValues {
+  search?: string
   date?: Dayjs
   dateRange?: [Dayjs, Dayjs]
   projectId?: string
   equipmentId?: string
   shift?: string
+  alertCategory?: string
 }
 
 interface ReportFilterProps {
@@ -33,6 +38,11 @@ interface ReportFilterProps {
   showProject?: boolean
   showEquipment?: boolean
   showShift?: boolean
+  showSearch?: boolean
+  /** Tampilkan select Alert Category (selalu ada opsi ALL) */
+  showAlertCategory?: boolean
+  searchPlaceholder?: string
+  initialValues?: ReportFilterValues
   /** Extra filter fields rendered inside the form */
   children?: ReactNode
 }
@@ -47,6 +57,10 @@ const ReportFilter = ({
   showProject = false,
   showEquipment = true,
   showShift = true,
+  showSearch = false,
+  showAlertCategory = false,
+  searchPlaceholder = 'Search',
+  initialValues,
   children,
 }: ReportFilterProps) => {
   const [form] = Form.useForm<ReportFilterFormValues>()
@@ -63,9 +77,22 @@ const ReportFilter = ({
     })),
   ]
 
+  // Ambil daftar alert category untuk pilihan Alert Category
+  const { data: categoriesData, isLoading: categoriesLoading } = useAlertCategories({
+    limit: 999999,
+  })
+  const alertCategoryOptions = [
+    { label: 'ALL', value: '' },
+    ...(categoriesData?.data ?? []).map((c) => ({
+      label: c.alert_category_name,
+      value: c.alert_category_name,
+    })),
+  ]
+
   const handleApply = () => {
     form.validateFields().then((values) => {
       const result: ReportFilterValues = {}
+      if (values.search?.trim()) result.search = values.search.trim()
       if (values.dateRange && values.dateRange.length === 2) {
         result.dateRange = [
           values.dateRange[0]?.format('YYYY-MM-DD'),
@@ -76,6 +103,7 @@ const ReportFilter = ({
       if (values.projectId) result.projectId = values.projectId
       if (values.equipmentId) result.equipmentId = values.equipmentId
       if (values.shift) result.shift = values.shift
+      if (values.alertCategory) result.alertCategory = values.alertCategory
       onApply(result)
     })
   }
@@ -105,7 +133,26 @@ const ReportFilter = ({
       }
     >
       <Spin spinning={isLoading}>
-        <Form form={form} layout="vertical">
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            search: initialValues?.search,
+            date: initialValues?.date ? dayjs(initialValues.date) : undefined,
+            dateRange: initialValues?.dateRange?.map((value) => dayjs(value)) as
+              [Dayjs, Dayjs] | undefined,
+            projectId: initialValues?.projectId,
+            equipmentId: initialValues?.equipmentId,
+            shift: initialValues?.shift,
+            alertCategory: initialValues?.alertCategory,
+          }}
+        >
+            {showSearch && (
+              <Form.Item name="search" label="Search">
+                <Input placeholder={searchPlaceholder} allowClear />
+              </Form.Item>
+            )}
+
             {dateMode === 'range' && (
               <Form.Item name="dateRange" label="Date Range">
                 <RangePicker style={{ width: '100%' }} />
@@ -125,9 +172,9 @@ const ReportFilter = ({
             )}
 
             {showEquipment && (
-              <Form.Item name="equipmentId" label="Equipment Code">
+              <Form.Item name="equipmentId" label="Asset Code">
                 <Select
-                  placeholder="Pilih equipment code"
+                  placeholder="Pilih asset code"
                   allowClear
                   loading={equipmentsLoading}
                   options={equipmentOptions}
@@ -150,6 +197,22 @@ const ReportFilter = ({
                     { label: 'Shift 1', value: 'Shift 1' },
                     { label: 'Shift 2', value: 'Shift 2' },
                   ]}
+                />
+              </Form.Item>
+            )}
+
+            {showAlertCategory && (
+              <Form.Item name="alertCategory" label="Abnormal Alert Category">
+                <Select
+                  placeholder="Pilih alert category"
+                  loading={categoriesLoading}
+                  options={alertCategoryOptions}
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? '')
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
                 />
               </Form.Item>
             )}

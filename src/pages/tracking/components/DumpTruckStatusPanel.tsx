@@ -90,7 +90,7 @@ const DumpTruckStatusPanel = ({ equipment, equipments, totalCount }: Props) => {
           color: '#fff',
         }}
       >
-        EQUIPMENT STATUS
+        ASSET STATUS
       </div>
 
       <div
@@ -133,7 +133,7 @@ const DumpTruckStatusPanel = ({ equipment, equipments, totalCount }: Props) => {
               fontSize: 12,
             }}
           >
-            No equipment status available
+            No asset status available
           </div>
         )}
 

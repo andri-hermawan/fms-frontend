@@ -9,7 +9,7 @@ const EquipmentPassingTable = ({ data }: Props) => {
   // console.log("data passing", data)
   return (
     <Card
-      title="EQUIPMENT PASSING"
+      title="ASSET PASSING"
       size="small"
       style={{
         height: '100%',

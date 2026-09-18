@@ -6,6 +6,7 @@ import {
   FileTextOutlined,
   DashboardOutlined,
   AlertOutlined,
+  FireOutlined,
 } from '@ant-design/icons'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -29,20 +30,27 @@ interface ReportItem {
 const reports: ReportItem[] = [
   {
     key: 'report/report-equipment-logs',
-    title: 'Equipment Logs',
-    description: 'Riwayat log equipment per tanggal & shift',
+    title: 'Asset Logs',
+    description: 'Riwayat log asset per tanggal & shift',
     icon: <BarChartOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/report/report-equipment-logs',
   },
   {
+    key: 'report/report-fuel-history',
+    title: 'Fuel History',
+    description: 'Riwayat konsumsi fuel per asset, tanggal & shift',
+    icon: <FireOutlined style={{ fontSize: 36 }} />,
+    color: '#064596',
+    route: '/report/report-fuel-history',
+  },
+  {
     key: 'report/report-alert-summary',
-    title: 'Report Alert Summary',
-    description: 'Ringkasan alert dan pelanggaran per periode',
+    title: 'Abnormal Alert History',
+    description: 'Riwayat abnormal alert per periode',
     icon: <DashboardOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
-    route: '/report/report-alert-summary',
-    roles: ['superadmin', 'admin'],
+    route: '/alert',
   },
   {
     key: 'report-c',
@@ -95,7 +103,7 @@ const ReportPage = () => {
   return (
     <div style={{ overflow: 'hidden' }}>
       <PageHeader
-        title="Reports"
+        title="All Reports"
       />
       <br />
       <Row gutter={[16, 16]}>

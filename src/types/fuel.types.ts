@@ -31,6 +31,16 @@ export interface Fuel {
   equipments?: FuelEquipments | null
 }
 
+/** Parameter endpoint `/fms/api/fuels/filter` */
+export interface FuelFilterParams {
+  start_date: string
+  end_date: string
+  equipment_code?: string
+  shift?: string
+  page?: number
+  limit?: number
+}
+
 export interface FuelFormValues {
   equipment_id?: string
   fuel_level?: number | null

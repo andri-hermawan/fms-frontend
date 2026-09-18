@@ -259,7 +259,7 @@ const TrackingPage = () => {
           paddingBottom: 16,
         }}
       >
-        <PageHeader title="Live Tracking Monitoring" />
+        <PageHeader title="Live Tracking" />
 
         <div style={{ display: 'flex', gap: 8 }}>
           <Button

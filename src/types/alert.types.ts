@@ -18,12 +18,19 @@ export interface Alert {
   }
   latitude: number;
   longitude: number;
+  /** Geometri lokasi (WKT POINT / GeoJSON) bila disediakan backend */
+  location?: string | null;
   is_inside: boolean;
   orig_fid: number;
   location_category: string;
   segment: string;
   speed: number;
   fuel_level: number;
+  /** Field fuel opsional yang dikirim backend pada beberapa alert */
+  fuel_volume?: number;
+  fuel_percentage?: number;
+  fuel_difference?: number;
+  fuel_temperature?: number;
   vessel: string;
   millege: number;
   vessel_status: string;
