@@ -30,6 +30,7 @@ export interface PassingQuery {
   limit?: number
   equipment_code?: string
   segment?: string
+  shift?: string
   start_date?: string
   end_date?: string
 }

@@ -3,13 +3,14 @@ import { Card, Tag } from 'antd'
 
 interface Props {
   data: PassingItem[]
+  shift?: string
 }
 
-const EquipmentPassingTable = ({ data }: Props) => {
+const EquipmentPassingTable = ({ data, shift }: Props) => {
   // console.log("data passing", data)
   return (
     <Card
-      title="ASSET PASSING"
+      title={`ASSET PASSING${shift ? ` - ${shift}` : ''}`}
       size="small"
       style={{
         height: '100%',

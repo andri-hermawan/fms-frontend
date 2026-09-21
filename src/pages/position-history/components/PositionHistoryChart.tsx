@@ -52,6 +52,7 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
         name: string
         coord: [number, number]
         value: string
+        originalIndex: number
       }>>((points, point, index) => {
         if (!point.alertStatus) return points
 
@@ -59,6 +60,7 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
           name: point.alertStatus,
           coord: [index, point.speed],
           value: point.alertStatus,
+          originalIndex: index,
         })
         return points
       }, []),
@@ -248,8 +250,12 @@ const PositionHistoryChart = ({ equipmentCode, data, onClick }: PositionHistoryC
           notMerge
           style={{ width: '100%', height: '100%' }}
           onEvents={{
-            click: (params: { dataIndex?: number }) => {
-              if (params.dataIndex != null) onClick?.(params.dataIndex)
+            click: (params: {
+              dataIndex?: number
+              data?: { originalIndex?: number }
+            }) => {
+              const dataIndex = params.data?.originalIndex ?? params.dataIndex
+              if (dataIndex != null) onClick?.(dataIndex)
             },
           }}
         />

@@ -9,6 +9,7 @@ import PageHeader from '@/components/ui/PageHeader'
 import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import useFuelHistory from './useFuelHistory'
 import type { Fuel, FuelFilterParams } from '@/types/fuel.types'
+import { formatDate } from '@/utils/format'
 
 const { Text } = Typography
 
@@ -16,13 +17,13 @@ const { Text } = Typography
 // Tampilkan apa adanya (UTC) agar sama dengan database, bukan diubah ke timezone lokal.
 dayjs.extend(utc)
 
-const STATUS_COLORS: Record<string, string> = {
-  'Fuel Decrease': '#cf1322',
-  'Fuel Increase': '#389e0d',
-}
+// const STATUS_COLORS: Record<string, string> = {
+//   'Fuel Decrease': '#cf1322',
+//   'Fuel Increase': '#389e0d',
+// }
 
-const fuelStatusColor = (status: string | null) =>
-  status ? STATUS_COLORS[status] ?? (status.toLowerCase().includes('decrease') ? '#cf1322' : '#389e0d') : '#d9d9d9'
+// const fuelStatusColor = (status: string | null) =>
+//   status ? STATUS_COLORS[status] ?? (status.toLowerCase().includes('decrease') ? '#cf1322' : '#389e0d') : '#d9d9d9'
 
 const ReportFuelHistoryPage = () => {
   const [filterOpen, setFilterOpen] = useState(true)
@@ -58,23 +59,40 @@ const ReportFuelHistoryPage = () => {
   const handleDownload = useCallback(() => {
     if (list.length === 0) return
 
-    const exportData = list.map((item, index) => ({
-      No: (page - 1) * pageSize + index + 1,
-      Time: dayjs.utc(item.created_at).format('DD/MM/YYYY HH:mm:ss'),
-      Shift: item.shift ?? '-',
-      Equipment: item.equipments?.equipment_code ?? item.equipment_id,
-      Status: item.status ?? '-',
-      Vessel: item.vessel_status ?? '-',
-      'Speed (km/h)': item.speed ?? '-',
-      'Fuel (sensor)': item.fuel_level ?? '-',
-      'Fuel (liter)': item.fuel_volume != null ? `${item.fuel_volume} L` : '-',
-      'Fuel (%)': item.fuel_percentage != null ? `${Number(item.fuel_percentage).toFixed(2)} %` : '-',
-      'Fuel Diff': item.fuel_difference ?? '-',
-      'Fuel Temp': item.fuel_temperature ?? '-',
-      Segment: item.segment ?? '-',
-      'Event Type': item.event_type ?? '-',
-      Engine: item.engine_status ? 'ON' : 'OFF',
-    }))
+    const exportData = list.map((item, index) => {
+      const rawLat = item.latitude ?? item.lat
+      const rawLon = item.longitude ?? item.lng
+      const lat = rawLat == null ? NaN : Number(rawLat)
+      const lon = rawLon == null ? NaN : Number(rawLon)
+
+      return {
+        No: (page - 1) * pageSize + index + 1,
+        'Asset ID':
+          item.equipments?.equipment_code ??
+          item.equipment_code ??
+          item.equipment_id ??
+          '-',
+        Date: formatDate(item.created_at),
+        Time: item.created_at ? dayjs.utc(item.created_at).format('HH:mm:ss') : '-',
+        Shift: item.shift ?? '-',
+        Engine: item.engine_status ? 'ON' : 'OFF',
+        Status: item.status ?? '-',
+        Speed: item.speed ?? '-',
+        'Fuel Volume (liter)': item.fuel_volume ?? '-',
+        'Fuel Percentage (%)':
+          item.fuel_percentage != null
+            ? Math.round(parseFloat(String(item.fuel_percentage)))
+            : '-',
+        'Fuel Diff (liter)': item.fuel_difference ?? '-',
+        'Fuel Temp (c)': item.fuel_temperature ?? '-',
+        'Map Segment': item.segment ?? '-',
+        'Location Coordinate':
+          Number.isFinite(lat) && Number.isFinite(lon)
+            ? `${lat.toFixed(6)}, ${lon.toFixed(6)}`
+            : '-',
+        'Vessel Status': item.vessel_status ?? '-',
+      }
+    })
 
     const ws = XLSX.utils.json_to_sheet(exportData)
     const wb = XLSX.utils.book_new()
@@ -98,107 +116,121 @@ const ReportFuelHistoryPage = () => {
         (page - 1) * pageSize + index + 1,
     },
     {
-      title: 'Time',
+      title: 'Asset ID',
+      width: 120,
+      align: 'left',
+      // fixed: 'left',
+      // Nested `equipments.equipment_code` (halaman lain) atau flat `equipment_code`.
+      render: (_, record) =>
+        record.equipments?.equipment_code ?? record.equipment_code ?? record.equipment_id ?? '-',
+    },
+    {
+      title: 'Date',
       dataIndex: 'created_at',
       key: 'created_at',
-      width: 160,
-      render: (v: string) => dayjs.utc(v).format('DD/MM/YYYY HH:mm:ss'),
+      width: 120,
+      render: (v: string) => formatDate(v),
+    },
+    {
+      title: 'Time',
+      dataIndex: 'created_at',
+      key: 'time',
+      width: 70,
+      // Pakai UTC (bukan formatTimeSecond yang lokal) agar jam sama dgn kolom Date
+      // dan isi database; backend mengirim created_at dalam UTC.
+      render: (v: string) => (v ? dayjs.utc(v).format('HH:mm:ss') : '-'),
     },
     {
       title: 'Shift',
       dataIndex: 'shift',
       key: 'shift',
       width: 70,
-      render: (v: string | null) => v ?? '-',
-    },
-    {
-      title: 'Equipment',
-      key: 'equipment_code',
-      width: 130,
-      render: (_: unknown, r: Fuel) =>
-        r.equipments?.equipment_code ?? r.equipment_id,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      width: 130,
-      render: (v: string | null) => (
-        <Tag color={fuelStatusColor(v)}>{v ?? '-'}</Tag>
-      ),
-    },
-    {
-      title: 'Vessel',
-      dataIndex: 'vessel_status',
-      key: 'vessel_status',
-      width: 90,
-      render: (v: string | null) => v ?? '-',
-    },
-    {
-      title: 'Speed',
-      dataIndex: 'speed',
-      key: 'speed',
-      width: 80,
-      render: (v: number | null) => (v != null ? `${v} km/h` : '-'),
-    },
-    {
-      title: 'Fuel (sensor)',
-      dataIndex: 'fuel_level',
-      key: 'fuel_level',
-      width: 100,
-      render: (v: number | null) => v ?? '-',
-    },
-    {
-      title: 'Fuel (liter)',
-      dataIndex: 'fuel_volume',
-      key: 'fuel_volume',
-      width: 100,
-      render: (v: number | null) => (v != null ? `${v} L` : '-'),
-    },
-    {
-      title: 'Fuel (%)',
-      dataIndex: 'fuel_percentage',
-      key: 'fuel_percentage',
-      width: 90,
-      render: (v: number | null) =>
-        v != null ? `${Number(v).toFixed(2)} %` : '-',
-    },
-    {
-      title: 'Fuel Diff',
-      dataIndex: 'fuel_difference',
-      key: 'fuel_difference',
-      width: 90,
-      render: (v: number | null) => v ?? '-',
-    },
-    {
-      title: 'Fuel Temp',
-      dataIndex: 'fuel_temperature',
-      key: 'fuel_temperature',
-      width: 90,
-      render: (v: number | null) => v ?? '-',
-    },
-    {
-      title: 'Segment',
-      dataIndex: 'segment',
-      key: 'segment',
-      width: 120,
-      render: (v: string | null) => v ?? '-',
-    },
-    {
-      title: 'Event Type',
-      dataIndex: 'event_type',
-      key: 'event_type',
-      width: 120,
-      render: (v: string | null) => v ?? '-',
     },
     {
       title: 'Engine',
       dataIndex: 'engine_status',
       key: 'engine_status',
       width: 75,
-      render: (v: boolean | null) => (
+      render: (v: boolean) => (
         <Tag color={v ? '#389e0d' : '#cf1322'}>{v ? 'ON' : 'OFF'}</Tag>
       ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 150,
+    },
+    {
+      title: 'Speed',
+      dataIndex: 'speed',
+      width: 60,
+      align: 'center',
+    },
+    {
+      title: 'Fuel Volume (liter)',
+      dataIndex: 'fuel_volume',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: 'Fuel Percentage (%)',
+      dataIndex: 'fuel_percentage',
+      width: 120,
+      align: 'center',
+      render: (v: string) => (v == null ? '-' : Math.round(parseFloat(v))),
+    },
+    {
+      title: 'Fuel Diff (liter)',
+      dataIndex: 'fuel_difference',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: 'Fuel Temp (c)',
+      dataIndex: 'fuel_temperature',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: 'Map Segment',
+      dataIndex: 'segment',
+      width: 140,
+      align: 'left',
+    },
+    {
+      title: 'Location Coordinate',
+      key: 'location',
+      width: 160,
+      align: 'left',
+      render: (_: unknown, record: Fuel) => {
+        // Backend bisa mengirim number/string atau memakai key lat/lng.
+        const rawLat = record.latitude ?? record.lat
+        const rawLon = record.longitude ?? record.lng
+        const lat = rawLat == null ? NaN : Number(rawLat)
+        const lon = rawLon == null ? NaN : Number(rawLon)
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '-'
+        return (
+          <a
+            href={`https://www.google.com/maps?q=${lat},${lon}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: '#1677ff',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {lat.toFixed(6)}, {lon.toFixed(6)}
+          </a>
+        )
+      },
+    },
+    {
+      title: 'Vessel Status',
+      dataIndex: 'vessel_status',
+      width: 140,
+      align: 'left',
     },
   ]
 
@@ -232,7 +264,8 @@ const ReportFuelHistoryPage = () => {
             columns={columns}
             dataSource={list}
             loading={isLoading}
-            scroll={{ x: 1500 }}
+            sticky
+            scroll={{ x: 'max-content' }}
             size="small"
             pagination={{
               current: page,

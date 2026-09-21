@@ -7,7 +7,7 @@ interface Props {
   shift?: string
 }
 
-const HourlySummaryTable = ({ data }: Props) => {
+const HourlySummaryTable = ({ data, shift }: Props) => {
   const columns: ColumnsType<PassingSummaryItem> = [
     {
       title: 'Hour',
@@ -53,7 +53,7 @@ const HourlySummaryTable = ({ data }: Props) => {
 
   return (
     <Card
-      title={`HOURLY PASSING SUMMARY`}
+      title={`HOURLY PASSING SUMMARY${shift ? ` - ${shift}` : ''}`}
       size="small"
       style={{
         height: '100%',

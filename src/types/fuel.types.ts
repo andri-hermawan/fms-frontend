@@ -5,6 +5,8 @@ export interface FuelEquipments {
 export interface Fuel {
   id: string
   equipment_id: string
+  /** Beberapa endpoint (mis. /fuels/filter) mengirim equipment_code flat */
+  equipment_code?: string | null
   log_id: string
   fuel_level: number | null
   fuel_volume: number | null
@@ -13,6 +15,11 @@ export interface Fuel {
   is_inside: boolean | null
   orig_fid: number | null
   location_category: string | null
+  latitude: number | string | null
+  longitude: number | string | null
+  /** Alias yang mungkin dipakai sebagian response */
+  lat?: number | string | null
+  lng?: number | string | null
   segment: string | null
   speed: number | null
   vessel: string | null

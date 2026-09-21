@@ -123,16 +123,33 @@ html {
   background: #f5faff !important;
 }
 
-/* Hide scrollbar tapi tetap bisa scroll */
+/* Tampilkan scrollbar horizontal agar kolom bisa di-scroll ke kanan */
 .custom-table .ant-table-body {
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE & Edge */
+  overflow-x: auto !important;
 }
 
 .custom-table .ant-table-body::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+  width: 8px;
+  height: 8px;
+}
+
+.custom-table .ant-table-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.custom-table .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+.custom-table .ant-table-body::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+/* Firefox */
+.custom-table .ant-table-body {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f0f0f0;
 }
 
 /* Marker terpilih pada Position History (animasi goyang / pulse) */

@@ -58,6 +58,10 @@ const GeofencePage = () => {
   const [showPanel, setShowPanel] = useState(true)
   const [selectedSegment, setSelectedSegment] = useState(ALL_SEGMENTS)
 
+  // Override hanya terisi saat user mengubah shift.
+  // Selama null, nilai dipakai dari shift yang sedang berjalan.
+  const [shiftOverride, setShiftOverride] = useState<string | null>(null)
+
   const project = useAuthStore((s) => s.project)
   const currentShift = useCurrentShift(project?.id, dayjs().format('HH:mm'))
   const selectedDate = useMemo(
@@ -65,11 +69,14 @@ const GeofencePage = () => {
     [currentShift.data],
   )
 
-  // Label shift yang ditampilkan selalu "Shift 1" / "Shift 2".
-  const shiftLabel = useMemo(() => {
-    const value = toShiftValue(currentShift.data)
-    return value ? `Shift ${value}` : ''
-  }, [currentShift.data])
+  // Shift efektif: override user bila ada, selain itu shift yang sedang berjalan.
+  const shift = useMemo(
+    () => shiftOverride ?? toShiftValue(currentShift.data) ?? '1',
+    [shiftOverride, currentShift.data],
+  )
+
+  // Label shift yang dikirim ke API, selalu "Shift 1" / "Shift 2".
+  const shiftLabel = useMemo(() => `Shift ${shift}`, [shift])
 
   const attributes = useAttributes({
     page: 1,
@@ -92,6 +99,7 @@ const GeofencePage = () => {
         page: 1,
         limit: 99999,
         segment: selectedSegment,
+        shift: shiftLabel,
         start_date: selectedDate.startOf('day').format('YYYY-MM-DD'),
         end_date: selectedDate.endOf('day').format('YYYY-MM-DD'),
       }
@@ -112,7 +120,7 @@ const GeofencePage = () => {
     } catch (err) {
       console.error('[GeofencePage] Failed to refresh geofence data:', err)
     }
-  }, [selectedDate, selectedSegment, setPassing, setSummary])
+  }, [selectedDate, selectedSegment, shiftLabel, setPassing, setSummary])
 
   useSocketTracking({
     onGeofenceEvent: refreshGeofenceData,
@@ -354,10 +362,14 @@ const GeofencePage = () => {
 
               <Select
                 size="large"
-                value={shiftLabel || undefined}
+                value={shift}
                 loading={currentShift.isLoading}
                 disabled
-                options={shiftLabel ? [{ label: shiftLabel, value: shiftLabel }] : []}
+                onChange={(val: string) => setShiftOverride(val)}
+                options={[
+                  { label: 'Shift 1', value: '1' },
+                  { label: 'Shift 2', value: '2' },
+                ]}
               />
             </div>
 
@@ -373,7 +385,7 @@ const GeofencePage = () => {
                 minWidth: 0,
               }}
             >
-              <EquipmentPassingTable data={filteredPassing} />
+              <EquipmentPassingTable data={filteredPassing} shift={shiftLabel} />
               <HourlySummaryTable data={hourlySummary} shift={shiftLabel} />
             </div>
 

@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { Button, Card, Space, Table, Tag, Typography } from 'antd'
+import type { ColumnsType } from 'antd/es/table'
 import { FilterOutlined, DownloadOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
@@ -7,6 +8,7 @@ import PageHeader from '@/components/ui/PageHeader'
 import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import useEquipmentLogs, { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
 import type { EquipmentLog } from '@/types/equipment-logs.types'
+import { formatDate, formatTimeSecond } from '@/utils/format'
 
 const { Text } = Typography
 
@@ -61,18 +63,23 @@ const ReportEquipmentLogsPage = () => {
 
     const exportData = list.map((item, index) => ({
       No: index + 1,
-      Time: dayjs(item.time).format('DD/MM/YYYY HH:mm:ss'),
-      Shift: item.shift,
-      Equipment: item.equipment_code,
-      Status: item.status,
-      Vessel: item.vessel_status || '-',
-      'Speed (km/h)': item.speed,
-      'Fuel (sensor)': item.fuel_level,
-      'Fuel (liter)': item.fuel_volume,
-      'Fuel (%)': item.fuel_percentage,
-      Segment: item.segment,
-      Location: `${item.latitude.toFixed(5)}, ${item.longitude.toFixed(5)}`,
+      'Asset ID': item.equipment_code ?? '-',
+      Date: formatDate(item.created_at),
+      Time: formatTimeSecond(item.created_at),
+      Shift: item.shift ?? '-',
       Engine: item.engine_status ? 'ON' : 'OFF',
+      Speed: item.speed,
+      'Fuel Volume (liter)': item.fuel_volume,
+      'Fuel Percentage (%)': item.fuel_percentage,
+      'Fuel Diff (liter)': item.fuel_difference,
+      'Fuel Temp (c)': item.fuel_temperature,
+      'Map Segment': item.segment,
+      'Location Coordinate':
+        item.latitude == null || item.longitude == null
+          ? '-'
+          : `${item.latitude.toFixed(6)}, ${item.longitude.toFixed(6)}`,
+      'Vessel Status': item.vessel_status ?? '-',
+      Status: item.status,
     }))
 
     const ws = XLSX.utils.json_to_sheet(exportData)
@@ -84,7 +91,7 @@ const ReportEquipmentLogsPage = () => {
     XLSX.writeFile(wb, `equipment-logs_${dateStr}_shift-${shiftStr}.xlsx`)
   }, [list, filterValues])
 
-  const columns = [
+  const columns: ColumnsType<EquipmentLog> = [
     {
       title: 'No',
       key: 'index',
@@ -95,80 +102,30 @@ const ReportEquipmentLogsPage = () => {
         (page - 1) * pageSize + index + 1,
     },
     {
+      title: 'Asset ID',
+      dataIndex: 'equipment_code',
+      key: 'equipment_code',
+      width: 120,
+    },
+    {
+      title: 'Date',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width: 120,
+      render: (v: string) => formatDate(v),
+    },
+    {
       title: 'Time',
-      dataIndex: 'time',
-      key: 'time',
-      width: 160,
-      render: (v: string) => dayjs(v).format('DD/MM/YYYY HH:mm:ss'),
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width: 60,
+      render: (v: string) => formatTimeSecond(v),
     },
     {
       title: 'Shift',
       dataIndex: 'shift',
       key: 'shift',
       width: 70,
-    },
-    {
-      title: 'Equipment',
-      dataIndex: 'equipment_code',
-      key: 'equipment_code',
-      width: 130,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      width: 90,
-      // render: (v: string) => (
-      //   <Tag color={STATUS_COLORS[v] || '#d9d9d9'}>{v}</Tag>
-      // ),
-    },
-    {
-      title: 'Vessel',
-      dataIndex: 'vessel_status',
-      key: 'vessel_status',
-      width: 90,
-      // render: (v: string) =>
-      //   v ? <Tag color={VESSEL_COLORS[v] || '#d9d9d9'}>{v}</Tag> : '-',
-    },
-    {
-      title: 'Speed',
-      dataIndex: 'speed',
-      key: 'speed',
-      width: 80,
-      render: (v: string) => `${v} km/h`,
-    },
-    {
-      title: 'Fuel (sensor)',
-      dataIndex: 'fuel_level',
-      key: 'fuel_level',
-      width: 80,
-    },
-    {
-      title: 'Fuel (liter)',
-      dataIndex: 'fuel_volume',
-      key: 'fuel_volume',
-      width: 80,
-      render: (v: string) => `${v} L`,
-    },
-    {
-      title: 'Fuel (%)',
-      dataIndex: 'fuel_percentage',
-      key: 'fuel_percentage',
-      width: 80,
-      render: (v: string) => `${v} %`,
-    },
-    {
-      title: 'Segment',
-      dataIndex: 'segment',
-      key: 'segment',
-      width: 120,
-    },
-    {
-      title: 'Location',
-      key: 'location',
-      width: 160,
-      render: (_: unknown, r: EquipmentLog) =>
-        `${r.latitude.toFixed(5)}, ${r.longitude.toFixed(5)}`,
     },
     {
       title: 'Engine',
@@ -178,6 +135,80 @@ const ReportEquipmentLogsPage = () => {
       render: (v: boolean) => (
         <Tag color={v ? '#389e0d' : '#cf1322'}>{v ? 'ON' : 'OFF'}</Tag>
       ),
+    },
+    {
+      title: 'Speed',
+      dataIndex: 'speed',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: 'Fuel Volume (liter)',
+      dataIndex: 'fuel_volume',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: 'Fuel Percentage (%)',
+      dataIndex: 'fuel_percentage',
+      width: 120,
+      align: 'center',
+      render: (v: string) => (v == null ? '-' : Math.round(parseFloat(v))),
+    },
+    {
+      title: 'Fuel Diff (liter)',
+      dataIndex: 'fuel_difference',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: 'Fuel Temp (c)',
+      dataIndex: 'fuel_temperature',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: 'Map Segment',
+      dataIndex: 'segment',
+      width: 140,
+      align: 'left',
+    },
+    {
+      title: 'Location Coordinate',
+      key: 'location',
+      width: 160,
+      align: 'left',
+      render: (_: unknown, record: EquipmentLog) => {
+        const lat = record.latitude
+        const lon = record.longitude
+        if (lat == null || lon == null) return '-'
+        return (
+          <a
+            href={`https://www.google.com/maps?q=${lat},${lon}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: '#1677ff',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {lat.toFixed(6)}, {lon.toFixed(6)}
+          </a>
+        )
+      },
+    },
+    {
+      title: 'Vessel Status',
+      dataIndex: 'vessel_status',
+      width: 140,
+      align: 'left',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 90,
     },
   ]
 
@@ -207,7 +238,8 @@ const ReportEquipmentLogsPage = () => {
             columns={columns}
             dataSource={paginatedData}
             loading={isLoading}
-            scroll={{ x: 1200 }}
+            sticky
+            scroll={{ x: 'max-content' }}
             size="small"
             pagination={{
               current: page,
