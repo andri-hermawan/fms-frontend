@@ -1,6 +1,6 @@
 // TrackingPage.tsx
 import { useEffect, useMemo, useState } from 'react'
-import { Button, Card, Form, Select, Spin } from 'antd'
+import { Button, Card, Form, Grid, Select, Spin } from 'antd'
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -58,6 +58,9 @@ const extractInitialEquipment = (response: LiveResponse): EquipmentLiveStatus[] 
 }
 
 const TrackingPage = () => {
+  const screens = Grid.useBreakpoint()
+  const isMobile = !screens.md
+
   const [showPanel, setShowPanel] = useState(true)
   const [selectedEquipment, setSelectedEquipment] = useState<string>()
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string>()
@@ -237,6 +240,20 @@ const TrackingPage = () => {
     }
   }, [selectedEquipmentId, refreshActivitySummary])
 
+  const mainGridColumns = showPanel
+    ? isMobile
+      ? '1fr'
+      : 'minmax(0, 1fr) minmax(0, 640px)'
+    : '1fr'
+
+  const filterGridColumns = isMobile
+    ? '1fr'
+    : 'minmax(0,1fr) minmax(150px,170px) minmax(100px,120px)'
+
+  const detailGridColumns = isMobile
+    ? '1fr'
+    : 'minmax(0,240px) minmax(0,1fr)'
+
   return (
     <div
       style={{
@@ -274,9 +291,7 @@ const TrackingPage = () => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: showPanel
-            ? 'minmax(0, 1fr) minmax(0, 640px)'
-            : '1fr',
+          gridTemplateColumns: mainGridColumns,
           gap: 16,
           flex: 1,
           minHeight: 0,
@@ -288,7 +303,8 @@ const TrackingPage = () => {
             overflow: 'hidden',
             position: 'relative',
             minWidth: 0,
-            minHeight: 0,
+            minHeight: isMobile ? 420 : 0,
+            height: isMobile ? 420 : '100%',
             border: '1px solid #064596',
             borderRadius: 8,
           }}
@@ -345,8 +361,7 @@ const TrackingPage = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns:
-                  'minmax(0,1fr) minmax(150px,170px) minmax(100px,120px)',
+                gridTemplateColumns: filterGridColumns,
                 gap: 12,
                 marginBottom: 16,
                 flexShrink: 0,
@@ -390,7 +405,7 @@ const TrackingPage = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0,240px) minmax(0,1fr)',
+                gridTemplateColumns: detailGridColumns,
                 gap: 16,
                 flex: '1 1 0%',
                 minHeight: 0,

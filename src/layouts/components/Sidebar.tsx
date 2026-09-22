@@ -28,7 +28,8 @@ import {
   UserPlus,
   BarChart,
   Scale,
-  CircleGauge
+  CircleGauge,
+  X
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store'
 import { useAlertStore } from '@/stores/alert.store'
@@ -237,12 +238,15 @@ const MENU_CONFIG: MenuConfig[] = [
   },
 ]
 
-const Sidebar = () => {
+const Sidebar = ({ isMobile = false }: { isMobile?: boolean }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
+  const setSidebarCollapsed = useUiStore((s) => s.setSidebarCollapsed)
   const userRole = useAuthStore((s) => s.user?.role)
   const unreadCount = useAlertStore((s) => s.unreadCount)
+
+  const closeSidebar = () => setSidebarCollapsed(true)
 
   // Filter menu berdasarkan role
   const filteredMenu = useMemo(() => {
@@ -284,10 +288,25 @@ const Sidebar = () => {
 
   const handleMenuClick = ({ key }: { key: string }) => {
     navigate(key)
+    if (isMobile) closeSidebar()
   }
 
   return (
-    <Sider
+    <>
+      {isMobile && !collapsed && (
+        <div
+          onClick={closeSidebar}
+          aria-label="Tutup menu"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1199,
+            background: 'rgba(0, 0, 0, 0.45)',
+          }}
+        />
+      )}
+
+      <Sider
       trigger={null}
       collapsible
       collapsed={collapsed}
@@ -302,6 +321,8 @@ const Sidebar = () => {
         bottom: 0,
         background: '#fff',
         borderRight: '1px solid #f0f0f0',
+        display: isMobile && collapsed ? 'none' : 'block',
+        zIndex: isMobile ? 1200 : 'unset',
       }}
     >
       <div
@@ -336,6 +357,27 @@ const Sidebar = () => {
             PT Royaltama Mulia Kontraktorindo Tbk
           </span>
         )}
+
+        {isMobile && !collapsed && (
+          <button
+            type="button"
+            onClick={closeSidebar}
+            aria-label="Tutup menu"
+            style={{
+              marginLeft: 'auto',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 6,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#003366',
+            }}
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       <Menu
@@ -353,7 +395,8 @@ const Sidebar = () => {
           background: '#fff',
         }}
       />
-    </Sider>
+      </Sider>
+    </>
   )
 }
 

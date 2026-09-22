@@ -1,4 +1,4 @@
-import { Layout } from 'antd'
+import { Grid, Layout } from 'antd'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import Sidebar from './components/Sidebar'
@@ -40,6 +40,8 @@ const SIDEBAR_WIDTH = 260
 const SIDEBAR_COLLAPSED_WIDTH = 80
 
 const MainLayout = () => {
+  const screens = Grid.useBreakpoint()
+  const isMobile = !screens.md
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const setPageTitle = useUiStore((s) => s.setPageTitle)
   const location = useLocation()
@@ -56,11 +58,11 @@ const MainLayout = () => {
 
   return (
     <Layout style={{ height: '100vh', overflow: 'hidden' }}>
-      <Sidebar />
+      <Sidebar isMobile={isMobile} />
 
       <Layout
         style={{
-          marginLeft: sidebarWidth,
+          marginLeft: isMobile ? 0 : sidebarWidth,
           transition: 'margin-left .2s ease',
           height: '100vh',
           display: 'flex',
