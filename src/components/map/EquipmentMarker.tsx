@@ -5,10 +5,49 @@ import {
   useMap,
 } from 'react-leaflet'
 import { useEffect, useRef, useState } from 'react'
+import L from 'leaflet'
 import type { Marker as LeafletMarker } from 'leaflet'
 
-import type { EquipmentMarkerProps } from '@/types/map.types'
+import type {
+  EquipmentMarkerData,
+  EquipmentMarkerProps,
+} from '@/types/map.types'
 import { getMarkerIcon } from '@/utils/marker-icon'
+
+// Marker terpilih diberi lingkaran pulse + animasi bounce (sama seperti
+// PositionHistory) supaya mudah dikenali. Icon di-cache supaya animasi CSS
+// tidak restart setiap kali posisi/socket update.
+const selectedIconCache = new Map<string, L.DivIcon>()
+
+const getSelectedMarkerIcon = (
+  item: EquipmentMarkerData,
+  size: number,
+): L.DivIcon => {
+  const baseIcon = getMarkerIcon(item, size)
+  const url = baseIcon.options.iconUrl as string
+  const cacheKey = `${url}:${size}`
+
+  const cached = selectedIconCache.get(cacheKey)
+  if (cached) return cached
+
+  const html = `
+    <div style="position:relative;width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;">
+      <span style="position:absolute;top:50%;left:50%;width:${size}px;height:${size}px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(6,69,150,.35);z-index:1;animation:ph-pulse-ring 1.6s ease-out infinite;"></span>
+      <img src="${url}" alt="" style="width:${size}px;height:${size}px;position:relative;z-index:2;animation:ph-marker-bounce 0.9s ease-in-out infinite;" />
+    </div>`
+
+  const icon = L.divIcon({
+    html,
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
+    tooltipAnchor: [0, -size / 2],
+  })
+
+  selectedIconCache.set(cacheKey, icon)
+  return icon
+}
 
 const EquipmentMarker = ({
   equipments,
@@ -68,7 +107,11 @@ const EquipmentMarker = ({
             item.latitude,
             item.longitude,
           ]}
-          icon={getMarkerIcon(item, iconSize)}
+          icon={
+            item.equipment_id === selectedEquipment
+              ? getSelectedMarkerIcon(item, iconSize)
+              : getMarkerIcon(item, iconSize)
+          }
           zIndexOffset={
             item.equipment_id ===
             selectedEquipment
