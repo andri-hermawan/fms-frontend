@@ -79,6 +79,12 @@ const MENU_CONFIG: MenuConfig[] = [
     label: 'Abnormal Alerts',
     path: ROUTES.ALERT,
   },
+  {
+    key: 'distribution-map',
+    icon: <Locate {...iconStyle} />,
+    label: 'Abnormal Distribution Map',
+    path: ROUTES.DISTRIBUTION_MAP,
+  },
   // {
   //   key: 'all alerts',
   //   icon: <AlertTriangle {...iconStyle} />,
@@ -121,12 +127,6 @@ const MENU_CONFIG: MenuConfig[] = [
     icon: <ChartNoAxesCombined {...iconStyle} />,
     label: 'Position History',
     path: ROUTES.POSITION_HISTORY,
-  },
-  {
-    key: 'distribution-map',
-    icon: <Locate {...iconStyle} />,
-    label: 'Distribution Map',
-    path: ROUTES.DISTRIBUTION_MAP,
   },
   {
     key: 'speed-per-segment',

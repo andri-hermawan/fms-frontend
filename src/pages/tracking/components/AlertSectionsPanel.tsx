@@ -136,7 +136,7 @@ const AlertSectionsPanel = ({ equipment, selectedDate, shift }: Props) => {
           pagination={false}
           size="small"
           tableLayout="fixed"
-          locale={{ emptyText: 'No alert data available' }}
+          locale={{ emptyText: 'No abnormal alert data available' }}
           onRow={(record) => {
             const color = getAlertCategoryColor(record.alert_category_name)
             return color

@@ -268,7 +268,7 @@ const DistributionMapPage = () => {
           paddingBottom: 16,
         }}
       >
-        <PageHeader title="Distribution Map Monitoring" />
+        <PageHeader title="Abnormal Distribution Map" />
 
         <div style={{ display: 'flex', gap: 8 }}>
           <Button

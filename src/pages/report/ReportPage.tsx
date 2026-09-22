@@ -1,12 +1,11 @@
 import { Card, Col, Row, Typography, Button, Space } from 'antd'
 import {
-  BarChartOutlined,
-  LineChartOutlined,
-  PieChartOutlined,
-  FileTextOutlined,
-  DashboardOutlined,
+  // BarChartOutlined,
+  // LineChartOutlined,
   AlertOutlined,
   FireOutlined,
+  UnorderedListOutlined,
+  BellOutlined,
 } from '@ant-design/icons'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -28,66 +27,47 @@ interface ReportItem {
 }
 
 const reports: ReportItem[] = [
-  {
+  { 
     key: 'report/report-equipment-logs',
-    title: 'Asset Logs',
-    description: 'Riwayat log asset per tanggal & shift',
-    icon: <BarChartOutlined style={{ fontSize: 36 }} />,
+    title: 'Asset History',
+    description: 'Riwayat asset history per tanggal, shift dan asset code.',
+    icon: <UnorderedListOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/report/report-equipment-logs',
   },
   {
     key: 'report/report-fuel-history',
     title: 'Fuel History',
-    description: 'Riwayat konsumsi fuel per asset, tanggal & shift',
+    description: 'Riwayat konsumsi fuel per tanggal, shift dan asset code.',
     icon: <FireOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/report/report-fuel-history',
   },
   {
-    key: 'report/report-alert-summary',
+    key: 'report/report-alert-history',
     title: 'Abnormal Alert History',
-    description: 'Riwayat abnormal alert per periode',
-    icon: <DashboardOutlined style={{ fontSize: 36 }} />,
+    description: 'Riwayat abnormal alert per tanggal, shift dan asset code.',
+    icon: <AlertOutlined style={{ fontSize: 36 }} />,
     color: '#064596',
     route: '/alert',
   },
   {
-    key: 'report-c',
-    title: 'Report C',
-    description: 'Laporan konsumsi fuel per equipment',
-    icon: <LineChartOutlined style={{ fontSize: 36 }} />,
-    color: '#064596',
-    route: '/report/c',
-    roles: ['superadmin', 'admin'],
+    key: 'report/report-alert-summary',
+    title: 'Abnormal Alert Summary',
+    description: 'Laporan abnormal alert per periode',
+    icon: <BellOutlined style={{ fontSize: 36 }} />,
+    color: '#389e0d',
+    route: '/report/report-alert-summary',
   },
-  {
-    key: 'report-d',
-    title: 'Report D',
-    description: 'Rekap alert dan pelanggaran per periode',
-    icon: <AlertOutlined style={{ fontSize: 36 }} />,
-    color: '#064596',
-    route: '/report/d',
-    roles: ['superadmin', 'admin'],
-  },
-  {
-    key: 'report-e',
-    title: 'Report E',
-    description: 'Ringkasan aktivitas operator harian',
-    icon: <PieChartOutlined style={{ fontSize: 36 }} />,
-    color: '#064596',
-    route: '/report/e',
-    roles: ['superadmin', 'admin'],
-  },
-  {
-    key: 'report-f',
-    title: 'Report F',
-    description: 'Laporan produktivitas per project',
-    icon: <FileTextOutlined style={{ fontSize: 36 }} />,
-    color: '#064596',
-    route: '/report/f',
-    roles: ['superadmin', 'admin'],
-  },
+  // { 
+  //   key: 'report-d',
+  //   title: 'Report D',
+  //   description: 'Rekap alert dan pelanggaran per periode',
+  //   icon: <AlertOutlined style={{ fontSize: 36 }} />,
+  //   color: '#064596',
+  //   route: '/report/d',
+  //   roles: ['superadmin', 'admin'],
+  // },
 ]
 
 const ReportPage = () => {

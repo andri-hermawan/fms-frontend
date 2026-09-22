@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { Button, Card, Space, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { FilterOutlined, DownloadOutlined } from '@ant-design/icons'
+import { FilterOutlined, DownloadOutlined, ArrowLeftOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import * as XLSX from 'xlsx'
 import PageHeader from '@/components/ui/PageHeader'
@@ -9,10 +9,12 @@ import ReportFilter, { type ReportFilterValues } from '@/components/report/Repor
 import useEquipmentLogs, { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
 import type { EquipmentLog } from '@/types/equipment-logs.types'
 import { formatDate, formatTimeSecond } from '@/utils/format'
+import { useNavigate } from 'react-router-dom'
 
 const { Text } = Typography
 
 const ReportEquipmentLogsPage = () => {
+  const navigate = useNavigate();
   const [filterOpen, setFilterOpen] = useState(true)
   const [filterValues, setFilterValues] = useState<ReportFilterValues>({})
   const [page, setPage] = useState(1)
@@ -84,7 +86,7 @@ const ReportEquipmentLogsPage = () => {
 
     const ws = XLSX.utils.json_to_sheet(exportData)
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Equipment Logs')
+    XLSX.utils.book_append_sheet(wb, ws, 'Asset Logs')
 
     const dateStr = filterValues.date ?? dayjs().format('YYYY-MM-DD')
     const shiftStr = filterValues.shift ?? 'all'
@@ -215,10 +217,13 @@ const ReportEquipmentLogsPage = () => {
   return (
     <>
       <PageHeader
-        title="Equipment Logs"
-        subtitle="Riwayat log equipment per tanggal & shift"
+        title="Report Asset History"
+        subtitle="Riwayat asset history per tanggal, shift dan asset code"
         extra={
           <Space>
+            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/report')}>
+              Back to Reports
+            </Button>
             <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
               Filter
             </Button>
@@ -230,7 +235,7 @@ const ReportEquipmentLogsPage = () => {
       />
       <Card>
         {!hasFilter ? (
-          <Text type="secondary">Terapkan filter untuk melihat data equipment logs.</Text>
+          <Text type="secondary">Terapkan filter untuk melihat data asset history.</Text>
         ) : (
           <Table
             className="custom-table"

@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { Button, Card, Space, Table, Tag, Typography } from 'antd'
-import { FilterOutlined, DownloadOutlined } from '@ant-design/icons'
+import { FilterOutlined, DownloadOutlined, ArrowLeftOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -10,6 +10,7 @@ import ReportFilter, { type ReportFilterValues } from '@/components/report/Repor
 import useFuelHistory from './useFuelHistory'
 import type { Fuel, FuelFilterParams } from '@/types/fuel.types'
 import { formatDate } from '@/utils/format'
+import { useNavigate } from 'react-router-dom'
 
 const { Text } = Typography
 
@@ -26,6 +27,7 @@ dayjs.extend(utc)
 //   status ? STATUS_COLORS[status] ?? (status.toLowerCase().includes('decrease') ? '#cf1322' : '#389e0d') : '#d9d9d9'
 
 const ReportFuelHistoryPage = () => {
+  const navigate = useNavigate();
   const [filterOpen, setFilterOpen] = useState(true)
   const [filterValues, setFilterValues] = useState<ReportFilterValues>({})
   const [page, setPage] = useState(1)
@@ -238,9 +240,12 @@ const ReportFuelHistoryPage = () => {
     <>
       <PageHeader
         title="Report Fuel History"
-        subtitle="Riwayat konsumsi fuel per asset, tanggal & shift"
+        subtitle="Riwayat konsumsi fuel per tanggal, shift dan asset code"
         extra={
           <Space>
+            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/report')}>
+              Back to Reports
+            </Button>
             <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
               Filter
             </Button>
