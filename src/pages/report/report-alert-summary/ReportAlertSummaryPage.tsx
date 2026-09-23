@@ -76,7 +76,7 @@ const ReportAlertSummaryPage = () => {
 
   const alerts = summaryData?.data ?? []
 
-  const { data: abnormalData, isLoading: abnormalLoading } =
+  const { data: abnormalData } =
     useAlertAbnormalActivity(
       hasFilter
         ? { date: filterValues.date, shift: filterValues.shift }
@@ -120,11 +120,9 @@ const ReportAlertSummaryPage = () => {
     underspeed: location.underspeed,
   }))
 
-  const hourlyCategories = ['Fuel Decrease', 'Off Track', 'Overspeed', 'Underspeed']
-
   const hourlyFrequencyValues = abnormalActivity?.hourlyFrequency ?? EMPTY_HOURLY_VALUES
 
-  const hourlyChartData = hourlyCategories.map((category) => ({
+  const hourlyChartData = HOURLY_CATEGORIES.map((category) => ({
     category,
     data: hourlyFrequencyValues[category as keyof typeof hourlyFrequencyValues].map((count, i) => {
       return {
@@ -136,7 +134,7 @@ const ReportAlertSummaryPage = () => {
 
   const equipmentQuantityValues = abnormalActivity?.equipmentQuantity ?? EMPTY_HOURLY_VALUES
 
-  const equipmentQtyChartData = hourlyCategories.map((category) => ({
+  const equipmentQtyChartData = HOURLY_CATEGORIES.map((category) => ({
     category,
     data: equipmentQuantityValues[category as keyof typeof equipmentQuantityValues].map((count, i) => {
       return {
