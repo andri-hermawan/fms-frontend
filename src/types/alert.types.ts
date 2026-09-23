@@ -56,6 +56,46 @@ export interface AlertCategorySummary {
   duration: string
 }
 
+export interface AlertSummaryByDateShiftParams {
+  date?: string
+  shift?: string
+}
+
+export interface AlertSummaryMetric {
+  events: number
+  dt: number
+}
+
+export interface AlertSummaryByDateShiftItem {
+  title: string
+  empty: AlertSummaryMetric
+  loaded: AlertSummaryMetric
+  unknown: AlertSummaryMetric
+}
+
+export interface AlertAbnormalActivityParams {
+  date?: string
+  shift?: string
+}
+
+/** Satu baris lokasi/segmen pada chart Abnormal Event Location */
+export interface AbnormalEventLocationItem {
+  segment: string
+  fuelDecrease: number
+  offTrack: number
+  overspeed: number
+  underspeed: number
+}
+
+/** Nilai per jam untuk tiap kategori alert */
+export type AbnormalActivityHourlyValues = Record<string, number[]>
+
+export interface AlertAbnormalActivityData {
+  abnormalEventLocation: AbnormalEventLocationItem[]
+  hourlyFrequency: AbnormalActivityHourlyValues
+  equipmentQuantity: AbnormalActivityHourlyValues
+}
+
 // export interface AlertRule {
 //   id: string
 //   name: string

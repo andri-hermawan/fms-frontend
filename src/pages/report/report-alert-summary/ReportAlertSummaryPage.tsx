@@ -1,124 +1,64 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, Card, Space, Typography } from 'antd';
 import { ArrowLeftOutlined, FilterOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import { getAlertCategoryColor } from '@/utils/alert-category';
 import PageHeader from '@/components/ui/PageHeader';
 import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter';
+import { useAlertAbnormalActivity, useAlertSummaryByDateShift } from '@/pages/alert/useAlert';
+import { useShifts } from '@/pages/master/shift/useShift';
 import { useNavigate } from 'react-router-dom';
 import rmkoLogo from '@/assets/rmko/RMKO_logo.png';
 
 const { Text } = Typography;
 
-// Dummy Data untuk Dashboard
-const dummyApiResponse = {
-  statusCode: 200,
-  message: 'Hourly abnormal activity retrieved successfully',
-  data: {
-    timeRanges: [
-      '07-08', '08-09', '09-10', '10-11', '11-12', '12-13',
-      '13-14', '14-15', '15-16', '16-17', '17-18', '18-19',
-    ],
-    abnormalEventLocation: [
-      { initialZone: 'Unknown', fuelDecrease: 0, offTrack: 5, overspeed: 0, underspeed: 0 },
-      { initialZone: 'ROM TPB Baru', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'ROM TPB Lama', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'ROM SBL', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'ROM CPM', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'ROM UN', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'ROM SWE', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'ROM DBU', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. TPB Selatan', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. TPB Tengah', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. TPB Utara', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. UN', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. CPM', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. Selatan', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. BTW Lama', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. DBU Km 05', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. DBU Km 04', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. DBU Km 03', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. DBU Km 02', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. DBU Km 01', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Trs. DBU Km 00', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 33 - 34', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 32 - 33', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 31 - 32', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 30 - 31', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 29 - 30', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 28 - 29', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 27 - 28', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 26 - 27', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 2 },
-      { initialZone: 'Km 25 - 26', fuelDecrease: 0, offTrack: 0, overspeed: 5, underspeed: 0 },
-      { initialZone: 'Km 24 - 25', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 23 - 24', fuelDecrease: 3, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 22 - 23', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 6 },
-      { initialZone: 'Km 21 - 22', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 20 - 21', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 19 - 20', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 18 - 19', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 17 - 18', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 16 - 17', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 15 - 16', fuelDecrease: 0, offTrack: 0, overspeed: 1, underspeed: 0 },
-      { initialZone: 'Km 14 - 15', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 13 - 14', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 12 - 13', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 11 - 12', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 10 - 11', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 09 - 10', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 08 - 09', fuelDecrease: 1, offTrack: 0, overspeed: 2, underspeed: 4 },
-      { initialZone: 'Km 07 - 08', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 06 - 07', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 05 - 06', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 04 - 05', fuelDecrease: 0, offTrack: 0, overspeed: 4, underspeed: 0 },
-      { initialZone: 'Km 03 - 04', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 02 - 03', fuelDecrease: 0, offTrack: 0, overspeed: 2, underspeed: 0 },
-      { initialZone: 'Km 01 - 02', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Km 00 - 01', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Jalan Emplas', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Jalan Sp. Sido', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'Emplas', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-      { initialZone: 'CSA Sp. Sido', fuelDecrease: 0, offTrack: 0, overspeed: 0, underspeed: 0 },
-    ],
-    hourlyFrequency: {
-      'Fuel Decrease': [0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 0],
-      'Off Track': [1, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0],
-      Overspeed: [0, 0, 0, 3, 2, 0, 1, 1, 1, 4, 2, 0],
-      Underspeed: [0, 1, 0, 3, 2, 0, 0, 2, 0, 3, 1, 0],
-    },
-    equipmentQuantity: {
-      'Fuel Decrease': [0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 0],
-      'Off Track': [1, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0],
-      Overspeed: [0, 0, 0, 3, 2, 0, 1, 1, 1, 4, 2, 0],
-      Underspeed: [0, 1, 0, 3, 2, 0, 0, 2, 0, 3, 1, 0],
-    },
-  },
+// Ambil jam (0-23) dari string waktu seperti "07:00:00" / "07:00"
+const getHour = (value?: string) => {
+  const hour = Number(value?.slice(0, 2))
+  return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : undefined
 }
 
-const dummyData = {
-  alerts: [
-    {
-      title: "Fuel Decrease",
-      empty: { events: 4, dt: 4 },
-      loaded: { events: 0, dt: 0 }
-    },
-    {
-      title: "Off Track",
-      empty: { events: 4, dt: 4 },
-      loaded: { events: 1, dt: 1 }
-    },
-    {
-      title: "Overspeed",
-      empty: { events: 11, dt: 8 },
-      loaded: { events: 3, dt: 2 }
-    },
-    {
-      title: "Underspeed",
-      empty: { events: 7, dt: 5 },
-      loaded: { events: 5, dt: 3 }
-    }
-  ],
-};
+// Nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence.
+// Sama seperti HourlyTrafficChart supaya pencocokan shift konsisten.
+const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): string | undefined => {
+  const parsed = shift?.shift_name?.match(/(\d+)\s*$/)?.[1]
+  if (parsed) return parsed
+  return shift?.sequence != null ? String(shift.sequence) : undefined
+}
+
+// Bangun daftar jam dari start ke end (inklusif), mendukung shift lintas tengah malam.
+const buildShiftHours = (startHour: number, endHour: number): number[] => {
+  const hours: number[] = []
+  let hour = startHour
+
+  do {
+    hours.push(hour)
+    hour = (hour + 1) % 24
+  } while (hour !== (endHour + 1) % 24)
+
+  return hours
+}
+
+// Label rentang jam per kategori, mis. jam 7 -> "07-08"
+const buildTimeRanges = (hours: number[]): string[] =>
+  hours.map((hourValue) => {
+    const next = (hourValue + 1) % 24
+    return `${String(hourValue).padStart(2, '0')}-${String(next).padStart(2, '0')}`
+  })
+
+const DEFAULT_TIME_RANGES = [
+  '07-08', '08-09', '09-10', '10-11', '11-12', '12-13',
+  '13-14', '14-15', '15-16', '16-17', '17-18', '18-19',
+]
+
+const HOURLY_CATEGORIES = ['Fuel Decrease', 'Off Track', 'Overspeed', 'Underspeed'] as const
+
+const EMPTY_HOURLY_VALUES: Record<string, number[]> = {
+  'Fuel Decrease': [],
+  'Off Track': [],
+  Overspeed: [],
+  Underspeed: [],
+}
 
 const ReportAlertSummaryPage = () => {
   const navigate = useNavigate();
@@ -127,13 +67,53 @@ const ReportAlertSummaryPage = () => {
 
   const hasFilter = Boolean(filterValues.date && filterValues.shift);
 
+  const { data: summaryData, isLoading: summaryLoading } =
+    useAlertSummaryByDateShift(
+      hasFilter
+        ? { date: filterValues.date, shift: filterValues.shift }
+        : undefined,
+    )
+
+  const alerts = summaryData?.data ?? []
+
+  const { data: abnormalData, isLoading: abnormalLoading } =
+    useAlertAbnormalActivity(
+      hasFilter
+        ? { date: filterValues.date, shift: filterValues.shift }
+        : undefined,
+    )
+
+  const abnormalActivity = abnormalData?.data
+
+  // Ambil daftar shift untuk dapatkan start_time & end_time, lalu susun
+  // timeRanges secara terpisah sesuai shift yang dipilih (mirip HourlyTrafficChart).
+  const { data: shiftList } = useShifts({ page: 1, limit: 100 })
+
+  const activeShift = useMemo(
+    () =>
+      shiftList?.data?.find(
+        (s) => toShiftValue(s) === filterValues.shift?.replace('Shift ', ''),
+      ),
+    [shiftList, filterValues.shift],
+  )
+
+  const timeRanges = useMemo(() => {
+    const startHour = getHour(activeShift?.start_time)
+    const endHour = getHour(activeShift?.end_time)
+
+    if (startHour === undefined || endHour === undefined) return DEFAULT_TIME_RANGES
+
+    const hours = buildShiftHours(startHour, endHour)
+    return hours.length > 0 ? buildTimeRanges(hours) : DEFAULT_TIME_RANGES
+  }, [activeShift])
+
   const handleApplyFilter = (values: ReportFilterValues) => {
     setFilterValues(values);
     setFilterOpen(false);
   };
 
-  const locationChartData = dummyApiResponse.data.abnormalEventLocation.map((location) => ({
-    name: location.initialZone,
+  const locationChartData = (abnormalActivity?.abnormalEventLocation ?? []).map((location) => ({
+    name: location.segment,
     fuelDecrease: location.fuelDecrease,
     offTrack: location.offTrack,
     overspeed: location.overspeed,
@@ -142,25 +122,25 @@ const ReportAlertSummaryPage = () => {
 
   const hourlyCategories = ['Fuel Decrease', 'Off Track', 'Overspeed', 'Underspeed']
 
-  const hourlyFrequencyValues = dummyApiResponse.data.hourlyFrequency
+  const hourlyFrequencyValues = abnormalActivity?.hourlyFrequency ?? EMPTY_HOURLY_VALUES
 
   const hourlyChartData = hourlyCategories.map((category) => ({
     category,
     data: hourlyFrequencyValues[category as keyof typeof hourlyFrequencyValues].map((count, i) => {
       return {
-        name: dummyApiResponse.data.timeRanges[i],
+        name: timeRanges[i],
         count,
       }
     }),
   }))
 
-  const equipmentQuantityValues = dummyApiResponse.data.equipmentQuantity
+  const equipmentQuantityValues = abnormalActivity?.equipmentQuantity ?? EMPTY_HOURLY_VALUES
 
   const equipmentQtyChartData = hourlyCategories.map((category) => ({
     category,
     data: equipmentQuantityValues[category as keyof typeof equipmentQuantityValues].map((count, i) => {
       return {
-        name: dummyApiResponse.data.timeRanges[i],
+        name: timeRanges[i],
         count,
       }
     }),
@@ -170,17 +150,17 @@ const ReportAlertSummaryPage = () => {
     <>
       <PageHeader
         title="Report Alert Summary"
-        subtitle="Ringkasan alert dan aktivitas abnormal per periode"
         extra={
           <Space>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/report')}>
               Back to Reports
             </Button>
-            {hasFilter && (
-              <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
-                Filter
-              </Button>
-            )}
+            <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+              Filter
+            </Button>
+            {/* <Button icon={<DownloadOutlined />} onClick={handleDownload} disabled={list.length === 0}>
+              Download
+            </Button> */}
           </Space>
         }
       />
@@ -189,9 +169,6 @@ const ReportAlertSummaryPage = () => {
         <Card>
           <Space direction="vertical">
             <Text type="secondary">Terapkan filter tanggal dan shift untuk melihat report alert summary.</Text>
-            <Button type="primary" icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
-              Buka Filter
-            </Button>
           </Space>
         </Card>
       ) : (
@@ -211,8 +188,8 @@ const ReportAlertSummaryPage = () => {
             PT Royaltama Mulia Kontraktorindo Tbk
           </p>
           <p style={{ margin: '0', fontSize: '13px', opacity: 0.85 }}>
-            <strong>Date:</strong> {new Date().toLocaleDateString('en-GB')} |{' '}
-            <strong>Shift:</strong> 1 |{' '}
+            <strong>Date:</strong> {filterValues.date ? filterValues.date.split('-').reverse().join('/') : '-'} |{' '}
+            <strong>Shift:</strong> {filterValues.shift?.replace('Shift ', '') ?? '-'} |{' '}
             <strong>Update Time:</strong> {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
@@ -224,24 +201,31 @@ const ReportAlertSummaryPage = () => {
       </div>
 
       {/* Alert Summary Cards */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '20px' }}>
-        {dummyData.alerts.map((alert, index) => {
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+        {summaryLoading ? (
+          <Text type="secondary">Memuat data alert summary...</Text>
+        ) : alerts.length === 0 ? (
+          <Text type="secondary">Tidak ada data alert summary untuk filter ini.</Text>
+        ) : alerts.map((alert, index) => {
           const color = getAlertCategoryColor(alert.title) ?? '#1e3a8a'
 
           return (
-          <div key={index} style={{ background: color, borderRadius: '8px', padding: '20px', flex: 1, minWidth: '220px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ marginTop: 0, color: '#fff', borderBottom: '2px solid rgba(255,255,255,0.3)', paddingBottom: '10px', fontSize: '16px' }}>{alert.title}</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-              <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', width: '48%', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
-                <h4 style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase' }}>Empty</h4>
-                <p style={{ margin: 0, fontSize: '13px', fontWeight: 500 }}>{alert.empty.events} event</p>
-                <p style={{ margin: 0, fontSize: '13px', fontWeight: 500 }}>{alert.empty.dt} DT</p>
-              </div>
-              <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', width: '48%', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
-                <h4 style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase' }}>Loaded</h4>
-                <p style={{ margin: 0, fontSize: '13px', fontWeight: 500 }}>{alert.loaded.events} event</p>
-                <p style={{ margin: 0, fontSize: '13px', fontWeight: 500 }}>{alert.loaded.dt} DT</p>
-              </div>
+          <div key={index} style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #eef0f3' }}>
+            <div style={{ background: color, padding: '10px 16px' }}>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '14px', fontWeight: 600, letterSpacing: 0.3 }}>{alert.title}</h3>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '14px 16px' }}>
+              {[
+                { label: 'Empty', metric: alert.empty },
+                { label: 'Loaded', metric: alert.loaded },
+              ].map(({ label, metric }) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '8px 12px', background: '#f7f9fc', borderRadius: '8px', border: '1px solid #edf0f5' }}>
+                  <span style={{ fontSize: '12px', color: '#8a94a6', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>{label}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#1f2937', whiteSpace: 'nowrap' }}>
+                    {metric.events} event <span style={{ color, fontWeight: 600 }}>{metric.dt} DT</span>
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
           )

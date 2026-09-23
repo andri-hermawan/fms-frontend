@@ -240,7 +240,6 @@ const ReportFuelHistoryPage = () => {
     <>
       <PageHeader
         title="Report Fuel History"
-        subtitle="Riwayat konsumsi fuel per tanggal, shift dan asset code"
         extra={
           <Space>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/report')}>

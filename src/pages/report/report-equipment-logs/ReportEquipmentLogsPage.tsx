@@ -218,7 +218,6 @@ const ReportEquipmentLogsPage = () => {
     <>
       <PageHeader
         title="Report Asset History"
-        subtitle="Riwayat asset history per tanggal, shift dan asset code"
         extra={
           <Space>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/report')}>

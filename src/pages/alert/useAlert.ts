@@ -3,10 +3,12 @@ import { App } from 'antd'
 import alertApi from '@/services/api/alert.api'
 // import type { AlertFormValues } from '@/types/user.types'
 import type { PaginationParams } from '@/types/api.types'
-import { AlertSummaryByCategoryParams } from '@/types/alert.types'
+import { AlertAbnormalActivityParams, AlertSummaryByCategoryParams, AlertSummaryByDateShiftParams } from '@/types/alert.types'
 
 export const ALERT_KEY = 'alerts'
 export const ALERT_SUMMARY_KEY = 'alerts-summary-by-category'
+export const ALERT_SUMMARY_BY_DATE_SHIFT_KEY = 'alerts-summary-by-date-shift'
+export const ALERT_ABNORMAL_ACTIVITY_KEY = 'alerts-abnormal-activity'
 
 export const useAlerts = (params?: PaginationParams) =>
   useQuery({
@@ -36,6 +38,38 @@ export const useAlertSummaryByCategory = (
         return alertApi.getSummaryByCategory(params).then((r) => r.data)
       },
       enabled: !!params?.created_at,
+    })
+
+export const useAlertSummaryByDateShift = (
+    params?: AlertSummaryByDateShiftParams,
+  ) =>
+    useQuery({
+      queryKey: [
+        ALERT_SUMMARY_BY_DATE_SHIFT_KEY,
+        params?.date,
+        params?.shift,
+      ],
+      queryFn: () => {
+        // console.log('[useAlertSummaryByDateShift] queryFn params:', params)
+        return alertApi.getSummaryByDateShift(params).then((r) => r.data)
+      },
+      enabled: !!params?.date && !!params?.shift,
+    })
+
+export const useAlertAbnormalActivity = (
+    params?: AlertAbnormalActivityParams,
+  ) =>
+    useQuery({
+      queryKey: [
+        ALERT_ABNORMAL_ACTIVITY_KEY,
+        params?.date,
+        params?.shift,
+      ],
+      queryFn: () => {
+        // console.log('[useAlertAbnormalActivity] queryFn params:', params)
+        return alertApi.getAbnormalActivity(params).then((r) => r.data)
+      },
+      enabled: !!params?.date && !!params?.shift,
     })
 
 // export const useCreateAlert = () => {

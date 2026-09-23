@@ -1,6 +1,6 @@
 import { axiosInstance } from '@/services/http'
 import type { ApiResponse, PaginatedResponse, PaginationParams } from '@/types/api.types'
-import { Alert, AlertCategorySummary, AlertSummaryByCategoryParams } from '@/types/alert.types'
+import { Alert, AlertAbnormalActivityData, AlertAbnormalActivityParams, AlertCategorySummary, AlertSummaryByCategoryParams, AlertSummaryByDateShiftItem, AlertSummaryByDateShiftParams } from '@/types/alert.types'
 
 
 
@@ -28,6 +28,18 @@ const alertApi = {
   getSummaryByCategory: (params?: AlertSummaryByCategoryParams) =>
     axiosInstance.get<ApiResponse<AlertCategorySummary[]>>(
       '/fms/api/alerts/summary_by_category',
+      { params },
+    ),
+
+  getSummaryByDateShift: (params?: AlertSummaryByDateShiftParams) =>
+    axiosInstance.get<ApiResponse<AlertSummaryByDateShiftItem[]>>(
+      '/fms/api/alerts/summary_by_date_shift',
+      { params },
+    ),
+
+  getAbnormalActivity: (params?: AlertAbnormalActivityParams) =>
+    axiosInstance.get<ApiResponse<AlertAbnormalActivityData>>(
+      '/fms/api/alerts/abnormal_activity',
       { params },
     ),
 }
