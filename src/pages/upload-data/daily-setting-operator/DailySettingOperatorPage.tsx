@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography, DatePicker, Select } from 'antd'
-import type { UploadFile } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, UploadOutlined, DownloadOutlined, InboxOutlined } from '@ant-design/icons'
+import { Form, Button, Space, Tooltip, Upload, Modal, Typography, Select, Dropdown } from 'antd'
+import type { MenuProps, UploadFile } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, DownloadOutlined, InboxOutlined, FilterOutlined, DownOutlined, ImportOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
 import FormDrawer from '@/components/ui/FormDrawer'
+import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import { showConfirm } from '@/components/ui/ConfirmModal'
 import { useDailySettingOperators, useCreateDailySettingOperator, useUpdateDailySettingOperator, useDeleteDailySettingOperator, useImportDailySettingOperator } from './useDailySettingOperator'
 import DailySettingOperatorForm from './DailySettingOperatorForm'
@@ -23,9 +24,10 @@ const DailySettingOperatorPage = () => {
   const [selected, setSelected] = useState<DailySettingOperator | null>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [importFile, setImportFile] = useState<UploadFile | null>(null)
+  const [filterOpen, setFilterOpen] = useState(true)
   const { params, setSearch, setPage, setLimit, setDateAt, setShift } = usePagination({ date_at: dayjs().format('YYYY-MM-DD') })
 
-  const { data, isLoading, refetch } = useDailySettingOperators(params)
+  const { data, isLoading } = useDailySettingOperators(params)
   const { data: shiftData } = useShifts({ limit: 100 })
   const shiftOptions = (shiftData?.data ?? []).map((s) => ({ label: s.shift_name, value: s.shift_name }))
   const createM = useCreateDailySettingOperator()
@@ -68,9 +70,39 @@ const DailySettingOperatorPage = () => {
     })
   }
 
+  const handleApplyFilter = (values: ReportFilterValues) => {
+    setSearch(values.search ?? '')
+    setDateAt(values.date)
+    setShift(values.shift)
+    setFilterOpen(false)
+  }
+
+  const handleDownload = () => {
+    const list = data?.data ?? []
+    if (list.length === 0) return
+
+    const exportData = list.map((item, index) => ({
+      No: ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
+      Date: formatDate(item.date_at),
+      Shift: item.shift ?? '-',
+      'Asset ID': item.equipment_code ?? '-',
+      'Operator Name': item.operator_name ?? '-',
+      Description: item.description ?? '-',
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 28 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Setting Operator')
+    XLSX.writeFile(
+      wb,
+      `daily-setting-operator_${params.date_at ?? dayjs().format('YYYY-MM-DD')}.xlsx`,
+    )
+  }
+
   const downloadTemplate = () => {
     const rows = [
-      ['Tanggal', 'Shift', 'Equipment Code', 'Operator Name', 'Description'],
+      ['Tanggal', 'Shift', 'Asset ID', 'Operator Name', 'Description'],
       ['11-08-2026', 'Shift 1', 'EQ-001', 'John Doe', ''],
     ]
     const ws = XLSX.utils.aoa_to_sheet(rows)
@@ -86,9 +118,49 @@ const DailySettingOperatorPage = () => {
     setImportFile(null)
   }
 
+  const openImport = () => {
+    setImportFile(null)
+    setImportOpen(true)
+  }
+
+  const actionMenu: MenuProps['items'] = [
+    ...(canCreate
+      ? [
+          {
+            key: 'add',
+            icon: <PlusOutlined />,
+            label: 'Add',
+            onClick: openCreate,
+          },
+        ]
+      : []),
+    {
+      key: 'import',
+      icon: <ImportOutlined />,
+      label: 'Upload Excel',
+      onClick: openImport,
+    },
+    {
+      key: 'download',
+      icon: <DownloadOutlined />,
+      label: 'Download Raw Data',
+      disabled: !(data?.data?.length),
+      onClick: handleDownload,
+    },
+  ]
+
   const columns: ColumnsType<DailySettingOperator> = [
     {
-      title: 'Tanggal',
+      title: 'No',
+      key: 'index',
+      width: 60,
+      align: 'center',
+      fixed: 'left',
+      render: (_, __, index) =>
+        ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
+    },
+    {
+      title: 'Date',
       dataIndex: 'date_at',
       width: 130,
       align: 'center',
@@ -99,10 +171,9 @@ const DailySettingOperatorPage = () => {
       dataIndex: 'shift',
       width: 120,
       align: 'center',
-      render: (value) => <Tag color="blue">{value}</Tag>,
     },
     {
-      title: 'Equipment Code',
+      title: 'Asset ID',
       dataIndex: 'equipment_code',
       width: 160,
       align: 'left',
@@ -163,51 +234,47 @@ const DailySettingOperatorPage = () => {
     <>
       <PageHeader
         title="Daily Setting Operator"
+        subtitle={`Total ${data?.meta?.total ?? 0} data`}
         extra={
           <Space>
-            <Tooltip title="Import Excel">
-              <Button icon={<UploadOutlined />} onClick={() => {
-                setImportFile(null)
-                setImportOpen(true)
-              }}>
-                Import
+            <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+              Filter
+            </Button>
+            <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
+              <Button type="primary">
+                Actions <DownOutlined />
               </Button>
-            </Tooltip>
-            <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
+            </Dropdown>
           </Space>
         }
       />
       <DataTable<DailySettingOperator>
         rowKey="id" columns={columns}
         dataSource={data?.data ?? []}
-        loading={isLoading} searchable
-        searchPlaceholder="Cari equipment atau operator..."
-        onSearch={setSearch}
-        toolbar={
-          <Space>
-            <DatePicker
-              value={params.date_at ? dayjs(params.date_at) : null}
-              onChange={(date) => setDateAt(date ? date.format('YYYY-MM-DD') : undefined)}
-              placeholder="Filter Tanggal"
-              allowClear
-              style={{ width: 150 }}
-            />
-            <Select
-              value={params.shift || undefined}
-              onChange={(value) => setShift(value)}
-              placeholder="Filter Shift"
-              allowClear
-              style={{ width: 140 }}
-              options={shiftOptions}
-            />
-          </Space>
-        }
+        loading={isLoading}
         pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
       />
       <FormDrawer open={open} title={isEdit ? 'Edit Daily Setting Operator' : 'Add Daily Setting Operator'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'}>
         <DailySettingOperatorForm form={form} initialValues={selected} />
       </FormDrawer>
+
+      <ReportFilter
+        open={filterOpen}
+        title="Daily Setting Operator — Filter"
+        dateMode="single"
+        showSearch
+        searchPlaceholder="Cari asset atau nama operator..."
+        showEquipment={false}
+        showShift={false}
+        initialValues={{ date: params.date_at, shift: params.shift }}
+        onClose={() => setFilterOpen(false)}
+        onApply={handleApplyFilter}
+        isLoading={isLoading}
+      >
+        <Form.Item name="shift" label="Shift">
+          <Select placeholder="Pilih shift" allowClear options={shiftOptions} />
+        </Form.Item>
+      </ReportFilter>
 
       <Modal
         title="Import Data Setting Operator"

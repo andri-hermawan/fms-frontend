@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography } from 'antd'
-import type { UploadFile } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, UploadOutlined, DownloadOutlined, InboxOutlined } from '@ant-design/icons'
+import { Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography, Select, Dropdown } from 'antd'
+import type { MenuProps, UploadFile } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, DownloadOutlined, InboxOutlined, FilterOutlined, DownOutlined, ImportOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
 import FormDrawer from '@/components/ui/FormDrawer'
+import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import { showConfirm } from '@/components/ui/ConfirmModal'
 import { useWeighbridges, useCreateWeighbridge, useUpdateWeighbridge, useDeleteWeighbridge, useImportWeighbridge } from './useWeighbridge'
 import WeighbridgeForm from './WeighbridgeForm'
 import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
+import { useShifts } from '@/pages/master/shift/useShift'
 import { formatDate, formatNumber } from '@/utils/format'
 import type { Weighbridge, WeighbridgeFormValues } from '@/types/weighbridge.types'
 
@@ -22,9 +24,12 @@ const WeighbridgePage = () => {
   const [selected, setSelected] = useState<Weighbridge | null>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [importFile, setImportFile] = useState<UploadFile | null>(null)
-  const { params, setSearch, setPage, setLimit } = usePagination()
+  const [filterOpen, setFilterOpen] = useState(true)
+  const { params, setSearch, setPage, setLimit, setDateAt, setShift } = usePagination({ date_at: dayjs().format('YYYY-MM-DD') })
 
-  const { data, isLoading, refetch } = useWeighbridges(params)
+  const { data, isLoading } = useWeighbridges(params)
+  const { data: shiftData } = useShifts({ limit: 100 })
+  const shiftOptions = (shiftData?.data ?? []).map((s) => ({ label: s.shift_name, value: s.shift_name }))
   const createM = useCreateWeighbridge()
   const updateM = useUpdateWeighbridge()
   const deleteM = useDeleteWeighbridge()
@@ -67,9 +72,50 @@ const WeighbridgePage = () => {
     })
   }
 
+  const handleApplyFilter = (values: ReportFilterValues) => {
+    setSearch(values.search ?? '')
+    setDateAt(values.date)
+    setShift(values.shift)
+    setFilterOpen(false)
+  }
+
+  const handleDownload = () => {
+    const list = data?.data ?? []
+    if (list.length === 0) return
+
+    const exportData = list.map((item, index) => ({
+      No: ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
+      Date: formatDate(item.date_at),
+      Shift: item.shift ?? '-',
+      'Ticket No': item.ticket_no ?? '-',
+      'Asset ID': item.equipment_code ?? '-',
+      Product: item.product ?? '-',
+      Gross: item.gross,
+      Tare: item.tare,
+      Net: item.net,
+      Recipient: item.recipient ?? '-',
+      Customer: item.customer ?? '-',
+      Transporter: item.transporter ?? '-',
+      'Gross Time': item.gross_time ? formatDate(item.gross_time, 'HH:mm') : '-',
+      'Tare Time': item.tare_time ? formatDate(item.tare_time, 'HH:mm') : '-',
+      'Gross Operator': item.gross_operator ?? '-',
+      'Tare Operator': item.tare_operator ?? '-',
+      Description: item.description ?? '-',
+      Location: item.location ?? '-',
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Weighbridge')
+    XLSX.writeFile(
+      wb,
+      `weighbridge_${params.date_at ?? dayjs().format('YYYY-MM-DD')}.xlsx`,
+    )
+  }
+
   const downloadTemplate = () => {
     const rows = [
-      ['Tanggal', 'Shift', 'Ticket No', 'Equipment Code', 'Product', 'Gross', 'Tare', 'Net', 'Recipient', 'Customer', 'Transporter', 'Gross Time', 'Tare Time', 'Gross Operator', 'Tare Operator', 'Description', 'Location'],
+      ['Date', 'Shift', 'Ticket No', 'Asset ID', 'Product', 'Gross', 'Tare', 'Net', 'Recipient', 'Customer', 'Transporter', 'Gross Time', 'Tare Time', 'Gross Operator', 'Tare Operator', 'Description', 'Location'],
       ['11-08-2026', 'Shift 1', 'A2026081200198', '10419', 'BATUBARA', 46200, 14680, 31520, 'PT. RMKO', 'PT. DBU', 'PT. RMKO', '13:09', '13:20', 'Yulius', 'Tegar', 'DBU', ''],
     ]
     const ws = XLSX.utils.aoa_to_sheet(rows)
@@ -90,9 +136,49 @@ const WeighbridgePage = () => {
     setImportFile(null)
   }
 
+  const openImport = () => {
+    setImportFile(null)
+    setImportOpen(true)
+  }
+
+  const actionMenu: MenuProps['items'] = [
+    ...(canCreate
+      ? [
+          {
+            key: 'add',
+            icon: <PlusOutlined />,
+            label: 'Add',
+            onClick: openCreate,
+          },
+        ]
+      : []),
+    {
+      key: 'import',
+      icon: <ImportOutlined />,
+      label: 'Upload Excel',
+      onClick: openImport,
+    },
+    {
+      key: 'download',
+      icon: <DownloadOutlined />,
+      label: 'Download Raw Data',
+      disabled: !(data?.data?.length),
+      onClick: handleDownload,
+    },
+  ]
+
   const columns: ColumnsType<Weighbridge> = [
     {
-      title: 'Tanggal',
+      title: 'No',
+      key: 'index',
+      width: 60,
+      align: 'center',
+      fixed: 'left',
+      render: (_, __, index) =>
+        ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
+    },
+    {
+      title: 'Date',
       dataIndex: 'date_at',
       width: 120,
       align: 'center',
@@ -113,7 +199,7 @@ const WeighbridgePage = () => {
       render: (value) => <span style={{ fontWeight: 600 }}>{value}</span>,
     },
     {
-      title: 'Equipment',
+      title: 'Asset ID',
       dataIndex: 'equipment_code',
       width: 120,
       align: 'left',
@@ -243,33 +329,48 @@ const WeighbridgePage = () => {
     <>
       <PageHeader
         title="Weighbridge"
+        subtitle={`Total ${data?.meta?.total ?? 0} data`}
         extra={
           <Space>
-            <Tooltip title="Import Excel">
-              <Button icon={<UploadOutlined />} onClick={() => {
-                setImportFile(null)
-                setImportOpen(true)
-              }}>
-                Import
+            <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+              Filter
+            </Button>
+            <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
+              <Button type="primary">
+                Actions <DownOutlined />
               </Button>
-            </Tooltip>
-            <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
+            </Dropdown>
           </Space>
         }
       />
       <DataTable<Weighbridge>
         rowKey="id" columns={columns}
         dataSource={data?.data ?? []}
-        loading={isLoading} searchable
-        searchPlaceholder="Cari ticket, equipment, atau customer..."
-        onSearch={setSearch}
+        loading={isLoading}
         scroll={{ x: 'max-content' }}
         pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
       />
       <FormDrawer open={open} title={isEdit ? 'Edit Weighbridge' : 'Add Weighbridge'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'} width={560}>
         <WeighbridgeForm form={form} initialValues={selected} />
       </FormDrawer>
+
+      <ReportFilter
+        open={filterOpen}
+        title="Weighbridge — Filter"
+        dateMode="single"
+        showSearch
+        searchPlaceholder="Cari ticket, equipment, atau customer..."
+        showEquipment={false}
+        showShift={false}
+        initialValues={{ date: params.date_at, shift: params.shift }}
+        onClose={() => setFilterOpen(false)}
+        onApply={handleApplyFilter}
+        isLoading={isLoading}
+      >
+        <Form.Item name="shift" label="Shift">
+          <Select placeholder="Pilih shift" allowClear options={shiftOptions} />
+        </Form.Item>
+      </ReportFilter>
 
       <Modal
         title="Import Data Weighbridge"

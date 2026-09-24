@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography } from 'antd'
-import type { UploadFile } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, UploadOutlined, DownloadOutlined, InboxOutlined } from '@ant-design/icons'
+import { Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography, Select, Dropdown } from 'antd'
+import type { MenuProps, UploadFile } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, DownloadOutlined, InboxOutlined, FilterOutlined, DownOutlined, ImportOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
 import FormDrawer from '@/components/ui/FormDrawer'
+import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import { showConfirm } from '@/components/ui/ConfirmModal'
 import { useBreakdownStatuses, useCreateBreakdownStatus, useUpdateBreakdownStatus, useDeleteBreakdownStatus, useImportBreakdownStatus } from './useBreakdownStatus'
 import BreakdownStatusForm from './BreakdownStatusForm'
 import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
+import { useShifts } from '@/pages/master/shift/useShift'
 import { formatDate, formatTime } from '@/utils/format'
 import type { BreakdownStatus, BreakdownFormValues, BreakdownStatusFormValues } from '@/types/breakdown-status.types'
 
@@ -22,9 +24,12 @@ const BreakdownStatusPage = () => {
   const [selected, setSelected] = useState<BreakdownStatus | null>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [importFile, setImportFile] = useState<UploadFile | null>(null)
-  const { params, setSearch, setPage, setLimit } = usePagination()
+  const [filterOpen, setFilterOpen] = useState(true)
+  const { params, setSearch, setPage, setLimit, setDateAt, setShift } = usePagination({ date_at: dayjs().format('YYYY-MM-DD') })
 
-  const { data, isLoading, refetch } = useBreakdownStatuses(params)
+  const { data, isLoading } = useBreakdownStatuses(params)
+  const { data: shiftData } = useShifts({ limit: 100 })
+  const shiftOptions = (shiftData?.data ?? []).map((s) => ({ label: s.shift_name, value: s.shift_name }))
   const createM = useCreateBreakdownStatus()
   const updateM = useUpdateBreakdownStatus()
   const deleteM = useDeleteBreakdownStatus()
@@ -68,9 +73,49 @@ const BreakdownStatusPage = () => {
     })
   }
 
+  const handleApplyFilter = (values: ReportFilterValues) => {
+    setSearch(values.search ?? '')
+    setDateAt(values.date)
+    setShift(values.shift)
+    setFilterOpen(false)
+  }
+
+  const handleDownload = () => {
+    const list = data?.data ?? []
+    if (list.length === 0) return
+
+    const exportData = list.map((item, index) => ({
+      No: ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
+      Date: formatDate(item.date_at),
+      Shift: item.shift ?? '-',
+      'Asset ID': item.equipment_code ?? '-',
+      Status: item.status ?? '-',
+      Category: item.category ?? '-',
+      'Time Start': item.time_start ?? '-',
+      'Time End': item.time_end ?? '-',
+      Duration: item.duration ?? '-',
+      'Repair Status': item.repair_status ?? '-',
+      Description: item.description ?? '-',
+      Location: item.location ?? '-',
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    ws['!cols'] = [
+      { wch: 6 }, { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 12 },
+      { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+      { wch: 30 }, { wch: 16 },
+    ]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Status Breakdown')
+    XLSX.writeFile(
+      wb,
+      `status-breakdown_${params.date_at ?? dayjs().format('YYYY-MM-DD')}.xlsx`,
+    )
+  }
+
   const downloadTemplate = () => {
     const rows = [
-      ['Tanggal', 'Shift', 'Equipment Code', 'Class', 'Status', 'Category', 'Time Start', 'Time End', 'Duration', 'Repair Status', 'Description', 'Location'],
+      ['Date', 'Shift', 'Asset ID', 'Class', 'Status', 'Category', 'Time Start', 'Time End', 'Duration', 'Repair Status', 'Description', 'Location'],
       ['11-08-2026', 'Shift 1', '10303', 'DUMP TRUCK', 'Breakdown', 'Unsch Maintenance', '07:00', '', '', 'On Progress', 'BATTERY BERMASALAH', 'STA 24'],
     ]
     const ws = XLSX.utils.aoa_to_sheet(rows)
@@ -90,9 +135,49 @@ const BreakdownStatusPage = () => {
     setImportFile(null)
   }
 
+  const openImport = () => {
+    setImportFile(null)
+    setImportOpen(true)
+  }
+
+  const actionMenu: MenuProps['items'] = [
+    ...(canCreate
+      ? [
+          {
+            key: 'add',
+            icon: <PlusOutlined />,
+            label: 'Add',
+            onClick: openCreate,
+          },
+        ]
+      : []),
+    {
+      key: 'import',
+      icon: <ImportOutlined />,
+      label: 'Upload Excel',
+      onClick: openImport,
+    },
+    {
+      key: 'download',
+      icon: <DownloadOutlined />,
+      label: 'Download Raw Data',
+      disabled: !(data?.data?.length),
+      onClick: handleDownload,
+    },
+  ]
+
   const columns: ColumnsType<BreakdownStatus> = [
     {
-      title: 'Tanggal',
+      title: 'No',
+      key: 'index',
+      width: 60,
+      align: 'center',
+      fixed: 'left',
+      render: (_, __, index) =>
+        ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
+    },
+    {
+      title: 'Date',
       dataIndex: 'date_at',
       width: 120,
       align: 'center',
@@ -105,7 +190,7 @@ const BreakdownStatusPage = () => {
       align: 'center',
     },
     {
-      title: 'Equipment',
+      title: 'Asset ID',
       dataIndex: 'equipment_code',
       width: 120,
       align: 'left',
@@ -205,33 +290,48 @@ const BreakdownStatusPage = () => {
     <>
       <PageHeader
         title="Status Breakdown"
+        subtitle={`Total ${data?.meta?.total ?? 0} data`}
         extra={
           <Space>
-            <Tooltip title="Import Excel">
-              <Button icon={<UploadOutlined />} onClick={() => {
-                setImportFile(null)
-                setImportOpen(true)
-              }}>
-                Import
+            <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+              Filter
+            </Button>
+            <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
+              <Button type="primary">
+                Actions <DownOutlined />
               </Button>
-            </Tooltip>
-            <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
+            </Dropdown>
           </Space>
         }
       />
       <DataTable<BreakdownStatus>
         rowKey="id" columns={columns}
         dataSource={data?.data ?? []}
-        loading={isLoading} searchable
-        searchPlaceholder="Cari equipment, class, atau kategori..."
-        onSearch={setSearch}
+        loading={isLoading}
         scroll={{ x: 'max-content' }}
         pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
       />
       <FormDrawer open={open} title={isEdit ? 'Edit Breakdown Status' : 'Add Breakdown Status'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'} width={560}>
         <BreakdownStatusForm form={form} initialValues={selected} />
       </FormDrawer>
+
+      <ReportFilter
+        open={filterOpen}
+        title="Status Breakdown — Filter"
+        dateMode="single"
+        showSearch
+        searchPlaceholder="Cari equipment, class, atau kategori..."
+        showEquipment={false}
+        showShift={false}
+        initialValues={{ date: params.date_at, shift: params.shift }}
+        onClose={() => setFilterOpen(false)}
+        onApply={handleApplyFilter}
+        isLoading={isLoading}
+      >
+        <Form.Item name="shift" label="Shift">
+          <Select placeholder="Pilih shift" allowClear options={shiftOptions} />
+        </Form.Item>
+      </ReportFilter>
 
       <Modal
         title="Import Data Breakdown Status"
