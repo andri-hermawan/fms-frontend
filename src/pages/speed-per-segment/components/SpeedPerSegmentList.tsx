@@ -5,9 +5,13 @@ import type { EquipmentLog } from '@/types/equipment-logs.types'
 
 interface SpeedPerSegmentListProps {
   data: EquipmentLog[]
+  selectedId?: string | null
 }
 
-const SpeedPerSegmentList = ({ data }: SpeedPerSegmentListProps) => {
+const SpeedPerSegmentList = ({
+  data,
+  selectedId,
+}: SpeedPerSegmentListProps) => {
   if (data.length === 0) {
     return <Empty description="No data available" style={{ marginTop: 48 }} />
   }
@@ -18,6 +22,7 @@ const SpeedPerSegmentList = ({ data }: SpeedPerSegmentListProps) => {
         const speed = Number(log.speed) || 0
         const bg = getSpeedColor(speed)
         const fg = getSpeedTextColor(speed)
+        const selected = selectedId === log.id
 
         return (
           <div
@@ -25,9 +30,12 @@ const SpeedPerSegmentList = ({ data }: SpeedPerSegmentListProps) => {
             style={{
               padding: '10px 12px',
               borderRadius: 8,
-              border: '1px solid #f0f0f0',
+              border: selected ? '1px solid #064596' : '1px solid #f0f0f0',
               background: bg,
               transition: 'background .2s',
+              ...(selected
+                ? { boxShadow: '0 0 0 2px rgba(6,69,150,.35)' }
+                : {}),
             }}
           >
             <div

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, Select } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
-import { Marker } from 'react-leaflet'
+import { Marker, Tooltip, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import dayjs from 'dayjs'
 
@@ -17,12 +17,139 @@ import { useCurrentShift } from '@/pages/master/shift/useShift'
 import { getOperationalDate } from '@/utils/operational-date'
 import { useEquipmentLogsByDateShift, useSegmentSpeedSummary } from '@/hooks/useEquipmentLogs'
 import { getSpeedColor, getSpeedBand, SPEED_COLOR_BANDS } from '@/utils/speed-color'
+import type { EquipmentLog } from '@/types/equipment-logs.types'
 
 // Ambil nomor shift dari nama shift API ("Shift 1" -> "1"), fallback ke sequence
 const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): string | undefined => {
   const parsed = shift?.shift_name?.match(/(\d+)\s*$/)?.[1]
   if (parsed) return parsed
   return shift?.sequence != null ? String(shift.sequence) : undefined
+}
+
+// Icon titik kecepatan (default) — sama seperti sebelumnya.
+const getSpeedIcon = (speed: number) =>
+  L.divIcon({
+    className: '',
+    html: `<div style="width:12px;height:12px;background:${getSpeedColor(speed)};border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.4)"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  })
+
+// Icon titik kecepatan terpilih — diberi pulse ring + bounce animation
+// (memakai keyframes ph-pulse-ring / ph-marker-bounce dari index.css).
+const getSelectedSpeedIcon = (speed: number) =>
+  L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+      <span style="position:absolute;top:50%;left:50%;width:36px;height:36px;transform:translate(-50%,-50%);border-radius:50%;background:${getSpeedColor(speed)};opacity:.35;animation:ph-pulse-ring 1.6s ease-out infinite;"></span>
+      <span style="position:relative;z-index:2;width:14px;height:14px;border-radius:50%;background:${getSpeedColor(speed)};border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.4);animation:ph-marker-bounce .9s ease-in-out infinite;"></span>
+    </div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    tooltipAnchor: [0, -18],
+  })
+
+// Marker titik speed + tooltip (mengikuti pola tooltipContent PositionHistoryPage).
+const SpeedPointMarker = ({
+  log,
+  selected = false,
+  onSelect,
+  onClose,
+}: {
+  log: EquipmentLog
+  selected?: boolean
+  onSelect?: (log: EquipmentLog) => void
+  onClose?: () => void
+}) => {
+  const speed = Number(log.speed) || 0
+
+  const tooltipContent = (
+    <div
+      style={{
+        position: 'relative',
+        minWidth: 250,
+        lineHeight: 1.6,
+        paddingRight: selected ? 18 : 0,
+      }}
+    >
+      {selected && onClose && (
+        <button
+          type="button"
+          aria-label="Tutup tooltip"
+          title="Tutup"
+          onClick={(event) => {
+            event.stopPropagation()
+            event.preventDefault()
+            onClose()
+          }}
+          style={{
+            position: 'absolute',
+            top: -4,
+            right: -4,
+            width: 18,
+            height: 18,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            border: 'none',
+            borderRadius: 4,
+            background: 'transparent',
+            color: '#888',
+            fontSize: 16,
+            lineHeight: 1,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          ×
+        </button>
+      )}
+      <div><strong>{log.equipment_code || '-'}</strong></div>
+      <div>
+        <strong>Jam:</strong> {log.created_at ? dayjs(log.created_at).format('HH:mm') : '-'}
+        {' - '}
+        <strong>Speed:</strong> {speed.toFixed(2)}
+        {' - '}
+        <strong>Fuel:</strong> {(Number(log.fuel_percentage) || 0).toFixed(0)}%
+      </div>
+      <div><strong>MapSegment:</strong> {log.segment || '-'}</div>
+      <div>
+        <strong>Coordinat:</strong> {(Number(log.latitude) || 0).toFixed(6)},{' '}
+        {(Number(log.longitude) || 0).toFixed(6)}
+      </div>
+    </div>
+  )
+
+  return (
+    <Marker
+      position={[Number(log.latitude) || 0, Number(log.longitude) || 0]}
+      icon={selected ? getSelectedSpeedIcon(speed) : getSpeedIcon(speed)}
+      zIndexOffset={selected ? 1000 : 0}
+      eventHandlers={{ click: () => onSelect?.(log) }}
+    >
+      <Tooltip
+        direction="top"
+        offset={[0, -18]}
+        opacity={1}
+        permanent={selected}
+        className={selected ? 'speed-point-tooltip' : undefined}
+      >
+        {tooltipContent}
+      </Tooltip>
+    </Marker>
+  )
+}
+
+// FlyTo komponen: pindahkan map ke koordinat tertentu saat trigger berubah
+const FlyToPoint = ({ lat, lng, trigger }: { lat: number; lng: number; trigger: number }) => {
+  const map = useMap()
+  useEffect(() => {
+    if (lat !== 0 && lng !== 0) {
+      map.flyTo([lat, lng], 17, { animate: true, duration: 0.5 })
+    }
+  }, [lat, lng, trigger])
+  return null
 }
 
 const SpeedPerSegmentPage = () => {
@@ -36,6 +163,10 @@ const SpeedPerSegmentPage = () => {
   const [shiftOverride, setShiftOverride] = useState<string | null>(null)
   const [speedFilter, setSpeedFilter] = useState<string | undefined>(undefined)
   const [showAllLabels, setShowAllLabels] = useState(false)
+
+  // Log terpilih (dari klik marker) + trigger untuk flyTo map.
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null)
+  const [flyToTrigger, setFlyToTrigger] = useState<number>(0)
 
   const project = useAuthStore((s) => s.project)
   const geoJson = project?.geojson_origin ?? null
@@ -123,13 +254,32 @@ const SpeedPerSegmentPage = () => {
 
   const defaultMapCenter = useMemo(() => [-3.487, 103.869] as [number, number], [])
 
-  const getSpeedIcon = (speed: number) =>
-    L.divIcon({
-      className: '',
-      html: `<div style="width:12px;height:12px;background:${getSpeedColor(speed)};border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.4)"></div>`,
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
-    })
+  // Log terpilih: tandai marker-nya (pulse + tooltip permanen) dan pindahkan
+  // map ke titiknya.
+  const focusLog = useCallback(
+    (log: EquipmentLog | undefined) => {
+      if (!log) return
+      setSelectedLogId(log.id)
+      setFlyToTrigger((prev) => prev + 1)
+    },
+    [],
+  )
+
+  // Tutup tooltip titik yang sedang terbuka (permanent) tanpa mengubah filter.
+  const closeTooltip = useCallback(() => {
+    setSelectedLogId(null)
+  }, [])
+
+  // Titik tujuan flyTo — hanya dihitung saat trigger berubah (atau selection
+  // berubah) agar tidak memicu flyTo ulang setiap kali data ter-refresh.
+  const flyToTarget = useMemo(() => {
+    const log = filteredLogs.find((item) => item.id === selectedLogId)
+    return {
+      lat: Number(log?.latitude) || 0,
+      lng: Number(log?.longitude) || 0,
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLogId, flyToTrigger])
 
   return (
     <div
@@ -202,12 +352,19 @@ const SpeedPerSegmentPage = () => {
               enabled={showAllLabels}
               onChange={setShowAllLabels}
             />
+            <FlyToPoint
+              lat={flyToTarget.lat}
+              lng={flyToTarget.lng}
+              trigger={flyToTrigger}
+            />
             {filteredLogs.map((log) =>
               log.latitude && log.longitude ? (
-                <Marker
-                  key={log.id}
-                  position={[log.latitude, log.longitude]}
-                  icon={getSpeedIcon(Number(log.speed) || 0)}
+                <SpeedPointMarker
+                  key={`${log.id}-${log.id === selectedLogId ? 'selected' : 'default'}`}
+                  log={log}
+                  selected={log.id === selectedLogId}
+                  onSelect={focusLog}
+                  onClose={closeTooltip}
                 />
               ) : null,
             )}
@@ -292,7 +449,10 @@ const SpeedPerSegmentPage = () => {
               marginTop: 8,
             }}
           >
-            <SpeedPerSegmentList data={filteredLogs} />
+            <SpeedPerSegmentList
+              data={filteredLogs}
+              selectedId={selectedLogId}
+            />
           </div>
         </div>
         )}

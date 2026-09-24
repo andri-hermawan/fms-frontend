@@ -230,6 +230,17 @@ html {
   animation: ph-marker-bounce 0.9s ease-in-out infinite;
 }
 
+/* Tooltip titik Speed Heatmap yang sedang terbuka: harus bisa diklik
+   supaya tombol close (×) berfungsi (Leaflet default-nya pointer-events: none). */
+.speed-point-tooltip {
+  pointer-events: auto !important;
+}
+
+.speed-point-tooltip button:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #333 !important;
+}
+
 /* Sidebar */
 
 .ant-layout-sider-light .ant-menu-item,
