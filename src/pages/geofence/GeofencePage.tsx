@@ -385,8 +385,8 @@ const GeofencePage = () => {
                 minWidth: 0,
               }}
             >
-              <EquipmentPassingTable data={filteredPassing} shift={shiftLabel} />
-              <HourlySummaryTable data={hourlySummary} shift={shiftLabel} />
+              <EquipmentPassingTable data={filteredPassing} />
+              <HourlySummaryTable data={hourlySummary} />
             </div>
 
             <div

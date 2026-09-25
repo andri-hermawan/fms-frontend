@@ -6,11 +6,11 @@ interface Props {
   shift?: string
 }
 
-const EquipmentPassingTable = ({ data, shift }: Props) => {
+const EquipmentPassingTable = ({ data }: Props) => {
   // console.log("data passing", data)
   return (
     <Card
-      title={`ASSET PASSING${shift ? ` - ${shift}` : ''}`}
+      title="ASSET PASSING"
       size="small"
       style={{
         height: '100%',
@@ -95,7 +95,7 @@ const EquipmentPassingTable = ({ data, shift }: Props) => {
           </div>
         )) : (
           <div style={{ padding: '24px 12px', textAlign: 'center', color: '#999', fontSize: 12 }}>
-            No equipment passing available
+            No asset passing available
           </div>
         )}
       </div>

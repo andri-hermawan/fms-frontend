@@ -68,7 +68,7 @@ const AlertSectionsPanel = ({ equipment, selectedDate, shift }: Props) => {
       ellipsis: true,
     },
     {
-      title: 'Equipment',
+      title: 'Asset ID',
       dataIndex: 'equipment_code',
       width: '20%',
       ellipsis: true,
