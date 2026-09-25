@@ -15,7 +15,7 @@ import BreakdownStatusForm from './BreakdownStatusForm'
 import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
 import { useShifts } from '@/pages/master/shift/useShift'
-import { formatDate, formatTime } from '@/utils/format'
+import { formatDate, formatTimeUtc } from '@/utils/format'
 import type { BreakdownStatus, BreakdownFormValues, BreakdownStatusFormValues } from '@/types/breakdown-status.types'
 
 const BreakdownStatusPage = () => {
@@ -213,21 +213,21 @@ const BreakdownStatusPage = () => {
       dataIndex: 'time_start',
       width: 100,
       align: 'center',
-      render: (value) => formatTime(value),
+      render: (value) => formatTimeUtc(value),
     },
     {
       title: 'End',
       dataIndex: 'time_end',
       width: 100,
       align: 'center',
-      render: (value) => formatTime(value),
+      render: (value) => formatTimeUtc(value),
     },
     {
       title: 'Duration',
       dataIndex: 'duration',
       width: 100,
       align: 'center',
-      render: (value) => formatTime(value),
+      render: (value) => formatTimeUtc(value),
     },
     {
       title: 'Repair Status',
