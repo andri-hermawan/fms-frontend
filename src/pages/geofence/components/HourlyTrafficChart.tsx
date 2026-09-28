@@ -22,14 +22,18 @@ const toShiftValue = (shift?: { shift_name?: string; sequence?: number }): strin
   return shift?.sequence != null ? String(shift.sequence) : undefined
 }
 
+// `endHour` is the exclusive shift boundary. For example, 07:00–19:00
+// produces buckets 07:00 through 18:00.
 const buildShiftHours = (startHour: number, endHour: number): number[] => {
+  if (startHour === endHour) return []
+
   const hours: number[] = []
   let hour = startHour
 
   do {
     hours.push(hour)
     hour = (hour + 1) % 24
-  } while (hour !== (endHour + 1) % 24)
+  } while (hour !== endHour)
 
   return hours
 }
@@ -96,18 +100,26 @@ const HourlyTrafficChart = ({ data, shift }: Props) => {
   }, [])
 
   const chartData = useMemo(() => {
-    const window =
+    const shiftWindow =
       startHour !== undefined && endHour !== undefined
         ? { startHour, endHour }
         : detectShiftWindow(data)
 
-    if (!window) return data
+    if (!shiftWindow) return data
+
+    // Shift API's end_time is exclusive (07:00–19:00 means the last bucket
+    // is 18:00). The detected data window is inclusive, so move its end by
+    // one hour before passing it to buildShiftHours.
+    const endHourExclusive =
+      startHour !== undefined && endHour !== undefined
+        ? shiftWindow.endHour
+        : (shiftWindow.endHour + 1) % 24
 
     const dataByHour = new Map(
       data.map((item) => [getHour(item.hour), item] as const),
     )
 
-    return buildShiftHours(window.startHour, window.endHour).map((hourValue) => {
+    return buildShiftHours(shiftWindow.startHour, endHourExclusive).map((hourValue) => {
       const item = dataByHour.get(hourValue)
       return {
         hour: `${String(hourValue).padStart(2, '0')}:00`,

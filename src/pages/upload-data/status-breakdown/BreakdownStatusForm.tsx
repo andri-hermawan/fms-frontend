@@ -9,7 +9,7 @@ interface Props {
   initialValues?: BreakdownStatus | null
 }
 
-const STATUSES = ['Breakdown', 'Standby', 'Running']
+const STATUSES = ['Breakdown', 'Continue', 'Ready']
 const CATEGORIES = [
   'Unsch Maintenance',
   'Sch Maintenance',
