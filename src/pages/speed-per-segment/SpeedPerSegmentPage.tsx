@@ -115,8 +115,16 @@ const SpeedPointMarker = ({
       </div>
       <div><strong>MapSegment:</strong> {log.segment || '-'}</div>
       <div>
-        <strong>Coordinat:</strong> {(Number(log.latitude) || 0).toFixed(6)},{' '}
-        {(Number(log.longitude) || 0).toFixed(6)}
+        <strong>Coordinat:</strong>{' '}
+        <a
+          href={`https://www.google.com/maps?q=${Number(log.latitude) || 0},${Number(log.longitude) || 0}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#1677ff', textDecoration: 'none', cursor: 'pointer' }}
+        >
+          {(Number(log.latitude) || 0).toFixed(6)},{' '}
+          {(Number(log.longitude) || 0).toFixed(6)}
+        </a>
       </div>
     </div>
   )
@@ -133,6 +141,7 @@ const SpeedPointMarker = ({
         offset={[0, -18]}
         opacity={1}
         permanent={selected}
+        interactive
         className={selected ? 'speed-point-tooltip' : undefined}
       >
         {tooltipContent}

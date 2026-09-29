@@ -60,7 +60,17 @@ const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: bo
         <strong>Fuel:</strong> {markerData.fuel_percentage.toFixed(0)}%
       </div>
       <div><strong>MapSegment:</strong> {markerData.segment || '-'}</div>
-      <div><strong>Coordinat:</strong> {markerData.latitude.toFixed(6)}, {markerData.longitude.toFixed(6)}</div>
+      <div>
+        <strong>Coordinat:</strong>{' '}
+        <a
+          href={`https://www.google.com/maps?q=${markerData.latitude},${markerData.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#1677ff', textDecoration: 'none', cursor: 'pointer' }}
+        >
+          {markerData.latitude.toFixed(6)}, {markerData.longitude.toFixed(6)}
+        </a>
+      </div>
     </div>
   )
 
@@ -88,6 +98,7 @@ const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: bo
           offset={[0, -18]}
           opacity={1}
           permanent
+          interactive
         >
           {tooltipContent}
         </Tooltip>
@@ -100,7 +111,7 @@ const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: bo
       position={[markerData.latitude, markerData.longitude]}
       icon={getMarkerIcon(markerData)}
     >
-      <Tooltip direction="top" offset={[0, -18]}>
+      <Tooltip direction="top" offset={[0, -18]} interactive>
         {tooltipContent}
       </Tooltip>
     </Marker>

@@ -35,7 +35,7 @@ const breakdownStatusApi = {
     id: string,
     payload: Partial<BreakdownStatusFormValues>,
   ) =>
-    axiosInstance.put<
+    axiosInstance.patch<
       ApiResponse<BreakdownStatus>
     >(
       `/fms/api/breakdown-status/${id}`,

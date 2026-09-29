@@ -144,24 +144,24 @@ const TrackingPage = () => {
     [currentShift.data],
   )
 
-  console.log('[TrackingPage] parameters:', {
-    currentShiftQuery: {
-      projectId: project?.id,
-      currentTime: currentShiftQueryTime,
-    },
-    currentShiftResponse: currentShift.data,
-    currentDateDisplay: selectedDate.format('YYYY-MM-DD'),
-    shiftSelect: {
-      value: currentShift.data?.shift_name,
-      label: currentShift.data?.shift_name,
-      loading: currentShift.isLoading,
-    },
-    activitySummary: {
-      start_date: selectedDate.startOf('day').format('YYYY-MM-DD'),
-      end_date: selectedDate.endOf('day').format('YYYY-MM-DD'),
-      shift: currentShift.data?.shift_name,
-    },
-  })
+  // console.log('[TrackingPage] parameters:', {
+  //   currentShiftQuery: {
+  //     projectId: project?.id,
+  //     currentTime: currentShiftQueryTime,
+  //   },
+  //   currentShiftResponse: currentShift.data,
+  //   currentDateDisplay: selectedDate.format('YYYY-MM-DD'),
+  //   shiftSelect: {
+  //     value: currentShift.data?.shift_name,
+  //     label: currentShift.data?.shift_name,
+  //     loading: currentShift.isLoading,
+  //   },
+  //   activitySummary: {
+  //     start_date: selectedDate.startOf('day').format('YYYY-MM-DD'),
+  //     end_date: selectedDate.endOf('day').format('YYYY-MM-DD'),
+  //     shift: currentShift.data?.shift_name,
+  //   },
+  // })
 
   const positionsMap = useEquipmentStatusStore(selectPositions)
 

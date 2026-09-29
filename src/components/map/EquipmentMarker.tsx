@@ -232,7 +232,7 @@ const EquipmentMarker = ({
                     </td>
                     <td style={{ padding: '4px 0' }}>
                       <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`}
+                        href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{

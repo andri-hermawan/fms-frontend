@@ -44,7 +44,17 @@ const AlertPopupContent = ({ alert }: { alert: Alert }) => (
         <strong>Fuel:</strong> {alert.fuel_percentage}%
       </div>
       <div><strong>Map Segment:</strong> {alert.segment || '-'}</div>
-      <div><strong>Coordinat:</strong> {alert.latitude.toFixed(6)}, {alert.longitude.toFixed(6)}</div>
+      <div>
+        <strong>Coordinat:</strong>{' '}
+        <a
+          href={`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#1677ff', textDecoration: 'none', cursor: 'pointer' }}
+        >
+          {alert.latitude.toFixed(6)}, {alert.longitude.toFixed(6)}
+        </a>
+      </div>
     </div>
 )
 

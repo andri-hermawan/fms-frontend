@@ -35,7 +35,7 @@ const dailySettingOperatorApi = {
     id: string,
     payload: Partial<DailySettingOperatorFormValues>,
   ) =>
-    axiosInstance.put<
+    axiosInstance.patch<
       ApiResponse<DailySettingOperator>
     >(
       `/fms/api/setting-operator/${id}`,

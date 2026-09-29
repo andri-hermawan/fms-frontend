@@ -1,8 +1,12 @@
 import { useEffect } from 'react'
 import { Form, Input, DatePicker, Select, TimePicker, Space } from 'antd'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import type { BreakdownStatus, BreakdownFormValues } from '@/types/breakdown-status.types'
 import { useShifts } from '@/pages/master/shift/useShift'
+import { useEquipments } from '@/pages/master/equipment/useEquipment'
+
+dayjs.extend(utc)
 
 interface Props {
   form: ReturnType<typeof Form.useForm<BreakdownFormValues>>[0]
@@ -21,25 +25,43 @@ const CATEGORIES = [
 const REPAIR_STATUS = ['On Progress', 'Done', 'Pending']
 
 const calcDuration = (start: dayjs.Dayjs, end: dayjs.Dayjs) => {
+  // Hitung dari jam-menit (wall clock) via `.hour()`/`.minute()` yang mengikuti mode Dayjs.
+  // Penting: saat UPDATE, nilai awal dari backend bermode UTC, sedangkan nilai yang baru
+  // dipilih dari TimePicker bermode lokal. `diff()` membandingkan instant sehingga campur mode
+  // bikin hasil ngawur, jadi di sini cukup pakai komponen jam-menitnya.
+  const startMin = start.hour() * 60 + start.minute()
+  let endMin = end.hour() * 60 + end.minute()
   // Bila end < start, dianggap melewati tengah malam (shift malam)
-  const endAdj = end.isBefore(start) ? end.add(1, 'day') : end
-  const minutes = endAdj.diff(start, 'minute')
+  if (endMin < startMin) endMin += 24 * 60
+  const minutes = endMin - startMin
   const hh = Math.floor(minutes / 60).toString().padStart(2, '0')
   const mm = (minutes % 60).toString().padStart(2, '0')
   return `${hh}:${mm}`
 }
 
 // Normalisasi duration dari backend ("00:30" atau ISO "1970-01-01T00:30:00.000Z") ke "HH:mm"
+// Nilai ISO disimpan backend pada bagian UTC (mis. 1970-01-01T00:30:00.000Z = 00:30),
+// jadi WAJIB di-parse pakai dayjs.utc agar tidak tergeser timezone lokal.
 const normalizeDuration = (value: string | null | undefined): string | null => {
   if (!value) return null
   const trimmed = String(value).trim()
   if (/^\d{2}:\d{2}/.test(trimmed)) return trimmed.slice(0, 5)
-  const parsed = dayjs(trimmed)
+  const parsed = dayjs.utc(trimmed)
   return parsed.isValid() ? parsed.format('HH:mm') : null
+}
+
+// Parse time_start/time_end dari backend (ISO UTC 1970) ke Dayjs mode UTC
+const parseTimeUtc = (value: string | null | undefined): dayjs.Dayjs | null => {
+  if (!value) return null
+  const trimmed = String(value).trim()
+  if (/^\d{2}:\d{2}/.test(trimmed)) return dayjs.utc(trimmed, 'HH:mm')
+  const parsed = dayjs.utc(trimmed)
+  return parsed.isValid() ? parsed : null
 }
 
 const BreakdownStatusForm = ({ form, initialValues }: Props) => {
   const { data: shiftData, isLoading: loadingShift } = useShifts({ page: 1, limit: 100 })
+  const { data: equipmentData, isLoading: loadingEquipment } = useEquipments({ page: 1, limit: 999999 })
 
   const syncDuration = (start?: dayjs.Dayjs | null, end?: dayjs.Dayjs | null) => {
     if (start && end) {
@@ -66,6 +88,12 @@ const BreakdownStatusForm = ({ form, initialValues }: Props) => {
       label: s.shift_name,
     })) ?? []
 
+  const equipmentOptions =
+    equipmentData?.data?.map((eq) => ({
+      value: eq.equipment_code,
+      label: eq.equipment_code,
+    })) ?? []
+
   useEffect(() => {
     if (initialValues) {
       form.setFieldsValue({
@@ -74,8 +102,8 @@ const BreakdownStatusForm = ({ form, initialValues }: Props) => {
         equipment_code: initialValues.equipment_code,
         status: initialValues.status,
         category: initialValues.category,
-        time_start: initialValues.time_start ? dayjs(initialValues.time_start, 'HH:mm') : null,
-        time_end: initialValues.time_end ? dayjs(initialValues.time_end, 'HH:mm') : null,
+        time_start: parseTimeUtc(initialValues.time_start),
+        time_end: parseTimeUtc(initialValues.time_end),
         duration: normalizeDuration(initialValues.duration),
         repair_status: initialValues.repair_status,
         description: initialValues.description ?? null,
@@ -115,14 +143,17 @@ const BreakdownStatusForm = ({ form, initialValues }: Props) => {
       <Form.Item
         name="equipment_code"
         label="Equipment Code"
-        rules={[{ required: true, message: 'Wajib diisi' }]}
+        rules={[{ required: true, message: 'Wajib dipilih' }]}
       >
-        <Input
-          placeholder="10303"
-          style={{ textTransform: 'uppercase' }}
-          onChange={(e) =>
-            form.setFieldValue('equipment_code', e.target.value.toUpperCase())
+        <Select
+          placeholder="Pilih equipment"
+          loading={loadingEquipment}
+          options={equipmentOptions}
+          showSearch
+          filterOption={(input, opt) =>
+            (opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
           }
+          notFoundContent="Equipment tidak ditemukan"
         />
       </Form.Item>
 
