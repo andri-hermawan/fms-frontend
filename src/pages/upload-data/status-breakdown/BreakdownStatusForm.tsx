@@ -34,9 +34,10 @@ const calcDuration = (start: dayjs.Dayjs, end: dayjs.Dayjs) => {
   // Bila end < start, dianggap melewati tengah malam (shift malam)
   if (endMin < startMin) endMin += 24 * 60
   const minutes = endMin - startMin
-  const hh = Math.floor(minutes / 60).toString().padStart(2, '0')
-  const mm = (minutes % 60).toString().padStart(2, '0')
-  return `${hh}:${mm}`
+  // const hh = Math.floor(minutes / 60).toString().padStart(2, '0')
+  // const mm = (minutes % 60).toString().padStart(2, '0')
+  const totalHours = (minutes / 60).toFixed(2)
+  return `${totalHours}`
 }
 
 // Normalisasi duration dari backend ("00:30" atau ISO "1970-01-01T00:30:00.000Z") ke "HH:mm"

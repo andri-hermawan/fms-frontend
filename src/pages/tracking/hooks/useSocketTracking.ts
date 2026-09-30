@@ -26,11 +26,19 @@ const extractList = (response: ResponseWithData): EquipmentLiveStatus[] => {
   return []
 }
 
-const extractEquipmentList = (response: any): EquipmentLiveStatus[] => {
-  if (Array.isArray(response?.data)) return response.data
-  if (Array.isArray(response?.data?.equipments)) return response.data.equipments
-  if (Array.isArray(response?.equipments)) return response.equipments
-  return extractList(response)
+const extractEquipmentList = (response: unknown): EquipmentLiveStatus[] => {
+  const r = response as Record<string, unknown> | null
+  if (!r || typeof r !== 'object') return extractList(response as ResponseWithData)
+  if (Array.isArray(r.data)) return r.data as EquipmentLiveStatus[]
+  if (
+    r.data &&
+    typeof r.data === 'object' &&
+    Array.isArray((r.data as Record<string, unknown>).equipments)
+  ) {
+    return (r.data as Record<string, unknown>).equipments as EquipmentLiveStatus[]
+  }
+  if (Array.isArray(r.equipments)) return r.equipments as EquipmentLiveStatus[]
+  return extractList(response as ResponseWithData)
 }
 
 // Returns the AlertCategorySummary[] array no matter how the socket/API wraps
@@ -109,15 +117,6 @@ interface NewAlertData {
   metadata?: Record<string, unknown>
 }
 
-interface NewEquipmentLogData {
-  log_id: string
-  equipment_id: string
-  equipment_code: string
-  event_type: string
-  timestamp: string
-  details: Record<string, unknown>
-}
-
 interface FuelEventData {
   equipment_id: string
   equipment_code: string
@@ -178,7 +177,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
     })
 
     // Listen for initial data from backend
-    socket.on('initial-data', (data: any) => {
+    socket.on('initial-data', (data: unknown) => {
       // console.log('📥 Received initial-data event from backend!')
       // console.log('📥 Raw initial data:', data)
       const list = extractEquipmentList(data)
@@ -198,6 +197,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
     })
 
     // Debug: Log ALL events received from socket
+    // TODO: matikan kembali setelah selesai testing
     socket.onAny((eventName, ...args) => {
       console.log(`🔔 Socket event received: "${eventName}"`, args)
     })
@@ -380,8 +380,9 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
     })
 
     // New equipment log
-    socket.on(SOCKET_CONFIG.events.NEW_EQUIPMENT_LOG, (data: NewEquipmentLogData) => {
-      console.log('📝 New Equipment Log:', data)
+    socket.on(SOCKET_CONFIG.events.NEW_EQUIPMENT_LOG, () => {
+      // const data: NewEquipmentLogData = _raw
+      // console.log('📝 New Equipment Log:', data)
       // console.log('  - Equipment:', data.equipment_code)
       // console.log('  - Event Type:', data.event_type)
       // console.log('  - Timestamp:', data.timestamp)
@@ -390,7 +391,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
 
     // Fuel event
     socket.on(SOCKET_CONFIG.events.FUEL_EVENT, (data: FuelEventData) => {
-      console.log('⛽ Fuel Event:', data)
+      // console.log('⛽ Fuel Event:', data)
       // console.log('  - Equipment:', data.equipment_code)
       // console.log('  - Event Type:', data.event_type)
       // console.log('  - Fuel Change:', data.fuel_change, 'L')

@@ -227,7 +227,6 @@ const BreakdownStatusPage = () => {
       dataIndex: 'duration',
       width: 100,
       align: 'center',
-      render: (value) => formatTimeUtc(value),
     },
     {
       title: 'Repair Status',
