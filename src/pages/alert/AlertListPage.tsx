@@ -8,8 +8,9 @@ import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
 import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import { useAlerts } from './useAlert'
+import alertApi from '@/services/api/alert.api'
 import usePagination from '@/hooks/usePagination'
-import { formatDate, formatDate1, formatDurationMinutes, formatTimeSecond } from '@/utils/format'
+import { formatDate, formatDurationMinutes, formatTimeSecond } from '@/utils/format'
 import type { Alert } from '@/types/alert.types'
 
 const today = dayjs().format('YYYY-MM-DD')
@@ -28,7 +29,6 @@ const AlertListPage = () => {
     created_at_end: today,
   })
   const { data, isLoading } = useAlerts(params)
-  const list = data?.data ?? []
 
   const handleApply = (values: ReportFilterValues) => {
     // Backend memfilter alert category lewat param `search`
@@ -39,18 +39,29 @@ const AlertListPage = () => {
     setFilterOpen(false)
   }
 
-  const handleDownload = useCallback(() => {
-    if (list.length === 0) return
+  const handleDownload = useCallback(async () => {
+    const pageSize = params.limit ?? 25
+    const firstPage = await alertApi.getAll({ ...params, page: 1, limit: pageSize })
+    const firstResult = firstPage.data
+    const totalPages = firstResult.meta?.totalPages ?? 1
+    const remainingPages = await Promise.all(
+      Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) =>
+        alertApi.getAll({ ...params, page: index + 2, limit: pageSize }),
+      ),
+    )
+    const exportList = [firstResult, ...remainingPages.map((result) => result.data)]
+      .flatMap((result) => result.data ?? [])
+    if (exportList.length === 0) return
 
-    const exportData = list.map((item, index) => {
+    const exportData = exportList.map((item, index) => {
       const lat = item.latitude
       const lon = item.longitude
 
       return {
-        No: ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
+        No: index + 1,
         'Abnormal Alert': item.alert_categories?.alert_category_name ?? '-',
         'Asset ID': item.equipments?.equipment_code ?? '-',
-        Date: formatDate1(item.created_at),
+        Date: dayjs.utc(item.created_at).startOf('day').valueOf() / 86_400_000 + 25_569,
         Shift: item.shift ?? '-',
         'Start Time': formatTimeSecond(item.created_at),
         'Stop Time': formatTimeSecond(item.resolved_at),
@@ -69,10 +80,14 @@ const AlertListPage = () => {
     })
 
     const ws = XLSX.utils.json_to_sheet(exportData)
+    exportData.forEach((_, index) => {
+      const dateCell = ws[XLSX.utils.encode_cell({ r: index + 1, c: 3 })]
+      if (dateCell) dateCell.z = 'dd-mm-yyyy'
+    })
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Alerts')
     XLSX.writeFile(wb, 'alerts.xlsx')
-  }, [list, params.page, params.limit])
+  }, [params])
 
   const columns: ColumnsType<Alert> = [
     {
@@ -216,7 +231,7 @@ const AlertListPage = () => {
             <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
               Filter
             </Button>
-            <Button icon={<DownloadOutlined />} onClick={handleDownload} disabled={list.length === 0}>
+            <Button icon={<DownloadOutlined />} onClick={handleDownload} disabled={!data?.meta?.total}>
               Download
             </Button>
           </Space>
@@ -232,8 +247,8 @@ const AlertListPage = () => {
           pageSize: params.limit,
           total: data?.meta?.total ?? 0,
           onChange: (p, s) => {
-            setPage(p)
-            setLimit(s)
+            if (s !== params.limit) setLimit(s)
+            else setPage(p)
           },
           showSizeChanger: true,
           showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data`,

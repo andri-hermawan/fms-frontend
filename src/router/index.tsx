@@ -22,6 +22,8 @@ const ReportPage        = lazy(() => import('@/pages/report/ReportPage'))
 const ReportEquipmentLogsPage       = lazy(() => import('@/pages/report/report-equipment-logs/ReportEquipmentLogsPage'))
 const ReportFuelHistoryPage = lazy(() => import('@/pages/report/report-fuel-history/ReportFuelHistoryPage'))
 const ReportAlertSummaryPage = lazy(() => import('@/pages/report/report-alert-summary/ReportAlertSummaryPage'))
+const PlaybackUnitHistoryPage = lazy(() => import('@/pages/report/PlaybackUnitHistoryPage'))
+const EquipmentShiftPerformancePage = lazy(() => import('@/pages/report/EquipmentShiftPerformancePage'))
 
 
 const UserListPage      = lazy(() => import('@/pages/master/user/UserListPage'))
@@ -88,6 +90,8 @@ const router = createBrowserRouter([
               { path: ROUTES.FUEL_CALIBRATION, element: withSuspense(FuelCalibrationPage) },
               { path: ROUTES.STATUS_BREAKDOWN, element: withSuspense(StatusBreakdownPage) },
               { path: ROUTES.WEIGHBRIDGE, element: withSuspense(WeighbridgePage) },
+              { path: ROUTES.PLAYBACK_UNIT_HISTORY, element: withSuspense(PlaybackUnitHistoryPage) },
+              { path: ROUTES.EQUIPMENT_SHIFT_PERFORMANCE, element: withSuspense(EquipmentShiftPerformancePage) },
 
             ],
           },

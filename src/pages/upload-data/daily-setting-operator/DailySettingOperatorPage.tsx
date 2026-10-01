@@ -16,6 +16,7 @@ import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
 import { useShifts } from '@/pages/master/shift/useShift'
 import { formatDate } from '@/utils/format'
+import dailySettingOperatorApi from '@/services/api/daily-setting-operator.api'
 import type { DailySettingOperator, DailySettingOperatorFormValues } from '@/types/daily-setting-operator.types'
 
 const DailySettingOperatorPage = () => {
@@ -77,13 +78,25 @@ const DailySettingOperatorPage = () => {
     setFilterOpen(false)
   }
 
-  const handleDownload = () => {
-    const list = data?.data ?? []
+  const handleDownload = async () => {
+    const pageSize = params.limit ?? 25
+    const firstPage = await dailySettingOperatorApi.getAll({ ...params, page: 1, limit: pageSize })
+    const firstResult = firstPage.data
+    const totalPages = firstResult.meta?.totalPages ?? 1
+    const remainingPages = await Promise.all(
+      Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) =>
+        dailySettingOperatorApi.getAll({ ...params, page: index + 2, limit: pageSize }),
+      ),
+    )
+    const list = [firstResult, ...remainingPages.map((result) => result.data)]
+      .flatMap((result) => result.data ?? [])
     if (list.length === 0) return
 
     const exportData = list.map((item, index) => ({
-      No: ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
-      Date: formatDate(item.date_at),
+      No: index + 1,
+      Date: item.date_at
+        ? dayjs.utc(item.date_at).startOf('day').valueOf() / 86_400_000 + 25_569
+        : '-',
       Shift: item.shift ?? '-',
       'Asset ID': item.equipment_code ?? '-',
       'Operator Name': item.operator_name ?? '-',
@@ -91,6 +104,10 @@ const DailySettingOperatorPage = () => {
     }))
 
     const ws = XLSX.utils.json_to_sheet(exportData)
+    exportData.forEach((item, index) => {
+      const dateCell = ws[XLSX.utils.encode_cell({ r: index + 1, c: 1 })]
+      if (typeof item.Date === 'number' && dateCell) dateCell.z = 'dd-mm-yyyy'
+    })
     ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 28 }]
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Setting Operator')
@@ -252,7 +269,7 @@ const DailySettingOperatorPage = () => {
         rowKey="id" columns={columns}
         dataSource={data?.data ?? []}
         loading={isLoading}
-        pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
+        pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { if (s !== params.limit) setLimit(s); else setPage(p) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
       />
       <FormDrawer open={open} title={isEdit ? 'Edit Daily Setting Operator' : 'Add Daily Setting Operator'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'}>
         <DailySettingOperatorForm form={form} initialValues={selected} />

@@ -16,6 +16,7 @@ import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
 import { useShifts } from '@/pages/master/shift/useShift'
 import { formatDate, formatNumber } from '@/utils/format'
+import weighbridgeApi from '@/services/api/weighbridge.api'
 import type { Weighbridge, WeighbridgeFormValues } from '@/types/weighbridge.types'
 
 const WeighbridgePage = () => {
@@ -79,13 +80,25 @@ const WeighbridgePage = () => {
     setFilterOpen(false)
   }
 
-  const handleDownload = () => {
-    const list = data?.data ?? []
+  const handleDownload = async () => {
+    const pageSize = params.limit ?? 25
+    const firstPage = await weighbridgeApi.getAll({ ...params, page: 1, limit: pageSize })
+    const firstResult = firstPage.data
+    const totalPages = firstResult.meta?.totalPages ?? 1
+    const remainingPages = await Promise.all(
+      Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) =>
+        weighbridgeApi.getAll({ ...params, page: index + 2, limit: pageSize }),
+      ),
+    )
+    const list = [firstResult, ...remainingPages.map((result) => result.data)]
+      .flatMap((result) => result.data ?? [])
     if (list.length === 0) return
 
     const exportData = list.map((item, index) => ({
-      No: ((params.page ?? 1) - 1) * (params.limit ?? 25) + index + 1,
-      Date: formatDate(item.date_at),
+      No: index + 1,
+      Date: item.date_at
+        ? dayjs.utc(item.date_at).startOf('day').valueOf() / 86_400_000 + 25_569
+        : '-',
       Shift: item.shift ?? '-',
       'Ticket No': item.ticket_no ?? '-',
       'Asset ID': item.equipment_code ?? '-',
@@ -105,6 +118,10 @@ const WeighbridgePage = () => {
     }))
 
     const ws = XLSX.utils.json_to_sheet(exportData)
+    exportData.forEach((item, index) => {
+      const dateCell = ws[XLSX.utils.encode_cell({ r: index + 1, c: 1 })]
+      if (typeof item.Date === 'number' && dateCell) dateCell.z = 'dd-mm-yyyy'
+    })
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Weighbridge')
     XLSX.writeFile(
@@ -345,7 +362,7 @@ const WeighbridgePage = () => {
         dataSource={data?.data ?? []}
         loading={isLoading}
         scroll={{ x: 'max-content' }}
-        pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
+        pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { if (s !== params.limit) setLimit(s); else setPage(p) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
       />
       <FormDrawer open={open} title={isEdit ? 'Edit Weighbridge' : 'Add Weighbridge'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'} width={560}>
         <WeighbridgeForm form={form} initialValues={selected} />

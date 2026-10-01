@@ -1,8 +1,14 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Select, Spin } from 'antd'
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
-import { Marker, Tooltip, useMap } from 'react-leaflet'
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  PauseOutlined,
+  PlayCircleOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons'
+import { Marker, Polyline, Tooltip, useMap } from 'react-leaflet'
 import dayjs from 'dayjs'
 import L from 'leaflet'
 
@@ -129,7 +135,7 @@ const FlyToLogMarker = ({ lat, lng, trigger }: { lat: number; lng: number; trigg
     if (lat !== 0 && lng !== 0) {
       map.flyTo([lat, lng], 17, { animate: true, duration: 0.5 })
     }
-  }, [lat, lng, trigger])
+  }, [lat, lng, map, trigger])
   return null
 }
 
@@ -166,6 +172,8 @@ const PositionHistoryPage = () => {
 
   const [showPanel, setShowPanel] = useState(true)
   const [search, setSearch] = useState<string>(initialCode || '')
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playbackIndex, setPlaybackIndex] = useState(0)
 
   // Override hanya terisi saat user mengubah filter (atau dari deep-link URL).
   // Selama null, nilai dipakai dari default operasional (current shift).
@@ -272,6 +280,55 @@ const PositionHistoryPage = () => {
     return [...filteredLogs.slice(anchorIndex), ...filteredLogs.slice(0, anchorIndex)]
   }, [filteredLogs, shiftList, shift])
 
+  const routePoints = useMemo(
+    () =>
+      orderedLogs.flatMap((log, index) => {
+        const latitude = Number(log.latitude)
+        const longitude = Number(log.longitude)
+        if (
+          !Number.isFinite(latitude) ||
+          !Number.isFinite(longitude) ||
+          (latitude === 0 && longitude === 0)
+        ) {
+          return []
+        }
+        return [{ index, position: [latitude, longitude] as [number, number] }]
+      }),
+    [orderedLogs],
+  )
+  const routePositions = routePoints.map((point) => point.position)
+  const completedRoutePositions = routePoints
+    .filter((point) => point.index <= playbackIndex)
+    .map((point) => point.position)
+  const currentPlaybackLog = orderedLogs[playbackIndex]
+
+  const resetPlaybackForFilter = () => {
+    setIsPlaying(false)
+    setPlaybackIndex(0)
+    setSelectedLogId(null)
+  }
+
+  useEffect(() => {
+    if (!isPlaying || orderedLogs.length === 0) return
+
+    const timer = window.setTimeout(() => {
+      if (playbackIndex >= orderedLogs.length - 1) {
+        setIsPlaying(false)
+        return
+      }
+
+      const nextIndex = playbackIndex + 1
+      const nextLog = orderedLogs[nextIndex]
+      setPlaybackIndex(nextIndex)
+      setSelectedLogId(nextLog.id)
+      setFlyToIndex(nextIndex)
+      setFlyToTrigger((previous) => previous + 1)
+      if (nextIndex === orderedLogs.length - 1) setIsPlaying(false)
+    }, 850)
+
+    return () => window.clearTimeout(timer)
+  }, [isPlaying, orderedLogs, playbackIndex])
+
   useEffect(() => {
     console.log(
       'alert logs',
@@ -280,17 +337,16 @@ const PositionHistoryPage = () => {
   }, [filteredLogs])
 
   // Pindahkan map ke log terpilih & tandai marker-nya sebagai terpilih.
-  const focusLog = useCallback(
-    (log: EquipmentLog | undefined) => {
-      if (!log) return
-      const idx = orderedLogs.findIndex((l) => l.id === log.id)
-      if (idx < 0) return
-      setSelectedLogId(log.id)
-      setFlyToIndex(idx)
-      setFlyToTrigger((prev) => prev + 1)
-    },
-    [orderedLogs],
-  )
+  const focusLog = (log: EquipmentLog | undefined) => {
+    if (!log) return
+    const idx = orderedLogs.findIndex((l) => l.id === log.id)
+    if (idx < 0) return
+    setIsPlaying(false)
+    setPlaybackIndex(idx)
+    setSelectedLogId(log.id)
+    setFlyToIndex(idx)
+    setFlyToTrigger((prev) => prev + 1)
+  }
 
   const chartData: AlertDataPoint[] = useMemo(() => {
     const logs = orderedLogs
@@ -419,6 +475,18 @@ const PositionHistoryPage = () => {
               <MapResize deps={showPanel} />
               <GeofenceLayer geoJson={geoJson} />
               <ResetViewButton />
+              {routePositions.length > 1 && (
+                <Polyline
+                  positions={routePositions}
+                  pathOptions={{ color: '#64748b', weight: 4, opacity: 0.65 }}
+                />
+              )}
+              {completedRoutePositions.length > 1 && (
+                <Polyline
+                  positions={completedRoutePositions}
+                  pathOptions={{ color: '#1677ff', weight: 5, opacity: 0.9 }}
+                />
+              )}
               <FlyToLogMarker
                 lat={Number(orderedLogs[flyToIndex]?.latitude ?? 0)}
                 lng={Number(orderedLogs[flyToIndex]?.longitude ?? 0)}
@@ -432,6 +500,69 @@ const PositionHistoryPage = () => {
                 />
               ))}
             </BaseMap>
+            <div
+              style={{
+                position: 'absolute',
+                left: 12,
+                bottom: 12,
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: 'min(440px, calc(100% - 24px))',
+                padding: '8px 10px',
+                border: '1px solid #d9e2ef',
+                borderRadius: 8,
+                background: 'rgba(255,255,255,0.96)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+              }}
+            >
+              <Button
+                type="primary"
+                size="small"
+                icon={isPlaying ? <PauseOutlined /> : <PlayCircleOutlined />}
+                disabled={orderedLogs.length === 0}
+                onClick={() => {
+                  if (isPlaying) {
+                    setIsPlaying(false)
+                    return
+                  }
+                  const startIndex =
+                    playbackIndex >= orderedLogs.length - 1 ? 0 : playbackIndex
+                  focusLog(orderedLogs[startIndex])
+                  setIsPlaying(true)
+                }}
+              >
+                {isPlaying ? 'Pause' : 'Play'}
+              </Button>
+              <Button
+                size="small"
+                icon={<ReloadOutlined />}
+                disabled={orderedLogs.length === 0}
+                onClick={() => {
+                  setIsPlaying(false)
+                  focusLog(orderedLogs[0])
+                }}
+              >
+                Reset
+              </Button>
+              <span style={{ minWidth: 42, fontSize: 12, color: '#64748b' }}>
+                {currentPlaybackLog ? dayjs(currentPlaybackLog.created_at).format('HH:mm') : '--:--'}
+              </span>
+              <input
+                aria-label="Playback timeline"
+                type="range"
+                min={0}
+                max={Math.max(orderedLogs.length - 1, 0)}
+                value={Math.min(playbackIndex, Math.max(orderedLogs.length - 1, 0))}
+                disabled={orderedLogs.length === 0}
+                onChange={(event) => {
+                  const index = Number(event.target.value)
+                  focusLog(orderedLogs[index])
+                }}
+                style={{ flex: 1, minWidth: 32, accentColor: '#1677ff', cursor: 'pointer' }}
+              />
+            </div>
           </Card>
 
           {/* Chart */}
@@ -468,17 +599,26 @@ const PositionHistoryPage = () => {
             <EquipmentSearch
               value={search}
               options={equipmentOptions}
-              onChange={(code) => setSearch(code ?? '')}
+              onChange={(code) => {
+                resetPlaybackForFilter()
+                setSearch(code ?? '')
+              }}
             />
             <CurrentDateDisplay
               value={selectedDate}
-              onChange={setDateOverride}
+              onChange={(date) => {
+                resetPlaybackForFilter()
+                setDateOverride(date)
+              }}
             />
             <Select
               size="large"
               value={shift}
               loading={currentShift.isLoading}
-              onChange={(val: string) => setShiftOverride(val)}
+              onChange={(val: string) => {
+                resetPlaybackForFilter()
+                setShiftOverride(val)
+              }}
               options={[
                 { label: 'Shift 1', value: '1' },
                 { label: 'Shift 2', value: '2' },
