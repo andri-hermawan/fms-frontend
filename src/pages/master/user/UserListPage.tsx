@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { Form, Button, Space, Tooltip, Tag } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
+import { useAuthStore } from '@/stores/auth.store'
+import { Form, Button, Space, Tooltip, Tag, Dropdown } from 'antd'
+import type { MenuProps } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, FilterOutlined, DownOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
 import FormDrawer from '@/components/ui/FormDrawer'
+import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import { showConfirm } from '@/components/ui/ConfirmModal'
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from './useUser'
 import UserForm from './UserForm'
@@ -23,9 +26,17 @@ const UserListPage = () => {
   const [form] = Form.useForm<UserFormValues>()
   const [open, setOpen]         = useState(false)
   const [selected, setSelected] = useState<User | null>(null)
-  const { params, setSearch, setPage, setLimit } = usePagination()
+  const [filterOpen, setFilterOpen] = useState(false)
+  const currentUser = useAuthStore((s) => s.user)
+  const isRestrictedRole = currentUser?.role === 'admin' || currentUser?.role === 'viewer'
+  const { params, setSearch, setPage, setLimit } = usePagination(
+    isRestrictedRole ? { search: currentUser.email } : undefined,
+  )
 
-  const { data, isLoading, refetch } = useUsers(params)
+  const { data, isLoading } = useUsers(params)
+  const visibleUsers = isRestrictedRole
+    ? (data?.data ?? []).filter((user) => user.id === currentUser?.id || user.email === currentUser?.email)
+    : data?.data ?? []
   const createM = useCreateUser()
   const updateM = useUpdateUser()
   const deleteM = useDeleteUser()
@@ -36,6 +47,9 @@ const UserListPage = () => {
 
   const isEdit       = !!selected
   const isSubmitting = createM.isPending || updateM.isPending
+  const canEditOwnProfile = (user: User) =>
+    isRestrictedRole &&
+    (user.id === currentUser?.id || user.email === currentUser?.email)
 
   const openCreate  = () => { setSelected(null); form.resetFields(); setOpen(true) }
   const openEdit    = (r: User) => { setSelected(r); setOpen(true) }
@@ -44,13 +58,30 @@ const UserListPage = () => {
   const handleSubmit = () => {
     form.validateFields().then((values) => {
       if (isEdit) {
-        const { password: _, ...rest } = values as UserFormValues & { password?: string }
-        updateM.mutate({ id: selected.id, payload: rest }, { onSuccess: closeDrawer })
+        const { password, ...rest } = values as UserFormValues & { password?: string }
+        const payload = password ? { ...rest, password } : rest
+        console.debug('[USER UPDATE] form submit', {
+          id: selected.id,
+          fields: Object.keys(payload),
+          hasPassword: Boolean(password),
+        })
+        updateM.mutate({ id: selected.id, payload }, { onSuccess: closeDrawer })
       } else {
         createM.mutate(values, { onSuccess: closeDrawer })
       }
     })
   }
+
+  const handleApplyFilter = (values: ReportFilterValues) => {
+    if (!isRestrictedRole) setSearch(values.search ?? '')
+    setFilterOpen(false)
+  }
+
+  const actionMenu: MenuProps['items'] = [
+    ...(canCreate
+      ? [{ key: 'add', icon: <PlusOutlined />, label: 'Add', onClick: openCreate }]
+      : []),
+  ]
 
   const handleDelete = (r: User) => {
     showConfirm({
@@ -115,7 +146,7 @@ const UserListPage = () => {
       align: 'center',
       render: (_, record) => (
         <Space size={4}>
-          {canUpdate && (
+          {(canUpdate || canEditOwnProfile(record)) && (
             <Tooltip title="Edit">
               <Button
                 type="text"
@@ -150,24 +181,46 @@ const UserListPage = () => {
         // subtitle={`Total ${data?.meta?.total ?? 0} user`}
         extra={
           <Space>
-            <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
+            {!isRestrictedRole && (
+              <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+                Filter
+              </Button>
+            )}
+            {!isRestrictedRole && actionMenu.length > 0 && (
+              <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
+                <Button type="primary">
+                  Actions <DownOutlined />
+                </Button>
+              </Dropdown>
+            )}
           </Space>
         }
       />
       <DataTable<User>
         rowKey="id" columns={columns}
-        dataSource={data?.data ?? []}
-        loading={isLoading} searchable
-        searchPlaceholder="Cari nama atau email..."
-        onSearch={setSearch}
+        dataSource={visibleUsers}
+        loading={isLoading}
+        searchable={false}
         pagination={{
           current: params.page, pageSize: params.limit,
-          total: data?.meta?.total ?? 0,
+          total: isRestrictedRole ? visibleUsers.length : data?.meta?.total ?? 0,
           onChange: (p, s) => { setPage(p); setLimit(s) },
           showSizeChanger: true,
           showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data`,
         }}
+      />
+      <ReportFilter
+        open={filterOpen}
+        title="User Management — Filter"
+        dateMode="none"
+        showSearch={!isRestrictedRole}
+        searchPlaceholder="Cari nama atau email..."
+        showEquipment={false}
+        showShift={false}
+        initialValues={{ search: isRestrictedRole ? currentUser?.email : params.search }}
+        onClose={() => setFilterOpen(false)}
+        onApply={handleApplyFilter}
+        isLoading={isLoading}
       />
       <FormDrawer
         open={open}

@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { Form, Button, Space, Tooltip, Tag } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
+import { Form, Button, Space, Tooltip, Tag, Dropdown } from 'antd'
+import type { MenuProps } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, FilterOutlined, DownOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
+import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import FormDrawer from '@/components/ui/FormDrawer'
 import { showConfirm } from '@/components/ui/ConfirmModal'
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from './useProject'
@@ -17,9 +19,10 @@ const ProjectListPage = () => {
   const [form] = Form.useForm<ProjectFormValues>()
   const [open, setOpen]         = useState(false)
   const [selected, setSelected] = useState<Project | null>(null)
+  const [filterOpen, setFilterOpen] = useState(false)
   const { params, setSearch, setPage, setLimit } = usePagination()
 
-  const { data, isLoading, refetch } = useProjects(params)
+  const { data, isLoading } = useProjects(params)
   const createM = useCreateProject()
   const updateM = useUpdateProject()
   const deleteM = useDeleteProject()
@@ -34,6 +37,19 @@ const ProjectListPage = () => {
   const openCreate  = () => { setSelected(null); form.resetFields(); setOpen(true) }
   const openEdit    = (r: Project) => { setSelected(r); setOpen(true) }
   const closeDrawer = () => { setOpen(false); setSelected(null); form.resetFields() }
+
+
+
+  const handleApplyFilter = (values: ReportFilterValues) => {
+    setSearch(values.search ?? '')
+    setFilterOpen(false)
+  }
+
+  const actionMenu: MenuProps['items'] = [
+    ...(canCreate
+      ? [{ key: 'add', icon: <PlusOutlined />, label: 'Add', onClick: openCreate }]
+      : []),
+  ]
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
@@ -142,18 +158,32 @@ const ProjectListPage = () => {
         // subtitle={`Total ${data?.meta?.total ?? 0} project`}
         extra={
           <Space>
-            <Tooltip title="Refresh"><Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isLoading} /></Tooltip>
-            {canCreate && <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Add</Button>}
+            <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>Filter</Button>
+            <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
+              <Button type="primary">Actions <DownOutlined /></Button>
+            </Dropdown>
           </Space>
         }
       />
       <DataTable<Project>
         rowKey="id" columns={columns}
         dataSource={data?.data ?? []}
-        loading={isLoading} searchable
-        searchPlaceholder="Cari kode atau nama..."
-        onSearch={setSearch}
+        loading={isLoading}
+        searchable={false}
         pagination={{ current: params.page, pageSize: params.limit, total: data?.meta?.total ?? 0, onChange: (p, s) => { setPage(p); setLimit(s) }, showSizeChanger: true, showTotal: (t, r) => `${r[0]}–${r[1]} dari ${t} data` }}
+      />
+      <ReportFilter
+        open={filterOpen}
+        title="Project ? Filter"
+        dateMode="none"
+        showSearch
+        searchPlaceholder="Cari kode atau nama..."
+        showEquipment={false}
+        showShift={false}
+        initialValues={{ search: params.search }}
+        onClose={() => setFilterOpen(false)}
+        onApply={handleApplyFilter}
+        isLoading={isLoading}
       />
       <FormDrawer open={open} title={isEdit ? 'Edit Project' : 'Add Project'} onClose={closeDrawer} onSubmit={handleSubmit} isSubmitting={isSubmitting} submitText={isEdit ? 'Simpan' : 'Add'}>
         <ProjectForm form={form} initialValues={selected} />

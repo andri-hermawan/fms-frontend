@@ -36,7 +36,18 @@ export const useUpdateUser = () => {
       qc.invalidateQueries({ queryKey: [USER_KEY] })
       message.success('User berhasil diperbarui')
     },
-    onError: () => message.error('Gagal memperbarui user'),
+    onError: (error: unknown) => {
+      const axiosError = error as {
+        response?: { status?: number; data?: { message?: string } }
+      }
+      console.error('[USER UPDATE] mutation failed', {
+        status: axiosError.response?.status,
+        message: axiosError.response?.data?.message,
+      })
+      message.error(
+        axiosError.response?.data?.message ?? 'Gagal memperbarui user',
+      )
+    },
   })
 }
 

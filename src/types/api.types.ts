@@ -24,6 +24,7 @@ export interface PaginationParams {
   page?: number
   limit?: number
   search?: string
+  equipment_id?: string
   created_at?: string
   created_at_end?: string
   date_at?: string

@@ -20,6 +20,20 @@ export const useFuelCalibrations = (params?: PaginationParams) =>
         }),
   })
 
+export const useFuelCalibrationsByEquipment = (equipmentId?: string) =>
+  useQuery({
+    queryKey: [FUEL_CALIBRATION_KEY, 'equipment', equipmentId],
+    enabled: Boolean(equipmentId),
+    queryFn: () =>
+      fuelCalibrationApi
+        .getAll({
+          page: 1,
+          limit: 100,
+          equipment_id: equipmentId,
+        })
+        .then((r) => r.data),
+  })
+
 export const useCreateFuelCalibration = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()

@@ -80,7 +80,6 @@ const router = createBrowserRouter([
           {
             element: <RoleGuard allowedRoles={['superadmin', 'admin']} />,
             children: [
-              { path: ROUTES.USER,  element: withSuspense(UserListPage) },
               { path: ROUTES.COMPANY,  element: withSuspense(CompanyListPage) },
               { path: ROUTES.PROJECT,  element: withSuspense(ProjectListPage) },
               { path: ROUTES.EQUIPMENT,  element: withSuspense(EquipmentListPage) },
@@ -100,7 +99,7 @@ const router = createBrowserRouter([
 
           // User management — superadmin only
           {
-            element: <RoleGuard allowedRoles={['superadmin']} />,
+            element: <RoleGuard allowedRoles={['superadmin', 'admin', 'viewer']} />,
             children: [
               { path: ROUTES.USER, element: withSuspense(UserListPage) },
             ],

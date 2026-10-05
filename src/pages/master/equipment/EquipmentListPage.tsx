@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { Form, Button, Space, Tooltip } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
+import { Form, Button, Space, Tooltip, Dropdown } from 'antd'
+import type { MenuProps } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, FilterOutlined, DownOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
+import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import FormDrawer from '@/components/ui/FormDrawer'
 import StatusBadge from '@/components/ui/StatusBadge'
 import { showConfirm } from '@/components/ui/ConfirmModal'
@@ -25,10 +27,11 @@ const EquipmentListPage = () => {
   const [form] = Form.useForm<EquipmentFormValues>()
   const [drawerOpen, setDrawerOpen]           = useState(false)
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null)
+  const [filterOpen, setFilterOpen] = useState(false)
 
   const { params, setSearch, setPage, setLimit } = usePagination()
 
-  const { data, isLoading, refetch } = useEquipments(params)
+  const { data, isLoading } = useEquipments(params)
   const createMutation = useCreateEquipment()
   const updateMutation = useUpdateEquipment()
   const deleteMutation = useDeleteEquipment()
@@ -54,10 +57,23 @@ const EquipmentListPage = () => {
   }
 
   const closeDrawer = () => {
+
     setDrawerOpen(false)
     setSelectedEquipment(null)
     form.resetFields()
   }
+
+
+  const handleApplyFilter = (values: ReportFilterValues) => {
+    setSearch(values.search ?? '')
+    setFilterOpen(false)
+  }
+
+  const actionMenu: MenuProps['items'] = [
+    ...(canCreate
+      ? [{ key: 'add', icon: <PlusOutlined />, label: 'Add', onClick: openCreate }]
+      : []),
+  ]
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
@@ -196,22 +212,10 @@ const EquipmentListPage = () => {
         // subtitle={`Total ${data?.meta.total ?? 0} Equipment`}
         extra={
           <Space>
-            <Tooltip title="Refresh">
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={() => refetch()}
-                loading={isLoading}
-              />
-            </Tooltip>
-            {canCreate && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={openCreate}
-              >
-                Add
-              </Button>
-            )}
+            <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>Filter</Button>
+            <Dropdown menu={{ items: actionMenu }} trigger={['click']} placement="bottomRight">
+              <Button type="primary">Actions <DownOutlined /></Button>
+            </Dropdown>
           </Space>
         }
       />
@@ -221,9 +225,7 @@ const EquipmentListPage = () => {
         columns={columns}
         dataSource={data?.data ?? []}
         loading={isLoading}
-        searchable
-        searchPlaceholder="Cari plat nomor atau nama..."
-        onSearch={setSearch}
+        searchable={false}
         pagination={{
           current: params.page,
           pageSize: params.limit,
@@ -238,6 +240,19 @@ const EquipmentListPage = () => {
         }}
       />
 
+      <ReportFilter
+        open={filterOpen}
+        title="Equipment ? Filter"
+        dateMode="none"
+        showSearch
+        searchPlaceholder="Cari plat nomor atau nama..."
+        showEquipment={false}
+        showShift={false}
+        initialValues={{ search: params.search }}
+        onClose={() => setFilterOpen(false)}
+        onApply={handleApplyFilter}
+        isLoading={isLoading}
+      />
       <FormDrawer
         open={drawerOpen}
         title={isEditMode ? 'Edit Equipment' : 'Add Equipment'}

@@ -5,7 +5,7 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
   LogoutOutlined,
-  SettingOutlined,
+  // SettingOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useUiStore } from '@/stores/ui.store'
@@ -30,12 +30,12 @@ const Header = () => {
   }
 
   const userMenu: MenuProps['items'] = [
-    {
-      key: 'profile',
-      icon: <SettingOutlined />,
-      label: 'Profil',
-    },
-    { type: 'divider' },
+    // {
+    //   key: 'profile',
+    //   icon: <SettingOutlined />,
+    //   label: 'Profil',
+    // },
+    // { type: 'divider' },
     {
       key: 'logout',
       icon: <LogoutOutlined />,

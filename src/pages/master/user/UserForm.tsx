@@ -40,15 +40,16 @@ const UserForm = ({ form, initialValues, isEdit = false }: Props) => {
         ]}>
         <Input placeholder="budi@perusahaan.com" />
       </Form.Item>
-      {!isEdit && (
-        <Form.Item name="password" label="Password"
-          rules={[
-            { required: true, message: 'Wajib diisi' },
-            { min: 8, message: 'Minimal 8 karakter' },
-          ]}>
-          <Input.Password placeholder="••••••••" />
-        </Form.Item>
-      )}
+      <Form.Item
+        name="password"
+        label={isEdit ? 'Password Baru (opsional)' : 'Password'}
+        rules={[
+          ...(!isEdit ? [{ required: true, message: 'Wajib diisi' }] : []),
+          { min: 8, message: 'Minimal 8 karakter' },
+        ]}
+      >
+        <Input.Password placeholder={isEdit ? 'Kosongkan jika tidak ingin mengganti' : '••••••••'} />
+      </Form.Item>
       <Form.Item name="project_id" label="Project"
         rules={[{ required: true, message: 'Wajib dipilih' }]}>
         <Select
