@@ -51,6 +51,32 @@ html {
   min-height: 0;
 }
 
+/* Container scroll tidak boleh melebar mengikuti konten. Tanpa ini, satu elemen
+   yang lebih lebar (mis. Row bergutter negatif) memunculkan scrollbar horizontal. */
+.ant-layout-content > * > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Row grid AntD memakai negatif margin dari gutter, sehingga melebar melewati
+   parent-nya dan memunculkan scrollbar horizontal di dalam container scroll.
+   min-width: 0 membuatnya boleh menyusut mengikuti lebar parent. */
+.ant-row {
+  min-width: 0;
+}
+
+/* Table scroll horizontal hanya di dalam .ant-table-body, jangan sampai
+   kontainer pembungkusnya ikut melebar. */
+.ant-table-wrapper,
+.ant-table {
+  min-width: 0;
+}
+
+.ant-table-cell-fix-right-first::after,
+.ant-table-cell-fix-left-last::after {
+  pointer-events: none;
+}
+
 /* Leaflet z-index fix agar tidak menimpa Ant Design modal */
 .leaflet-pane {
   z-index: 400;

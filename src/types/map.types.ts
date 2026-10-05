@@ -15,6 +15,7 @@ export interface EquipmentMarkerData {
   status: string
   gsm_signal: number
   breakdown: boolean
+  breakdown_desc?: string
   engine_status: boolean
   alert_count: number
   fuel_level: number

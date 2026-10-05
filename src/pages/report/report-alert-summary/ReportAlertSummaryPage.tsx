@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Card, Space, Typography } from 'antd';
+import { Button, Card, Col, Row, Space, Typography } from 'antd';
 import { ArrowLeftOutlined, FilterOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import { getAlertCategoryColor } from '@/utils/alert-category';
@@ -10,7 +10,7 @@ import { useShifts } from '@/pages/master/shift/useShift';
 import { useNavigate } from 'react-router-dom';
 import rmkoLogo from '@/assets/rmko/RMKO_logo.png';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 // Ambil jam (0-23) dari string waktu seperti "07:00:00" / "07:00"
 const getHour = (value?: string) => {
@@ -173,30 +173,23 @@ const ReportAlertSummaryPage = () => {
     <div style={{ fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', background: '#f0f2f5', margin: 0, padding: '20px', color: '#333', minHeight: '100vh' }}>
       
       {/* Header */}
-      <div style={{color: 'black', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
-        {/* Kiri: Logo */}
-        <div style={{ flex: '0 0 auto' }}>
-          <img src={rmkoLogo} alt="PT Royaltama Mulia Kontraktorindo Tbk" style={{ height: 64, width: 'auto' }} />
-        </div>
-
-        {/* Tengah: Judul + info */}
-        <div style={{ textAlign: 'center', flex: 1 }}>
-          <h1 style={{ margin: '0 0 4px 0', fontSize: '26px', letterSpacing: 1, fontWeight: 700 }}>RMKO</h1>
-          <p style={{ margin: '0 0 8px 0', fontSize: '13px', opacity: 0.9 }}>
-            PT Royaltama Mulia Kontraktorindo Tbk
-          </p>
-          <p style={{ margin: '0', fontSize: '13px', opacity: 0.85 }}>
-            <strong>Date:</strong> {filterValues.date ? filterValues.date.split('-').reverse().join('/') : '-'} |{' '}
-            <strong>Shift:</strong> {filterValues.shift?.replace('Shift ', '') ?? '-'} |{' '}
-            <strong>Update Time:</strong> {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-          </p>
-        </div>
-
-        {/* Kanan: Logo */}
-        {/* <div style={{ flex: '0 0 auto' }}>
-          <img src="/src/assets/logo.png" alt="HORSE" style={{ height: 64, width: 'auto' }} />
-        </div> */}
-      </div>
+      <Card bordered={false} style={{ marginBottom: 16, borderRadius: 10 }} bodyStyle={{ padding: 18 }}>
+        <Row gutter={[18, 16]} align="middle">
+          <Col flex="0 0 auto">
+            <img src={rmkoLogo} alt="PT Royaltama Mulia Kontraktorindo Tbk" style={{ height: 52, width: 'auto' }} />
+          </Col>
+          <Col flex="1 1 220px">
+            <Title level={4} style={{ margin: 0, color: '#1e3a8a' }}>
+              RMKO
+            </Title>
+            <Text type="secondary">
+               <strong>Date:</strong> {filterValues.date ? filterValues.date.split('-').reverse().join('/') : '-'} |{' '}
+               <strong>Shift:</strong> {filterValues.shift?.replace('Shift ', '') ?? '-'} |{' '}
+              <strong>Update Time:</strong> {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </Col>
+        </Row>
+      </Card>
 
       {/* Alert Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '20px' }}>

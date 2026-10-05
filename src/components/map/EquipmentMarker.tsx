@@ -58,7 +58,7 @@ const EquipmentMarker = ({
   const [iconSize, setIconSize] = useState(
     map.getZoom() >= 19 ? 64 : 32,
   )
-
+  console.log('equipments', equipments)
   const markerRefs = useRef<
     Record<string, LeafletMarker | null>
   >({})
@@ -335,6 +335,23 @@ const EquipmentMarker = ({
                       {item.alert_count}
                     </td>
                   </tr>
+
+                  {item.breakdown && (
+                    <tr>
+                      <td
+                        style={{
+                          fontWeight: 600,
+                          color: '#666',
+                          padding: '4px 0',
+                        }}
+                      >
+                        BD Status
+                      </td>
+                      <td style={{ padding: '4px 0' }}>
+                        {item.breakdown_desc || '-'}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

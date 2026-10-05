@@ -86,6 +86,7 @@ interface EquipmentStatusUpdateData {
   status: 'OFFLINE' | 'IDLE' | 'MOVING'
   vessel_status: string
   breakdown?: boolean
+  breakdown_desc?: string
   gsm_signal?: number
   recorded_at: string
   device_code?: string
@@ -110,6 +111,8 @@ interface NewAlertData {
   millege: number
   vessel_status: string
   engine_status: boolean
+  /** Dikirim backend; dipakai kolom "Engine Status" pada daftar alert. */
+  status_engine?: string
   is_read: boolean
   status: 'Overspeed' | 'Underspeed' | 'Offtrack' | 'Fuel Decrease'
   shift?: string
@@ -298,6 +301,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
         vessel_status: data.vessel_status,
         gsm_signal: data.gsm_signal ?? prev?.gsm_signal ?? 1,
         breakdown: data.breakdown ?? prev?.breakdown ?? false,
+        breakdown_desc: data.breakdown_desc ?? prev?.breakdown_desc,
         recorded_at: data.recorded_at,
         device_code: data.device_code,
       }
@@ -339,6 +343,7 @@ const useSocketTracking = (options?: UseSocketTrackingOptions) => {
         millege: data.millege,
         vessel_status: data.vessel_status,
         engine_status: data.engine_status,
+        status_engine: data.status_engine ?? '',
         status: data.status,
         shift: data.shift ?? '',
         created_at: data.created_at,

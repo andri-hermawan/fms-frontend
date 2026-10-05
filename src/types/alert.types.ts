@@ -40,6 +40,7 @@ export interface Alert {
   resolved_at: string ;
   is_read: boolean;
   shift: string;
+  status_engine: string;
   metadata: Record<string, unknown>
 }
 

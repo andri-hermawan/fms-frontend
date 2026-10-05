@@ -13,9 +13,12 @@ const PageHeader = ({ title, subtitle, extra }: PageHeaderProps) => (
   <Flex
     align="flex-start"
     justify="space-between"
-    style={{ marginBottom: 4 }}
+    gap={16}
+    wrap
+    style={{ marginBottom: 4, minWidth: 0, maxWidth: '100%' }}
   >
-    <Flex vertical gap={2}>
+    {/* minWidth: 0 agar teks panjang tidak mendorong lebar dan memicu scroll horizontal */}
+    <Flex vertical gap={2} style={{ minWidth: 0, flex: '1 1 auto' }}>
       <Title level={4} style={{ margin: 0 }}>
         {title}
       </Title>
@@ -26,7 +29,11 @@ const PageHeader = ({ title, subtitle, extra }: PageHeaderProps) => (
       )}
     </Flex>
 
-    {extra && <Flex gap={8}>{extra}</Flex>}
+    {extra && (
+      <Flex gap={8} wrap style={{ flexShrink: 1, minWidth: 0 }}>
+        {extra}
+      </Flex>
+    )}
   </Flex>
 )
 

@@ -43,6 +43,7 @@ export const ROUTES = {
   REPORT_ALERT_SUMMARY: '/report/report-alert-summary',
   PLAYBACK_UNIT_HISTORY: '/report/playback-unit-history',
   EQUIPMENT_SHIFT_PERFORMANCE: '/report/equipment-shift-performance',
+  PHYSICAL_AVAILABILITY: '/report/physical-availability',
 } as const
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES]

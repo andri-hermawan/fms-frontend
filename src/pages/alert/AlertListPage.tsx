@@ -76,6 +76,7 @@ const AlertListPage = () => {
         'Location Coordinate':
           lat == null || lon == null ? '-' : `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
         'Vessel Status': item.vessel_status ?? '-',
+        'Status Engine': item.status_engine ?? '-',
       }
     })
 
@@ -216,6 +217,12 @@ const AlertListPage = () => {
     {
       title: 'Vessel Status',
       dataIndex: 'vessel_status',
+      width: 140,
+      align: 'left',
+    },
+    {
+      title: 'Engine Status',
+      dataIndex: 'status_engine',
       width: 140,
       align: 'left',
     },

@@ -28,6 +28,7 @@ export interface EquipmentLiveStatus {
   vessel_status: string   
   gsm_signal: number
   breakdown: boolean
+  breakdown_desc?: string // keterangan breakdown, terisi saat breakdown true
   recorded_at: string     // ISO timestamp
   device_code?: string
 }

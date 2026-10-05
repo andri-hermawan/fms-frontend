@@ -24,6 +24,7 @@ const ReportFuelHistoryPage = lazy(() => import('@/pages/report/report-fuel-hist
 const ReportAlertSummaryPage = lazy(() => import('@/pages/report/report-alert-summary/ReportAlertSummaryPage'))
 const PlaybackUnitHistoryPage = lazy(() => import('@/pages/report/PlaybackUnitHistoryPage'))
 const EquipmentShiftPerformancePage = lazy(() => import('@/pages/report/EquipmentShiftPerformancePage'))
+const PhysicalAvailabilityPage = lazy(() => import('@/pages/report/PhysicalAvailabilityPage'))
 
 
 const UserListPage      = lazy(() => import('@/pages/master/user/UserListPage'))
@@ -92,6 +93,7 @@ const router = createBrowserRouter([
               { path: ROUTES.WEIGHBRIDGE, element: withSuspense(WeighbridgePage) },
               { path: ROUTES.PLAYBACK_UNIT_HISTORY, element: withSuspense(PlaybackUnitHistoryPage) },
               { path: ROUTES.EQUIPMENT_SHIFT_PERFORMANCE, element: withSuspense(EquipmentShiftPerformancePage) },
+              { path: ROUTES.PHYSICAL_AVAILABILITY, element: withSuspense(PhysicalAvailabilityPage) },
 
             ],
           },
