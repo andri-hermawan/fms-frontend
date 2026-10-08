@@ -15,6 +15,8 @@ export interface EquipmentLog {
   engine_status: boolean
   status: string
   shift: string
+  breakdown?: boolean | null
+  breakdown_desc?: string | null
   created_at: string
   created_by: string | null
   updated_at: string | null

@@ -4,6 +4,7 @@ import {
   Tooltip,
   useMap,
 } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import type { Marker as LeafletMarker } from 'leaflet'
@@ -58,7 +59,6 @@ const EquipmentMarker = ({
   const [iconSize, setIconSize] = useState(
     map.getZoom() >= 19 ? 64 : 32,
   )
-  console.log('equipments', equipments)
   const markerRefs = useRef<
     Record<string, LeafletMarker | null>
   >({})
@@ -98,9 +98,14 @@ const EquipmentMarker = ({
     marker.openPopup()
   }, [selectedEquipment, map])
   return (
-    <>
+    <MarkerClusterGroup
+      chunkedLoading
+      showCoverageOnHover={false}
+      spiderfyOnMaxZoom
+      disableClusteringAtZoom={19}
+      removeOutsideVisibleBounds
+    >
       {equipments.map((item) => (
-         
         <Marker
           key={item.equipment_id}
           position={[
@@ -358,7 +363,7 @@ const EquipmentMarker = ({
           </Popup>
         </Marker>
       ))}
-    </>
+    </MarkerClusterGroup>
   )
 }
 

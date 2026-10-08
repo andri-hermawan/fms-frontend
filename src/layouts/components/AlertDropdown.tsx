@@ -10,6 +10,7 @@ import { ROUTES } from '@/router/routes'
 import { formatRelative, formatSpeed } from '@/utils/format'
 import alertApi from '@/services/api/alert.api'
 import type { Alert } from '@/types/alert.types'
+import './AlertDropdown.css'
 
 const { Text } = Typography
 
@@ -101,10 +102,11 @@ const AlertDropdown = () => {
   }
   return (
     <>
-      <Badge count={unreadCount} size="small">
+      <Badge count={unreadCount} size="small" className="alert-bell-badge">
         <Button
           type="text"
           shape="circle"
+          className={`alert-bell-btn${unreadCount > 0 ? ' has-unread' : ''}`}
           icon={<BellOutlined style={{ fontSize: 18 }} />}
           onClick={handleOpen}
         />

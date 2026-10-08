@@ -43,7 +43,8 @@ const toMarkerData = (log: EquipmentLog): EquipmentMarkerData => ({
   vessel: Number(log.vessel) || 0,
   status: log.status ?? '',
   gsm_signal: log.gsm_signal ?? 0,
-  breakdown: false,
+  breakdown: log.breakdown ?? false,
+  breakdown_desc: log.breakdown_desc ?? undefined,
   engine_status: log.engine_status ?? false,
   alert_count: log.alerts?.length ?? 0,
   fuel_level: Number(log.fuel_level) || 0,
@@ -70,6 +71,11 @@ const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: bo
         <strong>Fuel:</strong> {markerData.fuel_percentage.toFixed(0)}%
       </div>
       <div><strong>MapSegment:</strong> {markerData.segment || '-'}</div>
+      {markerData.breakdown && (
+        <div>
+          <strong>BD Status:</strong> {markerData.breakdown_desc || '-'}
+        </div>
+      )}
       <div>
         <strong>Coordinat:</strong>{' '}
         <a

@@ -53,6 +53,7 @@ export type Resource =
   | 'device'
   | 'shift'
   | 'alert_category'
+  | 'alert_rule'
   | 'user'
   | 'tracking'
   | 'alert'
@@ -70,6 +71,7 @@ export const PERMISSION_MAP: PermissionMap = {
     device:   ['create', 'read', 'update', 'delete', 'export'],
     shift:    ['create', 'read', 'update', 'delete', 'export'],
     alert_category: ['create', 'read', 'update', 'delete', 'export'],
+    alert_rule:     ['create', 'read', 'update', 'delete', 'export'],
     user:     ['create', 'read', 'update', 'delete', 'export'],
     tracking: ['create', 'read', 'update', 'delete', 'export'],
     alert:    ['create', 'read', 'update', 'delete', 'export'],
@@ -84,6 +86,7 @@ export const PERMISSION_MAP: PermissionMap = {
     device:   ['create', 'read', 'update', 'delete', 'export'],
     shift:    ['create', 'read', 'update', 'delete', 'export'],
     alert_category: ['create', 'read', 'update', 'delete', 'export'],
+    alert_rule:     ['create', 'read', 'update', 'delete', 'export'],
     user:     ['read'],
     tracking: ['read', 'export'],
     alert:    ['read', 'update', 'export'],
@@ -98,6 +101,7 @@ export const PERMISSION_MAP: PermissionMap = {
     device:   ['read'],
     shift:    ['read'],
     alert_category: ['read'],
+    alert_rule:     ['read'],
     user:     [],
     tracking: ['read'],
     alert:    ['read'],

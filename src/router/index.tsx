@@ -34,6 +34,7 @@ const EquipmentListPage   = lazy(() => import('@/pages/master/equipment/Equipmen
 const DeviceListPage    = lazy(() => import('@/pages/master/device/DeviceListPage'))
 const ShiftListPage    = lazy(() => import('@/pages/master/shift/ShiftListPage'))
 const AlertCategoryListPage    = lazy(() => import('@/pages/master/alert-category/AlertCategoryListPage'))
+const AlertRuleListPage    = lazy(() => import('@/pages/master/alert-rule/AlertRuleListPage'))
 const DailySettingOperatorPage = lazy(() => import('@/pages/upload-data/daily-setting-operator/DailySettingOperatorPage'))
 const StatusBreakdownPage = lazy(() => import('@/pages/upload-data/status-breakdown/StatusBreakdownPage'))
 const WeighbridgePage = lazy(() => import('@/pages/upload-data/weighbridge/WeighbridgePage'))
@@ -86,6 +87,7 @@ const router = createBrowserRouter([
               { path: ROUTES.DEVICE,   element: withSuspense(DeviceListPage) },
               { path: ROUTES.SHIFT,    element: withSuspense(ShiftListPage) },
               { path: ROUTES.ALERT_CATEGORY, element: withSuspense(AlertCategoryListPage) },
+              { path: ROUTES.ALERT_RULE, element: withSuspense(AlertRuleListPage) },
               { path: ROUTES.DAILY_SETTING_OPERATOR, element: withSuspense(DailySettingOperatorPage) },
               { path: ROUTES.FUEL_CALIBRATION, element: withSuspense(FuelCalibrationPage) },
               { path: ROUTES.STATUS_BREAKDOWN, element: withSuspense(StatusBreakdownPage) },

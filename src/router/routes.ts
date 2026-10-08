@@ -21,6 +21,7 @@ export const ROUTES = {
   DEVICE: '/master/device',
   SHIFT: '/master/shift',
   ALERT_CATEGORY: '/master/alert-category',
+  ALERT_RULE: '/master/alert-rule',
   FUEL_CALIBRATION: '/fuel-calibration',
 
   // Alerts
