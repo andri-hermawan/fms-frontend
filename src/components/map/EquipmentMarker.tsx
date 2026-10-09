@@ -5,7 +5,7 @@ import {
   useMap,
 } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import type { Marker as LeafletMarker } from 'leaflet'
 
@@ -50,6 +50,25 @@ const getSelectedMarkerIcon = (
   return icon
 }
 
+// Cluster hanya menampilkan jumlah unit; diameter ikon proporsional terhadap
+// jumlahnya (akar kuadrat agar pertumbuhannya tidak liar), dibatasi 28–48px
+// supaya seimbang dengan ukuran marker unit.
+const createClusterIcon = (cluster: { getChildCount: () => number }): L.DivIcon => {
+  const count = cluster.getChildCount()
+  const size = Math.round(
+    Math.min(48, Math.max(28, 22 + Math.sqrt(count) * 5)),
+  )
+  const fontSize = size >= 40 ? 13 : 11
+
+  return L.divIcon({
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:rgba(6,69,150,.9);border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.4);color:#fff;font-weight:700;font-size:${fontSize}px;display:flex;align-items:center;justify-content:center;">${count}</div>`,
+    className: '',
+    iconSize: [size, size],
+  })
+}
+
+const NO_SEGMENT = '-'
+
 const EquipmentMarker = ({
   equipments,
   selectedEquipment,
@@ -57,7 +76,7 @@ const EquipmentMarker = ({
 }: EquipmentMarkerProps) => {
   const map = useMap()
   const [iconSize, setIconSize] = useState(
-    map.getZoom() >= 19 ? 64 : 32,
+    map.getZoom() >= 19 ? 48 : 24,
   )
   const markerRefs = useRef<
     Record<string, LeafletMarker | null>
@@ -65,7 +84,7 @@ const EquipmentMarker = ({
   
   useEffect(() => {
     const updateIconSize = () => {
-      setIconSize(map.getZoom() >= 19 ? 64 : 32)
+      setIconSize(map.getZoom() >= 19 ? 48 : 24)
     }
 
     map.on('zoomend', updateIconSize)
@@ -73,6 +92,26 @@ const EquipmentMarker = ({
       map.off('zoomend', updateIconSize)
     }
   }, [map])
+
+  // Satu cluster group per segment: unit dari segment berbeda tidak pernah
+  // digabung dalam satu cluster.
+  const equipmentsBySegment = useMemo(() => {
+    const groups = new Map<string, EquipmentMarkerData[]>()
+    equipments.forEach((item) => {
+      const key = item.segment?.trim() || NO_SEGMENT
+      const list = groups.get(key)
+      if (list) list.push(item)
+      else groups.set(key, [item])
+    })
+    return Array.from(groups.entries())
+  }, [equipments])
+
+  // Unit terpilih yang pindah segment pindah cluster group (marker
+  // di-remount, popup tertutup), jadi segment-nya jadi dependency efek di
+  // bawah agar popup dibuka ulang.
+  const selectedSegment = equipments.find(
+    (item) => item.equipment_id === selectedEquipment,
+  )?.segment
 
   useEffect(() => {
     Object.values(markerRefs.current).forEach(
@@ -96,16 +135,20 @@ const EquipmentMarker = ({
     )
 
     marker.openPopup()
-  }, [selectedEquipment, map])
+  }, [selectedEquipment, selectedSegment, map])
   return (
+    <>
+    {equipmentsBySegment.map(([segment, items]) => (
     <MarkerClusterGroup
+      key={segment}
       chunkedLoading
       showCoverageOnHover={false}
       spiderfyOnMaxZoom
       disableClusteringAtZoom={19}
       removeOutsideVisibleBounds
+      iconCreateFunction={createClusterIcon}
     >
-      {equipments.map((item) => (
+      {items.map((item) => (
         <Marker
           key={item.equipment_id}
           position={[
@@ -364,6 +407,8 @@ const EquipmentMarker = ({
         </Marker>
       ))}
     </MarkerClusterGroup>
+    ))}
+    </>
   )
 }
 

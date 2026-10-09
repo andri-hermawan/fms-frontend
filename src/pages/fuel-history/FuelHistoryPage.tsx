@@ -88,14 +88,14 @@ const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: bo
         icon={L.divIcon({
           html,
           className: '',
-          iconSize: [36, 36],
-          iconAnchor: [18, 18],
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
         })}
         zIndexOffset={1000}
       >
         <Tooltip
           direction="top"
-          offset={[0, -18]}
+          offset={[0, -14]}
           opacity={1}
           permanent
           interactive
@@ -111,7 +111,7 @@ const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: bo
       position={[markerData.latitude, markerData.longitude]}
       icon={getMarkerIcon(markerData)}
     >
-      <Tooltip direction="top" offset={[0, -18]} interactive>
+      <Tooltip direction="top" offset={[0, -14]} interactive>
         {tooltipContent}
       </Tooltip>
     </Marker>

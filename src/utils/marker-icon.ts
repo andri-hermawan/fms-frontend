@@ -118,7 +118,7 @@ const STATUS_TO_ICON_KEY: Record<string, 'running' | 'idle' | 'stop'> = {
   OFFLINE: 'stop',
 }
 
-export const getMarkerIcon = (equipment: EquipmentMarkerData, size = 32) => {
+export const getMarkerIcon = (equipment: EquipmentMarkerData, size = 24) => {
   const rawStatus = equipment.status.toUpperCase()
   const status = STATUS_TO_ICON_KEY[rawStatus] ?? 'idle'
   // console.log('status nya tracking', rawStatus, '→', status)
