@@ -1,7 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { App } from 'antd'
 import weighbridgeApi from '@/services/api/weighbridge.api'
-import type { WeighbridgeFormValues } from '@/types/weighbridge.types'
+import type {
+  WeighbridgeFormValues,
+  WeighbridgeRitaseDailyParams,
+  WeighbridgePayloadDailyParams,
+  WeighbridgeProductionDailyParams,
+} from '@/types/weighbridge.types'
 import type { PaginationParams } from '@/types/api.types'
 
 export const WEIGHBRIDGE_KEY = 'weighbridge'
@@ -10,6 +15,36 @@ export const useWeighbridges = (params?: PaginationParams) =>
   useQuery({
     queryKey: [WEIGHBRIDGE_KEY, params],
     queryFn: () => weighbridgeApi.getAll(params).then((r) => r.data),
+  })
+
+export const useWeighbridgeRitaseDaily = (
+  params: WeighbridgeRitaseDailyParams | null,
+) =>
+  useQuery({
+    queryKey: [WEIGHBRIDGE_KEY, 'ritase-daily', params],
+    queryFn: () =>
+      weighbridgeApi.getRitaseDaily(params!).then((r) => r.data.data),
+    enabled: !!params,
+  })
+
+export const useWeighbridgePayloadDaily = (
+  params: WeighbridgePayloadDailyParams | null,
+) =>
+  useQuery({
+    queryKey: [WEIGHBRIDGE_KEY, 'payload-daily', params],
+    queryFn: () =>
+      weighbridgeApi.getPayloadDaily(params!).then((r) => r.data.data),
+    enabled: !!params,
+  })
+
+export const useWeighbridgeProductionDaily = (
+  params: WeighbridgeProductionDailyParams | null,
+) =>
+  useQuery({
+    queryKey: [WEIGHBRIDGE_KEY, 'production-daily', params],
+    queryFn: () =>
+      weighbridgeApi.getProductionDaily(params!).then((r) => r.data.data),
+    enabled: !!params,
   })
 
 export const useCreateWeighbridge = () => {

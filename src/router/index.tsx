@@ -22,9 +22,15 @@ const ReportPage        = lazy(() => import('@/pages/report/ReportPage'))
 const ReportEquipmentLogsPage       = lazy(() => import('@/pages/report/report-equipment-logs/ReportEquipmentLogsPage'))
 const ReportFuelHistoryPage = lazy(() => import('@/pages/report/report-fuel-history/ReportFuelHistoryPage'))
 const ReportAlertSummaryPage = lazy(() => import('@/pages/report/report-alert-summary/ReportAlertSummaryPage'))
+const ReportRitaseDailyPage = lazy(() => import('@/pages/report/report-ritase-daily/ReportRitaseDailyPage'))
+const ReportPayloadDailyPage = lazy(() => import('@/pages/report/report-payload-daily/ReportPayloadDailyPage'))
+const ReportProductionDailyPage = lazy(() => import('@/pages/report/report-production-daily/ReportProductionDailyPage'))
+const ReportBreakdownDailyPage = lazy(() => import('@/pages/report/report-breakdown-daily/ReportBreakdownDailyPage'))
+const ReportPADailyPage = lazy(() => import('@/pages/report/report-pa-daily/ReportPADailyPage'))
+
+
 const PlaybackUnitHistoryPage = lazy(() => import('@/pages/report/PlaybackUnitHistoryPage'))
 const EquipmentShiftPerformancePage = lazy(() => import('@/pages/report/EquipmentShiftPerformancePage'))
-const PhysicalAvailabilityPage = lazy(() => import('@/pages/report/PhysicalAvailabilityPage'))
 
 
 const UserListPage      = lazy(() => import('@/pages/master/user/UserListPage'))
@@ -92,9 +98,14 @@ const router = createBrowserRouter([
               { path: ROUTES.FUEL_CALIBRATION, element: withSuspense(FuelCalibrationPage) },
               { path: ROUTES.STATUS_BREAKDOWN, element: withSuspense(StatusBreakdownPage) },
               { path: ROUTES.WEIGHBRIDGE, element: withSuspense(WeighbridgePage) },
+              { path: ROUTES.REPORT_RITASE_DAILY, element: withSuspense(ReportRitaseDailyPage) },
+              { path: ROUTES.REPORT_PAYLOAD_DAILY, element: withSuspense(ReportPayloadDailyPage) },
+              { path: ROUTES.REPORT_PRODUCTION_DAILY, element: withSuspense(ReportProductionDailyPage) },
+              { path: ROUTES.REPORT_BREAKDOWN_DAILY, element: withSuspense(ReportBreakdownDailyPage) },
+              { path: ROUTES.REPORT_PA_DAILY, element: withSuspense(ReportPADailyPage) },
+
               { path: ROUTES.PLAYBACK_UNIT_HISTORY, element: withSuspense(PlaybackUnitHistoryPage) },
               { path: ROUTES.EQUIPMENT_SHIFT_PERFORMANCE, element: withSuspense(EquipmentShiftPerformancePage) },
-              { path: ROUTES.PHYSICAL_AVAILABILITY, element: withSuspense(PhysicalAvailabilityPage) },
 
             ],
           },

@@ -42,9 +42,14 @@ export const ROUTES = {
   REPORT_FUEL_HISTORY: '/report/report-fuel-history',
   REPORT_ALERT_HISTORY: '/alert',
   REPORT_ALERT_SUMMARY: '/report/report-alert-summary',
+  REPORT_RITASE_DAILY: '/report/report-ritase-daily',
+  REPORT_PAYLOAD_DAILY: '/report/report-payload-daily',
+  REPORT_PRODUCTION_DAILY: '/report/report-production-daily',
+  REPORT_BREAKDOWN_DAILY: '/report/report-breakdown-daily',
+  REPORT_PA_DAILY: '/report/report-pa-daily',
+
   PLAYBACK_UNIT_HISTORY: '/report/playback-unit-history',
   EQUIPMENT_SHIFT_PERFORMANCE: '/report/equipment-shift-performance',
-  PHYSICAL_AVAILABILITY: '/report/physical-availability',
 } as const
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES]

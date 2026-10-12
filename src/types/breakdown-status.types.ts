@@ -50,3 +50,24 @@ export interface BreakdownFormValues {
   description?: string | null
   location?: string | null
 }
+export interface BreakdownStatusDailyParams {
+  start_date: string
+  end_date: string
+  shift?: string[]
+  equipment_code?: string[]
+  max_days?: number
+}
+
+export interface BreakdownStatusDailyRow {
+  equipment_code: string
+  /** key: tanggal (YYYY-MM-DD), value: total durasi breakdown (jam) */
+  values: Record<string, number>
+}
+
+export interface BreakdownStatusDaily {
+  period: { start_date: string; end_date: string; total_days: number }
+  days: string[]
+  filters: { shift: string[] | null; equipment_code: string[] | null }
+  data: BreakdownStatusDailyRow[]
+  total_row: number
+}

@@ -3,6 +3,8 @@ import { axiosInstance } from '@/services/http'
 import type {
   BreakdownStatus,
   BreakdownStatusFormValues,
+  BreakdownStatusDaily,
+  BreakdownStatusDailyParams,
 } from '@/types/breakdown-status.types'
 
 import type {
@@ -17,6 +19,15 @@ const breakdownStatusApi = {
       PaginatedResponse<BreakdownStatus>
     >('/fms/api/breakdown-status', {
       params,
+    }),
+
+  getDaily: (params: BreakdownStatusDailyParams) =>
+    axiosInstance.get<
+      ApiResponse<BreakdownStatusDaily>
+    >('/fms/api/breakdown-status/daily', {
+      params,
+      // backend menerima array sebagai query berulang (shift=a&shift=b)
+      paramsSerializer: { indexes: null },
     }),
 
   getById: (id: string) =>

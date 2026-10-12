@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { App } from 'antd'
 import breakdownStatusApi from '@/services/api/breakdown-status.api'
-import type { BreakdownStatusFormValues } from '@/types/breakdown-status.types'
+import type {
+  BreakdownStatusFormValues,
+  BreakdownStatusDailyParams,
+} from '@/types/breakdown-status.types'
 import type { PaginationParams } from '@/types/api.types'
 
 export const BREAKDOWN_STATUS_KEY = 'breakdown-status'
@@ -10,6 +13,16 @@ export const useBreakdownStatuses = (params?: PaginationParams) =>
   useQuery({
     queryKey: [BREAKDOWN_STATUS_KEY, params],
     queryFn: () => breakdownStatusApi.getAll(params).then((r) => r.data),
+  })
+
+export const useBreakdownStatusDaily = (
+  params: BreakdownStatusDailyParams | null,
+) =>
+  useQuery({
+    queryKey: [BREAKDOWN_STATUS_KEY, 'daily', params],
+    queryFn: () =>
+      breakdownStatusApi.getDaily(params!).then((r) => r.data.data),
+    enabled: !!params,
   })
 
 export const useCreateBreakdownStatus = () => {

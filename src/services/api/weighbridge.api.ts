@@ -3,6 +3,12 @@ import { axiosInstance } from '@/services/http'
 import type {
   Weighbridge,
   WeighbridgeFormValues,
+  WeighbridgeRitaseDaily,
+  WeighbridgeRitaseDailyParams,
+  WeighbridgePayloadDaily,
+  WeighbridgePayloadDailyParams,
+  WeighbridgeProductionDaily,
+  WeighbridgeProductionDailyParams,
 } from '@/types/weighbridge.types'
 
 import type {
@@ -17,6 +23,31 @@ const weighbridgeApi = {
       PaginatedResponse<Weighbridge>
     >('/fms/api/weighbridge', {
       params,
+    }),
+
+  getRitaseDaily: (params: WeighbridgeRitaseDailyParams) =>
+    axiosInstance.get<
+      ApiResponse<WeighbridgeRitaseDaily>
+    >('/fms/api/weighbridge/ritase-daily', {
+      params,
+      // backend menerima array sebagai query berulang (shift=a&shift=b)
+      paramsSerializer: { indexes: null },
+    }),
+
+  getPayloadDaily: (params: WeighbridgePayloadDailyParams) =>
+    axiosInstance.get<
+      ApiResponse<WeighbridgePayloadDaily>
+    >('/fms/api/weighbridge/payload-daily', {
+      params,
+      paramsSerializer: { indexes: null },
+    }),
+
+  getProductionDaily: (params: WeighbridgeProductionDailyParams) =>
+    axiosInstance.get<
+      ApiResponse<WeighbridgeProductionDaily>
+    >('/fms/api/weighbridge/production-daily', {
+      params,
+      paramsSerializer: { indexes: null },
     }),
 
   getById: (id: string) =>

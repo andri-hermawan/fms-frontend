@@ -2,10 +2,7 @@ import { Card, Col, Row, Typography, Button, Space, Input, Empty, theme } from '
 import {
   // BarChartOutlined,
   // LineChartOutlined,
-  AlertOutlined,
-  FireOutlined,
   UnorderedListOutlined,
-  BellOutlined,
   DashboardOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
@@ -23,7 +20,6 @@ interface ReportItem {
   key: string
   title: string
   description: string
-  icon: React.ReactNode
   tone: ReportTone
   route: string
   /** Role yang boleh mengakses report ini. Kosong = semua role. */
@@ -34,6 +30,8 @@ interface ReportGroup {
   key: string
   title: string
   description: string
+  /** Icon yang dipakai semua kartu pada grup ini. */
+  icon: React.ReactNode
   reports: ReportItem[]
 }
 
@@ -48,12 +46,12 @@ const reportGroups: ReportGroup[] = [
     key: 'raw-data',
     title: 'Raw Data',
     description: 'Data mentah per tanggal, shift dan asset code.',
+    icon: <UnorderedListOutlined />,
     reports: [
       {
         key: 'report/report-equipment-logs',
         title: 'Asset History',
         description: 'Riwayat asset history per tanggal, shift dan asset code.',
-        icon: <UnorderedListOutlined />,
         tone: 'data',
         route: '/report/report-equipment-logs',
       },
@@ -61,7 +59,6 @@ const reportGroups: ReportGroup[] = [
         key: 'report/report-fuel-history',
         title: 'Fuel History',
         description: 'Riwayat konsumsi fuel per tanggal, shift dan asset code.',
-        icon: <FireOutlined />,
         tone: 'data',
         route: '/report/report-fuel-history',
       },
@@ -69,7 +66,6 @@ const reportGroups: ReportGroup[] = [
         key: 'report/report-alert-history',
         title: 'Abnormal Alert History',
         description: 'Riwayat abnormal alert per tanggal, shift dan asset code.',
-        icon: <AlertOutlined />,
         tone: 'data',
         route: '/alert',
       },
@@ -79,22 +75,49 @@ const reportGroups: ReportGroup[] = [
     key: 'report',
     title: 'Report',
     description: 'Laporan yang sudah diagregasi per periode.',
+    icon: <DashboardOutlined />,
     reports: [
       {
         key: 'report/report-alert-summary',
         title: 'Abnormal Alert Summary',
         description: 'Laporan abnormal alert per periode',
-        icon: <BellOutlined />,
         tone: 'analysis',
         route: '/report/report-alert-summary',
       },
       {
-        key: 'report/physical-availability',
-        title: 'Physical Availability',
-        description: 'Rekap physical availability unit per tanggal.',
-        icon: <DashboardOutlined />,
+        key: 'report/report-ritase-daily',
+        title: 'Report Ritase Daily',
+        description: 'Report ritase unit per tanggal.',
         tone: 'analysis',
-        route: '/report/physical-availability',
+        route: '/report/report-ritase-daily',
+      },
+      {
+        key: 'report/report-payload-daily',
+        title: 'Report Payload Daily',
+        description: 'Report payload unit per tanggal.',
+        tone: 'analysis',
+        route: '/report/report-payload-daily',
+      },
+      {
+        key: 'report/report-production-daily',
+        title: 'Report Production Daily',
+        description: 'Report production unit per tanggal.',
+        tone: 'analysis',
+        route: '/report/report-production-daily',
+      },
+      {
+        key: 'report/report-breakdown-daily',
+        title: 'Report Breakdown Daily',
+        description: 'Report breakdown unit per tanggal.',
+        tone: 'analysis',
+        route: '/report/report-breakdown-daily',
+      },
+      {
+        key: 'report/report-pa-daily',
+        title: 'Report Physical Availability Daily',
+        description: 'Report physical availability unit per tanggal.',
+        tone: 'analysis',
+        route: '/report/report-pa-daily',
       },
     ],
   },
@@ -175,7 +198,7 @@ const ReportPage = () => {
                 const color = GROUP_TONE[report.tone]
 
                 return (
-                  <Col key={report.key} xs={24} sm={12} lg={8}>
+                  <Col key={report.key} xs={24} sm={12} lg={6}>
                     <Card
                       hoverable
                       style={{
@@ -198,7 +221,7 @@ const ReportPage = () => {
                           fontSize: 22,
                         }}
                       >
-                        {report.icon}
+                        {group.icon}
                       </div>
 
                       <div>
