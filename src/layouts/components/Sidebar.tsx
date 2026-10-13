@@ -159,7 +159,7 @@ const MENU_CONFIG: MenuConfig[] = [
     key: 'upload',
     icon: <Upload {...iconStyle} />,
     label: 'Upload Data',
-    roles: ['superadmin', 'admin'],
+    // roles: ['superadmin', 'admin'],
     children: [
       {
         key: 'daily-setting-operator',

@@ -171,12 +171,16 @@ const DailySettingOperatorPage = () => {
           },
         ]
       : []),
-    {
-      key: 'import',
-      icon: <ImportOutlined />,
-      label: 'Upload Excel',
-      onClick: openImport,
-    },
+    ...(canCreate
+      ? [
+          {
+            key: 'import',
+            icon: <ImportOutlined />,
+            label: 'Upload Excel',
+            onClick: openImport,
+          },
+        ]
+      : []),
     {
       key: 'download',
       icon: <DownloadOutlined />,

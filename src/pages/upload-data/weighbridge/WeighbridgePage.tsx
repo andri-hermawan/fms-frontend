@@ -39,7 +39,7 @@ const WeighbridgePage = () => {
   const deleteM = useDeleteWeighbridge()
   const importM = useImportWeighbridge()
 
-  // const canCreate = usePermission('project', 'create')
+  const canCreate = usePermission('project', 'create')
   const canUpdate = usePermission('project', 'update')
   const canDelete = usePermission('project', 'delete')
 
@@ -186,19 +186,23 @@ const WeighbridgePage = () => {
   }
 
   const actionMenu: MenuProps['items'] = [
-    {
-      key: 'add',
-      icon: <PlusOutlined />,
-      label: 'Add',
-      disabled: true,
-      onClick: openCreate,
-    },
-    {
-      key: 'import',
-      icon: <ImportOutlined />,
-      label: 'Upload Excel',
-      onClick: openImport,
-    },
+    ...(canCreate
+      ? [
+          {
+            key: 'add',
+            icon: <PlusOutlined />,
+            label: 'Add',
+            disabled: true,
+            onClick: openCreate,
+          },
+          {
+            key: 'import',
+            icon: <ImportOutlined />,
+            label: 'Upload Excel',
+            onClick: openImport,
+          },
+        ]
+      : []),
     {
       key: 'download',
       icon: <DownloadOutlined />,
