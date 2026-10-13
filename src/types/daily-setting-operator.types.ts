@@ -18,3 +18,9 @@ export interface DailySettingOperatorFormValues {
   operator_name: string
   description?: string | null
 }
+
+export type DailySettingOperatorCreatePayload =
+  DailySettingOperatorFormValues & { created_by?: string }
+
+export type DailySettingOperatorUpdatePayload =
+  Partial<DailySettingOperatorFormValues> & { updated_by?: string }

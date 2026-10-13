@@ -2,7 +2,8 @@ import { axiosInstance } from '@/services/http'
 
 import type {
   Weighbridge,
-  WeighbridgeFormValues,
+  WeighbridgeCreatePayload,
+  WeighbridgeUpdatePayload,
   WeighbridgeRitaseDaily,
   WeighbridgeRitaseDailyParams,
   WeighbridgePayloadDaily,
@@ -56,7 +57,7 @@ const weighbridgeApi = {
     >(`/fms/api/weighbridge/${id}`),
 
   create: (
-    payload: WeighbridgeFormValues,
+    payload: WeighbridgeCreatePayload,
   ) =>
     axiosInstance.post<
       ApiResponse<Weighbridge>
@@ -64,7 +65,7 @@ const weighbridgeApi = {
 
   update: (
     id: string,
-    payload: Partial<WeighbridgeFormValues>,
+    payload: WeighbridgeUpdatePayload,
   ) =>
     axiosInstance.put<
       ApiResponse<Weighbridge>
@@ -78,9 +79,10 @@ const weighbridgeApi = {
       ApiResponse<null>
     >(`/fms/api/weighbridge/${id}`),
 
-  importExcel: (file: File) => {
+  importExcel: (file: File, createdBy: string) => {
     const form = new FormData()
     form.append('file', file)
+    form.append('created_by', createdBy)
     return axiosInstance.post<ApiResponse<{ imported: number }>>(
       '/fms/api/weighbridge/import',
       form,

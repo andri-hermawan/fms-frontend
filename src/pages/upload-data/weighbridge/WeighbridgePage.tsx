@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography, Select, Dropdown } from 'antd'
+import { App, Form, Button, Space, Tooltip, Upload, Tag, Modal, Typography, Select, Dropdown } from 'antd'
 import type { MenuProps, UploadFile } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, DownloadOutlined, InboxOutlined, FilterOutlined, DownOutlined, ImportOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -18,8 +18,11 @@ import { useShifts } from '@/pages/master/shift/useShift'
 import { formatDate, formatNumber } from '@/utils/format'
 import weighbridgeApi from '@/services/api/weighbridge.api'
 import type { Weighbridge, WeighbridgeFormValues } from '@/types/weighbridge.types'
+import { useAuthStore } from '@/stores/auth.store'
 
 const WeighbridgePage = () => {
+  const { message } = App.useApp()
+  const userName = useAuthStore((state) => state.user?.name)
   const [form] = Form.useForm<WeighbridgeFormValues>()
   const [open, setOpen]         = useState(false)
   const [selected, setSelected] = useState<Weighbridge | null>(null)
@@ -49,6 +52,10 @@ const WeighbridgePage = () => {
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
+      if (!userName) {
+        message.error('Nama user tidak tersedia. Silakan login kembali.')
+        return
+      }
       const payload: WeighbridgeFormValues = {
         ...values,
         date_at: dayjs(values.date_at as unknown as string).toISOString(),
@@ -56,9 +63,15 @@ const WeighbridgePage = () => {
         tare_time: values.tare_time ? dayjs(values.tare_time as unknown as string).toISOString() : null,
       }
       if (isEdit) {
-        updateM.mutate({ id: selected.id, payload }, { onSuccess: closeDrawer })
+        updateM.mutate(
+          { id: selected.id, payload: { ...payload, updated_by: userName } },
+          { onSuccess: closeDrawer },
+        )
       } else {
-        createM.mutate(payload, { onSuccess: closeDrawer })
+        createM.mutate(
+          { ...payload, created_by: userName },
+          { onSuccess: closeDrawer },
+        )
       }
     })
   }
@@ -103,9 +116,9 @@ const WeighbridgePage = () => {
       'Ticket No': item.ticket_no ?? '-',
       'Asset ID': item.equipment_code ?? '-',
       Product: item.product ?? '-',
-      Gross: item.gross,
-      Tare: item.tare,
-      Net: item.net,
+      Gross: Number(item.gross ?? 0),
+      Tare: Number(item.tare ?? 0),
+      Net: Number(item.net ?? 0),
       Recipient: item.recipient ?? '-',
       Customer: item.customer ?? '-',
       Transporter: item.transporter ?? '-',
@@ -121,6 +134,13 @@ const WeighbridgePage = () => {
     exportData.forEach((item, index) => {
       const dateCell = ws[XLSX.utils.encode_cell({ r: index + 1, c: 1 })]
       if (typeof item.Date === 'number' && dateCell) dateCell.z = 'dd-mm-yyyy'
+      // Gross, Tare, Net (kolom 7-9) disimpan sebagai angka dengan pemisah ribuan
+      ;[7, 8, 9].forEach((c) => {
+        const numCell = ws[XLSX.utils.encode_cell({ r: index + 1, c })]
+        if (numCell && typeof numCell.v === 'number') {
+          numCell.z = Number.isInteger(numCell.v) ? '#,##0' : '#,##0.00'
+        }
+      })
     })
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Weighbridge')
@@ -149,7 +169,14 @@ const WeighbridgePage = () => {
 
   const handleImportOk = () => {
     if (!importFile?.originFileObj) return
-    importM.mutate(importFile.originFileObj, { onSuccess: () => setImportOpen(false) })
+    if (!userName) {
+      message.error('Nama user tidak tersedia. Silakan login kembali.')
+      return
+    }
+    importM.mutate(
+      { file: importFile.originFileObj, createdBy: userName },
+      { onSuccess: () => setImportOpen(false) },
+    )
     setImportFile(null)
   }
 
@@ -339,11 +366,21 @@ const WeighbridgePage = () => {
     },
   ]
 
+  // Total net seluruh data sesuai filter (dari backend, tidak terpengaruh paging)
+  const totalNet = Number(data?.meta?.total_net ?? 0)
+
   return (
     <>
       <PageHeader
         title="Weighbridge"
-        subtitle={`Total ${data?.meta?.total ?? 0} data`}
+        subtitle={
+          <>
+            Total {data?.meta?.total ?? 0} data ·{' '}
+            <Typography.Text strong style={{ fontSize: 14 }}>
+              Total Net {totalNet.toLocaleString('id-ID', { maximumFractionDigits: 2 })}
+            </Typography.Text>
+          </>
+        }
         extra={
           <Space>
             <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>

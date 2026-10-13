@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { App } from 'antd'
 import dailySettingOperatorApi from '@/services/api/daily-setting-operator.api'
-import type { DailySettingOperatorFormValues } from '@/types/daily-setting-operator.types'
+import type {
+  DailySettingOperatorCreatePayload,
+  DailySettingOperatorUpdatePayload,
+} from '@/types/daily-setting-operator.types'
 import type { PaginationParams } from '@/types/api.types'
 
 export const DAILY_SETTING_OPERATOR_KEY = 'setting-operator'
@@ -16,7 +19,7 @@ export const useCreateDailySettingOperator = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: (payload: DailySettingOperatorFormValues) =>
+    mutationFn: (payload: DailySettingOperatorCreatePayload) =>
       dailySettingOperatorApi.create(payload).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [DAILY_SETTING_OPERATOR_KEY] })
@@ -30,7 +33,7 @@ export const useUpdateDailySettingOperator = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<DailySettingOperatorFormValues> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: DailySettingOperatorUpdatePayload }) =>
       dailySettingOperatorApi.update(id, payload).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [DAILY_SETTING_OPERATOR_KEY] })
@@ -58,8 +61,8 @@ export const useImportDailySettingOperator = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: (file: File) =>
-      dailySettingOperatorApi.importExcel(file).then((r) => r.data),
+    mutationFn: ({ file, createdBy }: { file: File; createdBy: string }) =>
+      dailySettingOperatorApi.importExcel(file, createdBy).then((r) => r.data),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: [DAILY_SETTING_OPERATOR_KEY] })
       message.success(

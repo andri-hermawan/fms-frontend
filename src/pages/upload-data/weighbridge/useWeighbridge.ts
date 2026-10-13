@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { App } from 'antd'
 import weighbridgeApi from '@/services/api/weighbridge.api'
 import type {
-  WeighbridgeFormValues,
+  WeighbridgeCreatePayload,
+  WeighbridgeUpdatePayload,
   WeighbridgeRitaseDailyParams,
   WeighbridgePayloadDailyParams,
   WeighbridgeProductionDailyParams,
@@ -51,7 +52,7 @@ export const useCreateWeighbridge = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: (payload: WeighbridgeFormValues) =>
+    mutationFn: (payload: WeighbridgeCreatePayload) =>
       weighbridgeApi.create(payload).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [WEIGHBRIDGE_KEY] })
@@ -65,7 +66,7 @@ export const useUpdateWeighbridge = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<WeighbridgeFormValues> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: WeighbridgeUpdatePayload }) =>
       weighbridgeApi.update(id, payload).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [WEIGHBRIDGE_KEY] })
@@ -93,8 +94,8 @@ export const useImportWeighbridge = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: (file: File) =>
-      weighbridgeApi.importExcel(file).then((r) => r.data),
+    mutationFn: ({ file, createdBy }: { file: File; createdBy: string }) =>
+      weighbridgeApi.importExcel(file, createdBy).then((r) => r.data),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: [WEIGHBRIDGE_KEY] })
       message.success(

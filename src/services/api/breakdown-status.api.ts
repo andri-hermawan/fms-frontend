@@ -2,7 +2,8 @@ import { axiosInstance } from '@/services/http'
 
 import type {
   BreakdownStatus,
-  BreakdownStatusFormValues,
+  BreakdownStatusCreatePayload,
+  BreakdownStatusUpdatePayload,
   BreakdownStatusDaily,
   BreakdownStatusDailyParams,
 } from '@/types/breakdown-status.types'
@@ -36,7 +37,7 @@ const breakdownStatusApi = {
     >(`/fms/api/breakdown-status/${id}`),
 
   create: (
-    payload: BreakdownStatusFormValues,
+    payload: BreakdownStatusCreatePayload,
   ) =>
     axiosInstance.post<
       ApiResponse<BreakdownStatus>
@@ -44,7 +45,7 @@ const breakdownStatusApi = {
 
   update: (
     id: string,
-    payload: Partial<BreakdownStatusFormValues>,
+    payload: BreakdownStatusUpdatePayload,
   ) =>
     axiosInstance.patch<
       ApiResponse<BreakdownStatus>
@@ -58,9 +59,10 @@ const breakdownStatusApi = {
       ApiResponse<null>
     >(`/fms/api/breakdown-status/${id}`),
 
-  importExcel: (file: File) => {
+  importExcel: (file: File, createdBy: string) => {
     const form = new FormData()
     form.append('file', file)
+    form.append('created_by', createdBy)
     return axiosInstance.post<ApiResponse<{ imported: number }>>(
       '/fms/api/breakdown-status/import',
       form,

@@ -66,9 +66,9 @@ const ReportPayloadDailyPage = () => {
     }));
 
     return [
-      { title: 'No', key: 'index', width: 58, align: 'center', fixed: 'left', render: (_v, _r, index) => index + 1 },
-      { title: 'Asset ID', dataIndex: 'equipment_code', width: 100, fixed: 'left' },
-      { title: 'UoM', key: 'uom', width: 70, align: 'center', fixed: 'left', render: () => 'ton/rit' },
+      { title: 'No', key: 'index', width: 20, align: 'center', fixed: 'left', render: (_v, _r, index) => index + 1 },
+      { title: 'Asset ID', dataIndex: 'equipment_code', width: 50, fixed: 'left',render: (value) => <span style={{ fontWeight: 600 }}>{value}</span> },
+      { title: 'UoM', key: 'uom', width: 30, align: 'center', fixed: 'left', render: () => 'ton/rit' },
       ...dayColumns,
       {
         title: 'Average',
@@ -93,7 +93,7 @@ const ReportPayloadDailyPage = () => {
       const record: Record<string, string | number> = {
         No: index + 1,
         'Asset ID': row.equipment_code,
-        UoM: 'ton',
+        UoM: 'ton/rit',
       };
 
       dayKeys.forEach((day) => {

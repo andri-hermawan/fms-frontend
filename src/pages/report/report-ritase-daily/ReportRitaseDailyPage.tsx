@@ -53,6 +53,9 @@ const ReportRitaseDailyPage = () => {
   const dayKeys = useMemo(() => report?.days ?? [], [report]);
   const rowList = useMemo(() => report?.data ?? [], [report]);
 
+  // UoM: rit/shift jika filter shift dipilih, rit/day jika all shift
+  const uom = params?.shift?.length ? 'rit/shift' : 'rit/day';
+
   const columns = useMemo<ColumnsType<WeighbridgeRitaseDailyRow>>(() => {
     const dayColumns: ColumnsType<WeighbridgeRitaseDailyRow> = dayKeys.map((day) => ({
       title: dayjs(day).format('DD-MMM'),
@@ -66,27 +69,20 @@ const ReportRitaseDailyPage = () => {
     }));
 
     return [
-      { title: 'No', key: 'index', width: 58, align: 'center', fixed: 'left', render: (_v, _r, index) => index + 1 },
-      { title: 'Asset ID', dataIndex: 'equipment_code', width: 100, fixed: 'left' },
+      { title: 'No', key: 'index', width: 20, align: 'center', fixed: 'left', render: (_v, _r, index) => index + 1 },
+      { title: 'Asset ID', dataIndex: 'equipment_code', width: 50, fixed: 'left',render: (value) => <span style={{ fontWeight: 600 }}>{value}</span> },
+      { title: 'UoM', key: 'uom', width: 30, align: 'center', fixed: 'left', render: () => uom },
       ...dayColumns,
       {
-        title: 'Total Ritase',
+        title: 'Total',
         dataIndex: 'ritase',
         width: 110,
         align: 'center',
         fixed: 'right',
         render: (value: number) => <Tag color="blue">{value}</Tag>,
       },
-      {
-        title: 'Total Net',
-        dataIndex: 'total_net',
-        width: 120,
-        align: 'right',
-        fixed: 'right',
-        render: (value: number) => value.toLocaleString('id-ID'),
-      },
     ];
-  }, [dayKeys]);
+  }, [dayKeys, uom]);
 
   const handleApply = (values: ReportFilterValues) => {
     setAppliedValues(values);
@@ -100,14 +96,14 @@ const ReportRitaseDailyPage = () => {
       const record: Record<string, string | number> = {
         No: index + 1,
         'Asset ID': row.equipment_code,
+        UoM: uom,
       };
 
       dayKeys.forEach((day) => {
         record[dayjs(day).format('DD-MMM')] = formatRitase(row.values[day]);
       });
 
-      record['Total Ritase'] = row.ritase;
-      record['Total Net'] = row.total_net;
+      record.Total = row.ritase;
       return record;
     });
 
@@ -116,7 +112,7 @@ const ReportRitaseDailyPage = () => {
     XLSX.utils.book_append_sheet(wb, ws, 'Ritase Daily');
 
     XLSX.writeFile(wb, `ritase-daily_${params?.start_date}_${params?.end_date}.xlsx`);
-  }, [rowList, dayKeys, params]);
+  }, [rowList, dayKeys, params, uom]);
 
   return (
     <>

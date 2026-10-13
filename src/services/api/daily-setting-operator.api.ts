@@ -2,7 +2,8 @@ import { axiosInstance } from '@/services/http'
 
 import type {
   DailySettingOperator,
-  DailySettingOperatorFormValues,
+  DailySettingOperatorCreatePayload,
+  DailySettingOperatorUpdatePayload,
 } from '@/types/daily-setting-operator.types'
 
 import type {
@@ -25,7 +26,7 @@ const dailySettingOperatorApi = {
     >(`/fms/api/setting-operator/${id}`),
 
   create: (
-    payload: DailySettingOperatorFormValues,
+    payload: DailySettingOperatorCreatePayload,
   ) =>
     axiosInstance.post<
       ApiResponse<DailySettingOperator>
@@ -33,7 +34,7 @@ const dailySettingOperatorApi = {
 
   update: (
     id: string,
-    payload: Partial<DailySettingOperatorFormValues>,
+    payload: DailySettingOperatorUpdatePayload,
   ) =>
     axiosInstance.patch<
       ApiResponse<DailySettingOperator>
@@ -47,9 +48,10 @@ const dailySettingOperatorApi = {
       ApiResponse<null>
     >(`/fms/api/setting-operator/${id}`),
 
-  importExcel: (file: File) => {
+  importExcel: (file: File, createdBy: string) => {
     const form = new FormData()
     form.append('file', file)
+    form.append('created_by', createdBy)
     return axiosInstance.post<ApiResponse<{ imported: number }>>(
       '/fms/api/setting-operator/import',
       form,

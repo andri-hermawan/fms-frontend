@@ -33,6 +33,12 @@ export interface BreakdownStatusFormValues {
   location?: string | null
 }
 
+export type BreakdownStatusCreatePayload =
+  BreakdownStatusFormValues & { created_by?: string }
+
+export type BreakdownStatusUpdatePayload =
+  Partial<BreakdownStatusFormValues> & { updated_by?: string }
+
 /**
  * Nilai form (belum dikonversi) — DatePicker/TimePicker menyimpan Dayjs.
  * Dipakai untuk `Form.useForm` / `setFieldsValue` / `validateFields`.

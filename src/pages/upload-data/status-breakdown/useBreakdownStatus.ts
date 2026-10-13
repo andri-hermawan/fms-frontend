@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { App } from 'antd'
 import breakdownStatusApi from '@/services/api/breakdown-status.api'
 import type {
-  BreakdownStatusFormValues,
+  BreakdownStatusCreatePayload,
+  BreakdownStatusUpdatePayload,
   BreakdownStatusDailyParams,
 } from '@/types/breakdown-status.types'
 import type { PaginationParams } from '@/types/api.types'
@@ -29,7 +30,7 @@ export const useCreateBreakdownStatus = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: (payload: BreakdownStatusFormValues) =>
+    mutationFn: (payload: BreakdownStatusCreatePayload) =>
       breakdownStatusApi.create(payload).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [BREAKDOWN_STATUS_KEY] })
@@ -43,7 +44,7 @@ export const useUpdateBreakdownStatus = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<BreakdownStatusFormValues> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: BreakdownStatusUpdatePayload }) =>
       breakdownStatusApi.update(id, payload).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [BREAKDOWN_STATUS_KEY] })
@@ -71,8 +72,8 @@ export const useImportBreakdownStatus = () => {
   const qc = useQueryClient()
   const { message } = App.useApp()
   return useMutation({
-    mutationFn: (file: File) =>
-      breakdownStatusApi.importExcel(file).then((r) => r.data),
+    mutationFn: ({ file, createdBy }: { file: File; createdBy: string }) =>
+      breakdownStatusApi.importExcel(file, createdBy).then((r) => r.data),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: [BREAKDOWN_STATUS_KEY] })
       message.success(

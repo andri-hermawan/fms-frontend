@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Form, Button, Space, Tooltip, Upload, Modal, Typography, Select, Dropdown } from 'antd'
+import { App, Form, Button, Space, Tooltip, Upload, Modal, Typography, Select, Dropdown } from 'antd'
 import type { MenuProps, UploadFile } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, DownloadOutlined, InboxOutlined, FilterOutlined, DownOutlined, ImportOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -18,8 +18,11 @@ import { useShifts } from '@/pages/master/shift/useShift'
 import { formatDate } from '@/utils/format'
 import dailySettingOperatorApi from '@/services/api/daily-setting-operator.api'
 import type { DailySettingOperator, DailySettingOperatorFormValues } from '@/types/daily-setting-operator.types'
+import { useAuthStore } from '@/stores/auth.store'
 
 const DailySettingOperatorPage = () => {
+  const { message } = App.useApp()
+  const userName = useAuthStore((state) => state.user?.name)
   const [form] = Form.useForm<DailySettingOperatorFormValues>()
   const [open, setOpen]         = useState(false)
   const [selected, setSelected] = useState<DailySettingOperator | null>(null)
@@ -49,14 +52,24 @@ const DailySettingOperatorPage = () => {
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
+      if (!userName) {
+        message.error('Nama user tidak tersedia. Silakan login kembali.')
+        return
+      }
       const payload: DailySettingOperatorFormValues = {
         ...values,
         date_at: dayjs(values.date_at as unknown as string).format('YYYY-MM-DD'),
       }
       if (isEdit) {
-        updateM.mutate({ id: selected.id, payload }, { onSuccess: closeDrawer })
+        updateM.mutate(
+          { id: selected.id, payload: { ...payload, updated_by: userName } },
+          { onSuccess: closeDrawer },
+        )
       } else {
-        createM.mutate(payload, { onSuccess: closeDrawer })
+        createM.mutate(
+          { ...payload, created_by: userName },
+          { onSuccess: closeDrawer },
+        )
       }
     })
   }
@@ -131,7 +144,14 @@ const DailySettingOperatorPage = () => {
 
   const handleImportOk = () => {
     if (!importFile?.originFileObj) return
-    importM.mutate(importFile.originFileObj, { onSuccess: () => setImportOpen(false) })
+    if (!userName) {
+      message.error('Nama user tidak tersedia. Silakan login kembali.')
+      return
+    }
+    importM.mutate(
+      { file: importFile.originFileObj, createdBy: userName },
+      { onSuccess: () => setImportOpen(false) },
+    )
     setImportFile(null)
   }
 

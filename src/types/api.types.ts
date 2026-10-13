@@ -18,6 +18,8 @@ export interface PaginationMeta {
   page: number
   limit: number
   totalPages: number
+  /** Hanya dikirim oleh endpoint tertentu (mis. weighbridge) */
+  total_net?: number
 }
 
 export interface PaginationParams {

@@ -98,3 +98,9 @@ export interface WeighbridgeFormValues {
   description?: string | null
   location?: string | null
 }
+
+export type WeighbridgeCreatePayload =
+  WeighbridgeFormValues & { created_by?: string }
+
+export type WeighbridgeUpdatePayload =
+  Partial<WeighbridgeFormValues> & { updated_by?: string }

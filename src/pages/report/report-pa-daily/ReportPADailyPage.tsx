@@ -25,7 +25,7 @@ const HOURS_PER_DAY = 24;
 const HOURS_PER_SHIFT = 12;
 
 const formatPercent = (value?: number) =>
-  value === undefined ? '-' : `${Math.round(value)}%`;
+  value === undefined ? '-' : `${Math.round(value)}`; //kalo mau pake persen tambahkan saja
 
 // PA (%) = (jam tersedia - durasi breakdown) / jam tersedia. Boleh negatif
 // bila breakdown melebihi jam tersedia (ditandai hitam).
@@ -96,8 +96,9 @@ const ReportPADailyPage = () => {
     }));
 
     return [
-      { title: 'No', key: 'index', width: 58, align: 'center', fixed: 'left', render: (_v, _r, index) => index + 1 },
-      { title: 'Asset ID', dataIndex: 'equipment_code', width: 100, fixed: 'left' },
+      { title: 'No', key: 'index', width: 20, align: 'center', fixed: 'left', render: (_v, _r, index) => index + 1 },
+      { title: 'Asset ID', dataIndex: 'equipment_code', width: 50, fixed: 'left',render: (value) => <span style={{ fontWeight: 600 }}>{value}</span> },
+      { title: 'UoM', key: 'uom', width: 30, align: 'center', fixed: 'left', render: () => '%' },
       ...dayColumns,
       {
         title: 'Average',
@@ -123,6 +124,7 @@ const ReportPADailyPage = () => {
       const record: Record<string, string | number> = {
         No: index + 1,
         'Asset ID': row.equipment_code,
+        UoM: '%',
       };
 
       dayKeys.forEach((day) => {
