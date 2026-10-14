@@ -5,9 +5,15 @@ import type {
   DailySettingOperatorCreatePayload,
   DailySettingOperatorUpdatePayload,
 } from '@/types/daily-setting-operator.types'
-import type { PaginationParams } from '@/types/api.types'
+import type { AxiosError } from 'axios'
+import type { ApiError, PaginationParams } from '@/types/api.types'
 
 export const DAILY_SETTING_OPERATOR_KEY = 'setting-operator'
+
+const errorMessage = (error: unknown, fallback: string) => {
+  const message = (error as AxiosError<ApiError>)?.response?.data?.message
+  return Array.isArray(message) ? message.join(', ') : message || fallback
+}
 
 export const useDailySettingOperators = (params?: PaginationParams) =>
   useQuery({
@@ -25,7 +31,7 @@ export const useCreateDailySettingOperator = () => {
       qc.invalidateQueries({ queryKey: [DAILY_SETTING_OPERATOR_KEY] })
       message.success('Data setting operator berhasil ditambahkan')
     },
-    onError: () => message.error('Gagal menambahkan data setting operator'),
+    onError: (error) => message.error(errorMessage(error, 'Gagal menambahkan data setting operator')),
   })
 }
 
@@ -39,7 +45,7 @@ export const useUpdateDailySettingOperator = () => {
       qc.invalidateQueries({ queryKey: [DAILY_SETTING_OPERATOR_KEY] })
       message.success('Data setting operator berhasil diperbarui')
     },
-    onError: () => message.error('Gagal memperbarui data setting operator'),
+    onError: (error) => message.error(errorMessage(error, 'Gagal memperbarui data setting operator')),
   })
 }
 

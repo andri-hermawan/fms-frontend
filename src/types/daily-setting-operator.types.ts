@@ -19,8 +19,6 @@ export interface DailySettingOperatorFormValues {
   description?: string | null
 }
 
-export type DailySettingOperatorCreatePayload =
-  DailySettingOperatorFormValues & { created_by?: string }
+export type DailySettingOperatorCreatePayload = DailySettingOperatorFormValues
 
-export type DailySettingOperatorUpdatePayload =
-  Partial<DailySettingOperatorFormValues> & { updated_by?: string }
+export type DailySettingOperatorUpdatePayload = Partial<DailySettingOperatorFormValues>

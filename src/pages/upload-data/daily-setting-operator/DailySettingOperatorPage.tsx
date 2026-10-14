@@ -60,16 +60,14 @@ const DailySettingOperatorPage = () => {
         ...values,
         date_at: dayjs(values.date_at as unknown as string).format('YYYY-MM-DD'),
       }
+      // created_by / updated_by diisi backend dari JWT; mengirimnya ditolak (forbidNonWhitelisted)
       if (isEdit) {
         updateM.mutate(
-          { id: selected.id, payload: { ...payload, updated_by: userName } },
+          { id: selected.id, payload },
           { onSuccess: closeDrawer },
         )
       } else {
-        createM.mutate(
-          { ...payload, created_by: userName },
-          { onSuccess: closeDrawer },
-        )
+        createM.mutate(payload, { onSuccess: closeDrawer })
       }
     })
   }
