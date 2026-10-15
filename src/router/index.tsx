@@ -44,6 +44,7 @@ const AlertCategoryListPage    = lazy(() => import('@/pages/master/alert-categor
 const AlertRuleListPage    = lazy(() => import('@/pages/master/alert-rule/AlertRuleListPage'))
 const ReportScheduleListPage = lazy(() => import('@/pages/master/report-schedule/ReportScheduleListPage'))
 const DailySettingOperatorPage = lazy(() => import('@/pages/upload-data/daily-setting-operator/DailySettingOperatorPage'))
+const EquipmentActivationPage = lazy(() => import('@/pages/upload-data/equipment-activation/EquipmentActivationPage'))
 const StatusBreakdownPage = lazy(() => import('@/pages/upload-data/status-breakdown/StatusBreakdownPage'))
 const WeighbridgePage = lazy(() => import('@/pages/upload-data/weighbridge/WeighbridgePage'))
 const FuelCalibrationPage = lazy(() => import('@/pages/fuel-calibration/FuelCalibrationPage'))
@@ -142,6 +143,7 @@ const router = createBrowserRouter([
           { path: ROUTES.POSITION_HISTORY, element: withSuspense(PositionHistoryPage) },
           { path: ROUTES.SPEED_PER_SEGMENT, element: withSuspense(SpeedPerSegmentPage) },
           { path: ROUTES.DAILY_SETTING_OPERATOR, element: withSuspense(DailySettingOperatorPage) },
+          { path: ROUTES.EQUIPMENT_ACTIVATION, element: withSuspense(EquipmentActivationPage) },
           { path: ROUTES.STATUS_BREAKDOWN, element: withSuspense(StatusBreakdownPage) },
           { path: ROUTES.WEIGHBRIDGE, element: withSuspense(WeighbridgePage) },
           { path: ROUTES.REPORT,    element: withSuspense(ReportPage) },

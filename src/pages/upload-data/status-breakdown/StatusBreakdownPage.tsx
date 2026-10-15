@@ -52,10 +52,7 @@ const BreakdownStatusPage = () => {
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
-      if (!userName) {
-        message.error('Nama user tidak tersedia. Silakan login kembali.')
-        return
-      }
+      // created_by / updated_by diisi backend dari JWT; DTO menolak field tersebut dari body
       const payload: BreakdownStatusFormValues = {
         ...values,
         date_at: dayjs(values.date_at as unknown as string).toISOString(),
@@ -65,14 +62,11 @@ const BreakdownStatusPage = () => {
       }
       if (isEdit) {
         updateM.mutate(
-          { id: selected.id, payload: { ...payload, updated_by: userName } },
+          { id: selected.id, payload },
           { onSuccess: closeDrawer },
         )
       } else {
-        createM.mutate(
-          { ...payload, created_by: userName },
-          { onSuccess: closeDrawer },
-        )
+        createM.mutate(payload, { onSuccess: closeDrawer })
       }
     })
   }

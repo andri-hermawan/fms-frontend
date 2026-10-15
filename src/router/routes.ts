@@ -34,6 +34,7 @@ export const ROUTES = {
   
   // Upload
   DAILY_SETTING_OPERATOR: '/upload/daily-setting-operator',
+  EQUIPMENT_ACTIVATION: '/upload/equipment-activation',
   STATUS_BREAKDOWN: '/upload/status-breakdown',
   WEIGHBRIDGE: '/upload/weighbridge',
 

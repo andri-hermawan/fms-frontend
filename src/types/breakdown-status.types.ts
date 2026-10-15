@@ -33,11 +33,9 @@ export interface BreakdownStatusFormValues {
   location?: string | null
 }
 
-export type BreakdownStatusCreatePayload =
-  BreakdownStatusFormValues & { created_by?: string }
+export type BreakdownStatusCreatePayload = BreakdownStatusFormValues
 
-export type BreakdownStatusUpdatePayload =
-  Partial<BreakdownStatusFormValues> & { updated_by?: string }
+export type BreakdownStatusUpdatePayload = Partial<BreakdownStatusFormValues>
 
 /**
  * Nilai form (belum dikonversi) — DatePicker/TimePicker menyimpan Dayjs.

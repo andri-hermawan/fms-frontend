@@ -29,6 +29,7 @@ const ROUTE_TITLE: Record<string, string> = {
   [ROUTES.DISTRIBUTION_MAP]: 'Distribution Map',
   [ROUTES.FUEL_CALIBRATION]: 'Fuel Calibration',
   [ROUTES.DAILY_SETTING_OPERATOR]: 'Daily Setting Operator',
+  [ROUTES.EQUIPMENT_ACTIVATION]: 'Equipment Activation',
   [ROUTES.STATUS_BREAKDOWN]: 'Status Breakdown',
   [ROUTES.WEIGHBRIDGE]: 'Weighbridge',
   [ROUTES.REPORT]: 'Report',

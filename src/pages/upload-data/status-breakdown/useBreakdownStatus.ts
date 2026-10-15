@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { App } from 'antd'
+import type { AxiosError } from 'axios'
 import breakdownStatusApi from '@/services/api/breakdown-status.api'
 import type {
   BreakdownStatusCreatePayload,
@@ -9,6 +10,11 @@ import type {
 import type { PaginationParams } from '@/types/api.types'
 
 export const BREAKDOWN_STATUS_KEY = 'breakdown-status'
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  const message = (error as AxiosError<{ message?: string | string[] }>)?.response?.data?.message
+  return Array.isArray(message) ? message.join(', ') : message || fallback
+}
 
 export const useBreakdownStatuses = (params?: PaginationParams) =>
   useQuery({
@@ -36,7 +42,8 @@ export const useCreateBreakdownStatus = () => {
       qc.invalidateQueries({ queryKey: [BREAKDOWN_STATUS_KEY] })
       message.success('Data breakdown status berhasil ditambahkan')
     },
-    onError: () => message.error('Gagal menambahkan data breakdown status'),
+    onError: (error) =>
+      message.error(getErrorMessage(error, 'Gagal menambahkan data breakdown status')),
   })
 }
 
@@ -50,7 +57,8 @@ export const useUpdateBreakdownStatus = () => {
       qc.invalidateQueries({ queryKey: [BREAKDOWN_STATUS_KEY] })
       message.success('Data breakdown status berhasil diperbarui')
     },
-    onError: () => message.error('Gagal memperbarui data breakdown status'),
+    onError: (error) =>
+      message.error(getErrorMessage(error, 'Gagal memperbarui data breakdown status')),
   })
 }
 

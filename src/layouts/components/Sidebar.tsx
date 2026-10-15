@@ -31,6 +31,7 @@ import {
   BarChart,
   Scale,
   CircleGauge,
+  Power,
   X
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store'
@@ -159,7 +160,7 @@ const MENU_CONFIG: MenuConfig[] = [
   {
     key: 'upload',
     icon: <Upload {...iconStyle} />,
-    label: 'Upload Data',
+    label: 'Record / Upload',
     // roles: ['superadmin', 'admin'],
     children: [
       {
@@ -167,6 +168,12 @@ const MENU_CONFIG: MenuConfig[] = [
         icon: <UserPlus {...iconStyle} />,
         label: 'Setting Operator',
         path: ROUTES.DAILY_SETTING_OPERATOR,
+      },
+      {
+        key: 'equipment-activation',
+        icon: <Power {...iconStyle} />,
+        label: 'Equipment Activation',
+        path: ROUTES.EQUIPMENT_ACTIVATION,
       },
       {
         key: 'status-breakdown',

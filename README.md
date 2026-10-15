@@ -8,7 +8,7 @@ Dashboard Fleet Management System (FMS) — React + TypeScript + Vite + Ant Desi
 - **Geofence** — kelola area/zona dengan draw & layer peta
 - **Alert** — notifikasi overspeed, underspeed, offtrack, fuel decrease
 - **Dashboard, Report, Graphic** — statistik, equipment logs, activity summary
-- **Master Data & Upload Data** — equipment, shift, daily setting operator, weighbridge (import Excel)
+- **Master Data & Upload Data** — equipment, shift, daily setting operator, equipment activation, weighbridge (import Excel)
 - **Position History** — riwayat pergerakan per equipment
 
 ---
