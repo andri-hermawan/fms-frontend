@@ -22,6 +22,7 @@ const ReportPage        = lazy(() => import('@/pages/report/ReportPage'))
 const ReportEquipmentLogsPage       = lazy(() => import('@/pages/report/report-equipment-logs/ReportEquipmentLogsPage'))
 const ReportFuelHistoryPage = lazy(() => import('@/pages/report/report-fuel-history/ReportFuelHistoryPage'))
 const ReportAlertSummaryPage = lazy(() => import('@/pages/report/report-alert-summary/ReportAlertSummaryPage'))
+const PrintReportAlertSummaryPage = lazy(() => import('@/pages/print/PrintReportAlertSummaryPage'))
 const ReportRitaseDailyPage = lazy(() => import('@/pages/report/report-ritase-daily/ReportRitaseDailyPage'))
 const ReportPayloadDailyPage = lazy(() => import('@/pages/report/report-payload-daily/ReportPayloadDailyPage'))
 const ReportProductionDailyPage = lazy(() => import('@/pages/report/report-production-daily/ReportProductionDailyPage'))
@@ -41,6 +42,7 @@ const DeviceListPage    = lazy(() => import('@/pages/master/device/DeviceListPag
 const ShiftListPage    = lazy(() => import('@/pages/master/shift/ShiftListPage'))
 const AlertCategoryListPage    = lazy(() => import('@/pages/master/alert-category/AlertCategoryListPage'))
 const AlertRuleListPage    = lazy(() => import('@/pages/master/alert-rule/AlertRuleListPage'))
+const ReportScheduleListPage = lazy(() => import('@/pages/master/report-schedule/ReportScheduleListPage'))
 const DailySettingOperatorPage = lazy(() => import('@/pages/upload-data/daily-setting-operator/DailySettingOperatorPage'))
 const StatusBreakdownPage = lazy(() => import('@/pages/upload-data/status-breakdown/StatusBreakdownPage'))
 const WeighbridgePage = lazy(() => import('@/pages/upload-data/weighbridge/WeighbridgePage'))
@@ -70,6 +72,9 @@ const router = createBrowserRouter([
     ],
   },
 
+  // ─── Print routes (tanpa layout; token sementara dari URL, dipakai render PDF terjadwal) ───
+  { path: ROUTES.PRINT_REPORT_ALERT_SUMMARY, element: withSuspense(PrintReportAlertSummaryPage) },
+
   // ─── Protected routes ────────────────────────────────────────
   {
     element: <AuthGuard />,
@@ -94,6 +99,7 @@ const router = createBrowserRouter([
               { path: ROUTES.SHIFT,    element: withSuspense(ShiftListPage) },
               { path: ROUTES.ALERT_CATEGORY, element: withSuspense(AlertCategoryListPage) },
               { path: ROUTES.ALERT_RULE, element: withSuspense(AlertRuleListPage) },
+              { path: ROUTES.REPORT_SCHEDULE, element: withSuspense(ReportScheduleListPage) },
               { path: ROUTES.FUEL_CALIBRATION, element: withSuspense(FuelCalibrationPage) },
 
               { path: ROUTES.PLAYBACK_UNIT_HISTORY, element: withSuspense(PlaybackUnitHistoryPage) },

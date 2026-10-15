@@ -22,6 +22,7 @@ export const ROUTES = {
   SHIFT: '/master/shift',
   ALERT_CATEGORY: '/master/alert-category',
   ALERT_RULE: '/master/alert-rule',
+  REPORT_SCHEDULE: '/master/report-schedule',
   FUEL_CALIBRATION: '/fuel-calibration',
 
   // Alerts
@@ -42,6 +43,7 @@ export const ROUTES = {
   REPORT_FUEL_HISTORY: '/report/report-fuel-history',
   REPORT_ALERT_HISTORY: '/alert',
   REPORT_ALERT_SUMMARY: '/report/report-alert-summary',
+  PRINT_REPORT_ALERT_SUMMARY: '/print/report-alert-summary',
   REPORT_RITASE_DAILY: '/report/report-ritase-daily',
   REPORT_PAYLOAD_DAILY: '/report/report-payload-daily',
   REPORT_PRODUCTION_DAILY: '/report/report-production-daily',
