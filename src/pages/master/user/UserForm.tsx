@@ -21,6 +21,7 @@ const UserForm = ({ form, initialValues, isEdit = false }: Props) => {
     initialValues ? form.setFieldsValue({
       name:       initialValues.name,
       email:      initialValues.email,
+      phone_number: initialValues.phone_number ?? undefined,
       role:       initialValues.role,
       status:     initialValues.status,
       project_id: initialValues.project_id,
@@ -39,6 +40,10 @@ const UserForm = ({ form, initialValues, isEdit = false }: Props) => {
           { type: 'email', message: 'Format email tidak valid' },
         ]}>
         <Input placeholder="budi@perusahaan.com" />
+      </Form.Item>
+      <Form.Item name="phone_number" label="Phone Number"
+        rules={[{ max: 20, message: 'Maksimal 20 karakter' }]}>
+        <Input placeholder="+6281234567890" />
       </Form.Item>
       <Form.Item
         name="password"

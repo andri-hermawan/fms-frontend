@@ -110,6 +110,13 @@ const UserListPage = () => {
       align: 'left',
     },
     {
+      title: 'Phone',
+      dataIndex: 'phone_number',
+      width: 150,
+      align: 'left',
+      render: (value) => value || '—',
+    },
+    {
       title: 'Role',
       dataIndex: 'role',
       width: 120,
@@ -137,6 +144,27 @@ const UserListPage = () => {
       width: 140,
       align: 'center',
       render: (value) => formatDate(value),
+    },
+    {
+      title: 'Created By',
+      dataIndex: 'created_by',
+      width: 160,
+      align: 'left',
+      render: (value) => value || '—',
+    },
+    {
+      title: 'Updated At',
+      dataIndex: 'updated_at',
+      width: 140,
+      align: 'center',
+      render: (value) => (value ? formatDate(value) : '—'),
+    },
+    {
+      title: 'Updated By',
+      dataIndex: 'updated_by',
+      width: 160,
+      align: 'left',
+      render: (value) => value || '—',
     },
     {
       title: 'Actions',
@@ -201,6 +229,7 @@ const UserListPage = () => {
         dataSource={visibleUsers}
         loading={isLoading}
         searchable={false}
+        scroll={{ x: 'max-content' }}
         pagination={{
           current: params.page, pageSize: params.limit,
           total: isRestrictedRole ? visibleUsers.length : data?.meta?.total ?? 0,

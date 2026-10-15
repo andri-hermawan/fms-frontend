@@ -10,17 +10,21 @@ export interface User {
   }
   name: string
   email: string
+  phone_number?: string | null
   password_hash: string
   role: UserRole
   status: UserStatus
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  created_by?: string | null
+  updated_at?: string | null
+  updated_by?: string | null
 }
 
 export interface UserFormValues {
   project_id: string
   name: string
   email: string
+  phone_number?: string
   password_hash: string
   role: UserRole
   status: UserStatus
