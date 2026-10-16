@@ -3,6 +3,7 @@ import { Form, Input, InputNumber, Radio, Select, Row, Col, Typography } from 'a
 import type { AlertRule, AlertRuleFormValues, AlertRuleScope } from '@/types/alert-rule.types'
 import { useAlertCategories } from '../alert-category/useAlertCategory'
 import { useProjects } from '../project/useProject'
+import { useUsers } from '../user/useUser'
 import { useAlertRuleSegments } from './useAlertRule'
 import { getThresholdFields, SCOPE_OPTIONS, STATUS_OPTIONS, THRESHOLD_FIELDS } from './alertRule.constants'
 
@@ -23,6 +24,7 @@ const AlertRuleForm = ({ form, initialValues }: Props) => {
 
   const { data: categoryData, isLoading: loadingCategory } = useAlertCategories({ limit: 999999 })
   const { data: projectData, isLoading: loadingProject }   = useProjects({ limit: 999999 })
+  const { data: userData, isLoading: loadingUser }         = useUsers({ limit: 999999 })
   const { data: segmentData, isFetching: loadingSegment }  =
     useAlertRuleSegments(scope === 'segment' ? projectId : null)
 
@@ -35,6 +37,19 @@ const AlertRuleForm = ({ form, initialValues }: Props) => {
     value: p.id,
     label: p.project_name,
   }))
+  // Hanya user aktif yang punya nomor WhatsApp
+  const userOptions = (userData?.data ?? [])
+    .filter((u) => u.status === 'active' && u.phone_number?.trim())
+    .map((u) => ({
+      value: u.id,
+      label: `${u.name} (${u.phone_number})`,
+    }))
+  // Penerima tersimpan yang kini nonaktif / tanpa nomor tetap tampil namanya (tidak dikirimi WA)
+  for (const r of initialValues?.alert_rule_recipients ?? []) {
+    if (!userOptions.some((o) => o.value === r.user_id)) {
+      userOptions.push({ value: r.user_id, label: `${r.users.name ?? '-'} (tidak aktif / tanpa nomor)` })
+    }
+  }
   const segmentOptions = (segmentData ?? []).map((s) => ({
     value: s.segment,
     label: s.category ? `${s.segment} (${s.category})` : s.segment,
@@ -57,6 +72,7 @@ const AlertRuleForm = ({ form, initialValues }: Props) => {
       speed_limit:       toNumber(initialValues.speed_limit),
       fuel_threshold:    toNumber(initialValues.fuel_threshold),
       description:       initialValues.description ?? undefined,
+      recipient_user_ids: initialValues.alert_rule_recipients?.map((r) => r.user_id) ?? [],
       status:            initialValues.status,
     })
   }, [initialValues, form])
@@ -142,6 +158,21 @@ const AlertRuleForm = ({ form, initialValues }: Props) => {
 
       <Form.Item name="description" label="Description">
         <Input.TextArea rows={2} maxLength={255} placeholder="Keterangan rule" />
+      </Form.Item>
+
+      <Form.Item name="recipient_user_ids" label="WhatsApp Recipients"
+        extra="Digabung dengan penerima rule Global / Project / Segment lain yang cocok. Kosong di semua level = alert hanya tersimpan, tidak dikirim WA.">
+        <Select
+          mode="multiple"
+          allowClear
+          placeholder="Pilih user penerima WhatsApp"
+          loading={loadingUser}
+          options={userOptions}
+          showSearch
+          filterOption={(input, opt) =>
+            (opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
+          }
+        />
       </Form.Item>
 
       <Form.Item name="status" label="Status"

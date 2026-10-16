@@ -28,6 +28,17 @@ export interface AlertRule {
     project_code: string
     project_name: string
   } | null
+  // Penerima WhatsApp saat alert terjadi (nomor dari users.phone_number)
+  alert_rule_recipients?: AlertRuleRecipient[]
+}
+
+export interface AlertRuleRecipient {
+  user_id: string
+  users: {
+    id: string
+    name: string | null
+    phone_number: string | null
+  }
 }
 
 export interface AlertRuleSegment {
@@ -44,6 +55,7 @@ export interface AlertRuleFormValues {
   speed_limit?: number | null
   fuel_threshold?: number | null
   description?: string
+  recipient_user_ids?: string[]
   status: AlertRuleStatus
 }
 

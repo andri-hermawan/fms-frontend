@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Form, Button, Space, Tooltip, Tag, Dropdown } from 'antd'
 import type { MenuProps } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, FilterOutlined, DownOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, FilterOutlined, DownOutlined, WhatsAppOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
@@ -91,6 +91,7 @@ const AlertRuleListPage = () => {
         speed_limit:       threshold('speed_limit'),
         fuel_threshold:    threshold('fuel_threshold'),
         description:       values.description?.trim() ?? '',
+        recipient_user_ids: values.recipient_user_ids ?? [],
         status:            values.status,
       }
 
@@ -169,6 +170,25 @@ const AlertRuleListPage = () => {
       width: 120,
       align: 'center',
       render: (value) => renderThreshold(value, 'L'),
+    },
+    {
+      title: 'WhatsApp',
+      key: 'recipients',
+      width: 120,
+      align: 'center',
+      render: (_, r) => {
+        const recipients = r.alert_rule_recipients ?? []
+        if (!recipients.length) return <span style={{ color: '#999' }}>-</span>
+        return (
+          <Tooltip
+            title={recipients.map((x) => (
+              <div key={x.user_id}>{x.users.name ?? '-'} ({x.users.phone_number || 'tanpa nomor'})</div>
+            ))}
+          >
+            <Tag icon={<WhatsAppOutlined />} color="green">{recipients.length} user</Tag>
+          </Tooltip>
+        )
+      },
     },
     {
       title: 'Description',
