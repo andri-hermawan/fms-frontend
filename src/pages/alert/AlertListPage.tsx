@@ -8,9 +8,10 @@ import PageHeader from '@/components/ui/PageHeader'
 import DataTable from '@/components/ui/DataTable'
 import ReportFilter, { type ReportFilterValues } from '@/components/report/ReportFilter'
 import { useAlerts } from './useAlert'
+import { useShifts } from '@/pages/master/shift/useShift'
 import alertApi from '@/services/api/alert.api'
 import usePagination from '@/hooks/usePagination'
-import { formatDate, formatDurationMinutes, formatTimeSecond } from '@/utils/format'
+import { formatDurationMinutes, formatTimeSecond } from '@/utils/format'
 import type { Alert } from '@/types/alert.types'
 
 const today = dayjs().format('YYYY-MM-DD')
@@ -29,6 +30,21 @@ const AlertListPage = () => {
     created_at_end: today,
   })
   const { data, isLoading } = useAlerts(params)
+  const shifts = useShifts({ page: 1, limit: 100 })
+
+  // Hari operasional dimulai dari start_time shift urutan pertama (WIB).
+  const operationalStart = [...(shifts.data?.data ?? [])]
+    .filter((s) => s.start_time)
+    .sort((a, b) => (a.sequence ?? 999) - (b.sequence ?? 999))[0]?.start_time
+
+  const getOperationalDay = useCallback(
+    (value?: string) => {
+      if (!value) return null
+      const [h = 0, m = 0] = (operationalStart ?? '00:00').split(':').map(Number)
+      return dayjs(value).subtract(h * 60 + m, 'minute')
+    },
+    [operationalStart],
+  )
 
   const handleApply = (values: ReportFilterValues) => {
     // Backend memfilter alert category lewat param `search`
@@ -61,7 +77,7 @@ const AlertListPage = () => {
         No: index + 1,
         'Abnormal Alert': item.alert_categories?.alert_category_name ?? '-',
         'Asset ID': item.equipments?.equipment_code ?? '-',
-        Date: dayjs.utc(item.created_at).startOf('day').valueOf() / 86_400_000 + 25_569,
+        Date: dayjs.utc(getOperationalDay(item.created_at)?.format('YYYY-MM-DD')).valueOf() / 86_400_000 + 25_569,
         Shift: item.shift ?? '-',
         'Start Time': formatTimeSecond(item.created_at),
         'Stop Time': formatTimeSecond(item.resolved_at),
@@ -88,7 +104,7 @@ const AlertListPage = () => {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Alerts')
     XLSX.writeFile(wb, 'alerts.xlsx')
-  }, [params])
+  }, [params, getOperationalDay])
 
   const columns: ColumnsType<Alert> = [
     {
@@ -118,7 +134,7 @@ const AlertListPage = () => {
       dataIndex: 'created_at',
       width: 120,
       align: 'left',
-      render: (value) => formatDate(value),
+      render: (value) => getOperationalDay(value)?.format('DD MMM YYYY') ?? '-',
     },
     {
       title: 'Shift',
