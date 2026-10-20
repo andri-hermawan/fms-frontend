@@ -12,6 +12,7 @@ import { useShifts } from '@/pages/master/shift/useShift'
 import alertApi from '@/services/api/alert.api'
 import usePagination from '@/hooks/usePagination'
 import { formatDurationMinutes, formatTimeSecond } from '@/utils/format'
+import { getAlertCategoryColor, getAlertCategoryTextColor } from '@/utils/alert-category'
 import type { Alert } from '@/types/alert.types'
 
 const today = dayjs().format('YYYY-MM-DD')
@@ -121,13 +122,36 @@ const AlertListPage = () => {
       dataIndex: 'status',
       width: 180,
       align: 'left',
-      render: (_, record) => record.alert_categories?.alert_category_name ?? '-',
+      fixed: 'left',
+      render: (_, record) => {
+        const name = record.alert_categories?.alert_category_name
+        if (!name) return '-'
+        const bg = getAlertCategoryColor(name)
+        if (!bg) return name
+        return (
+          <span
+            style={{
+              display: 'inline-block',
+              padding: '0 8px',
+              borderRadius: 4,
+              background: bg,
+              color: getAlertCategoryTextColor(name),
+              fontWeight: 500,
+            }}
+          >
+            {name}
+          </span>
+        )
+      },
     },
     {
       title: 'Asset ID',
       width: 120,
       align: 'left',
-      render: (_, record) => record.equipments?.equipment_code ?? '-',
+      fixed: 'left',
+      render: (_, record) => (
+        <span style={{ fontWeight: 600 }}>{record.equipments?.equipment_code ?? '-'}</span>
+      ),
     },
     {
       title: 'Date',

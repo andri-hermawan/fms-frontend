@@ -13,12 +13,16 @@
 //   updated_by: string | null
 // }
 
+// LLS = nilai mentah sensor LLS, PERCENTAGE = persen 0-100 (mis. dari ECU)
+export type CalibrationType = 'LLS' | 'PERCENTAGE'
+
 export interface FuelCalibration {
   id: string
   equipment_id: string
   equipment_code: string
   fuel_volume: number
   fuel_level: number
+  calibration_type?: CalibrationType
 }
 
 export interface FuelCalibrationFormValues {
@@ -26,4 +30,5 @@ export interface FuelCalibrationFormValues {
   equipment_code?: string
   fuel_volume?: number | null
   fuel_level?: number | null
+  calibration_type?: CalibrationType
 }

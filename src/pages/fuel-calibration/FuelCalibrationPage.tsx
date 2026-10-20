@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Form, Button, Space, Tooltip, Dropdown, Modal, Progress, Empty, Typography } from 'antd'
+import { Form, Button, Space, Tooltip, Dropdown, Modal, Progress, Empty, Typography, Tag } from 'antd'
 import type { MenuProps } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, FilterOutlined, DownOutlined, ExperimentOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -12,7 +12,7 @@ import { useFuelCalibrations, useFuelCalibrationsByEquipment, useCreateFuelCalib
 import FuelCalibrationForm from './FuelCalibrationForm'
 import usePermission from '@/hooks/usePermission'
 import usePagination from '@/hooks/usePagination'
-import type { FuelCalibration, FuelCalibrationFormValues } from '@/types/fuel-calibration.types'
+import type { CalibrationType, FuelCalibration, FuelCalibrationFormValues } from '@/types/fuel-calibration.types'
 
 const FuelCalibrationPage = () => {
   const [form] = Form.useForm<FuelCalibrationFormValues>()
@@ -123,11 +123,23 @@ const FuelCalibrationPage = () => {
       render: (value) => value ?? '—',
     },
     {
-      title: 'Max Fuel Level (sensor)',
+      title: 'Tipe',
+      dataIndex: 'calibration_type',
+      width: 120,
+      align: 'center',
+      render: (value?: CalibrationType) => (
+        <Tag color={value === 'PERCENTAGE' ? 'green' : 'blue'}>
+          {value === 'PERCENTAGE' ? 'Percentage' : 'LLS'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Max Fuel Level',
       dataIndex: 'fuel_level',
       width: 140,
       align: 'center',
-      render: (value) => value ?? '—',
+      render: (value, record) =>
+        value == null ? '—' : record.calibration_type === 'PERCENTAGE' ? `${value}%` : value,
     },
     {
       title: 'Actions',
@@ -267,7 +279,11 @@ const FuelCalibrationPage = () => {
                   return (
                     <div key={calibration.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, color: reached ? '#1677ff' : '#8c8c8c', fontWeight: reached ? 600 : 400 }}>
                       <span>{calibration.fuel_volume ?? 0} liter</span>
-                      <span>Sensor: {calibration.fuel_level ?? 0}</span>
+                      <span>
+                        {calibration.calibration_type === 'PERCENTAGE'
+                          ? `ECU: ${calibration.fuel_level ?? 0}%`
+                          : `Sensor: ${calibration.fuel_level ?? 0}`}
+                      </span>
                       <span>{Math.round(((calibration.fuel_volume ?? 0) / maxFuel) * 100)}%</span>
                     </div>
                   )

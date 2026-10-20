@@ -38,14 +38,23 @@ const FuelCalibrationForm = ({ form, initialValues }: Props) => {
         equipment_code: initialValues.equipment_code,
         fuel_volume: initialValues.fuel_volume,
         fuel_level: initialValues.fuel_level,
+        calibration_type: initialValues.calibration_type ?? 'LLS',
       })
     } else {
       form.resetFields()
     }
   }, [initialValues, form])
 
+  const calibrationType = Form.useWatch('calibration_type', form) ?? 'LLS'
+  const isPercentage = calibrationType === 'PERCENTAGE'
+
   return (
-    <Form form={form} layout="vertical" requiredMark={false}>
+    <Form
+      form={form}
+      layout="vertical"
+      requiredMark={false}
+      initialValues={{ calibration_type: 'LLS' }}
+    >
       <Form.Item
         name="equipment_id"
         label="Equipment"
@@ -65,6 +74,24 @@ const FuelCalibrationForm = ({ form, initialValues }: Props) => {
       </Form.Item>
 
       <Form.Item
+        name="calibration_type"
+        label="Tipe Kalibrasi"
+        extra={
+          isPercentage
+            ? 'Sensor mengirim persen 0-100 (mis. dari ECU). Cukup isi kapasitas tangki.'
+            : 'Sensor mengirim nilai mentah LLS. Isi nilai sensor saat tangki penuh.'
+        }
+        rules={[{ required: true, message: 'Wajib dipilih' }]}
+      >
+        <Select
+          options={[
+            { value: 'LLS', label: 'LLS (nilai sensor)' },
+            { value: 'PERCENTAGE', label: 'Percentage (ECU, 0-100%)' },
+          ]}
+        />
+      </Form.Item>
+
+      <Form.Item
         name="fuel_volume"
         label="Max Fuel Volume (liter)"
         rules={[{ required: true, message: 'Wajib diisi' }]}
@@ -77,18 +104,20 @@ const FuelCalibrationForm = ({ form, initialValues }: Props) => {
         />
       </Form.Item>
 
-      <Form.Item
-        name="fuel_level"
-        label="Max Fuel Level (sensor)"
-        rules={[{ required: true, message: 'Wajib diisi' }]}
-      >
-        <InputNumber
-          placeholder="Masukkan nilai Fuel Level (sensor)"
-          style={{ width: '100%' }}
-          min={0}
-          step={0.01}
-        />
-      </Form.Item>
+      {!isPercentage && (
+        <Form.Item
+          name="fuel_level"
+          label="Max Fuel Level (sensor)"
+          rules={[{ required: true, message: 'Wajib diisi' }]}
+        >
+          <InputNumber
+            placeholder="Masukkan nilai Fuel Level (sensor)"
+            style={{ width: '100%' }}
+            min={0}
+            step={0.01}
+          />
+        </Form.Item>
+      )}
     </Form>
   )
 }
