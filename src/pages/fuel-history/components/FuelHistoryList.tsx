@@ -54,7 +54,7 @@ const FuelHistoryList = ({
             </span>
           </div>
           <div style={{ fontSize: 12, color: '#888' }}>
-            Speed: {log.speed} km/h · Fuel: {log.fuel_percentage}%
+            Fuel: {log.fuel_percentage}%
             {log.alerts?.length ? ` · ${log.alerts.map((a) => a.status).join(', ')}` : ''}
           </div>
         </div>

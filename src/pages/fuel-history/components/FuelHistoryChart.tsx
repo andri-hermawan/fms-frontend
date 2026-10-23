@@ -2,12 +2,9 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Card, Empty } from 'antd'
 import ReactECharts from 'echarts-for-react'
 
-export interface AlertDataPoint {
+export interface FuelHistoryDataPoint {
   time: string
-  speed: number
   fuel: number
-  speedMin: number
-  speedMax: number
   fuelMin: number
   fuelMax: number
   count: number
@@ -15,7 +12,6 @@ export interface AlertDataPoint {
 }
 
 const chartColors: Record<string, string> = {
-  Speed: '#064596',
   Fuel: '#ff7f00',
 }
 
@@ -23,7 +19,7 @@ const ALERT_COLOR = '#ff4d4f'
 
 interface FuelHistoryChartProps {
   equipmentCode: string
-  data: AlertDataPoint[]
+  data: FuelHistoryDataPoint[]
   onClick?: (dataIndex: number) => void
 }
 
@@ -52,6 +48,7 @@ const FuelHistoryChart = ({ equipmentCode, data, onClick }: FuelHistoryChartProp
         name: string
         coord: [number, number]
         value: string
+        originalIndex: number
       }>>((points, point, index) => {
         if (!point.alertStatus) return points
 
@@ -59,6 +56,7 @@ const FuelHistoryChart = ({ equipmentCode, data, onClick }: FuelHistoryChartProp
           name: point.alertStatus,
           coord: [index, point.fuel],
           value: point.alertStatus,
+          originalIndex: index,
         })
         return points
       }, []),
@@ -77,7 +75,6 @@ const FuelHistoryChart = ({ equipmentCode, data, onClick }: FuelHistoryChartProp
         const hour = arr[0]?.axisValue ?? ''
         const lines = arr
           .map((p) => {
-
             if (p.seriesName === 'Fuel') {
               return `${p.seriesName}: <b>${p.value.toFixed(1)}%</b>`
             }
@@ -212,8 +209,12 @@ const FuelHistoryChart = ({ equipmentCode, data, onClick }: FuelHistoryChartProp
           notMerge
           style={{ width: '100%', height: '100%' }}
           onEvents={{
-            click: (params: { dataIndex?: number }) => {
-              if (params.dataIndex != null) onClick?.(params.dataIndex)
+            click: (params: {
+              dataIndex?: number
+              data?: { originalIndex?: number }
+            }) => {
+              const dataIndex = params.data?.originalIndex ?? params.dataIndex
+              if (dataIndex != null) onClick?.(dataIndex)
             },
           }}
         />

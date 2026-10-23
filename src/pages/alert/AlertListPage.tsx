@@ -51,7 +51,15 @@ const AlertListPage = () => {
     // Backend memfilter alert category lewat param `search`
     // (lihat OverspeedAlertPage: setSearch('Overspeed'))
     setSearch(values.alertCategory || values.search || '')
-    setDateRange(values.dateRange?.[0], values.dateRange?.[1])
+    const [startDate, endDate] = values.dateRange ?? []
+    // The backend's operational-day window starts at 07:00 WIB. Shift 2
+    // crosses midnight, so include the early-morning part of the first day.
+    setDateRange(
+      startDate && values.shift === 'Shift 2'
+        ? dayjs(startDate).subtract(1, 'day').format('YYYY-MM-DD')
+        : startDate,
+      endDate,
+    )
     setShift(values.shift)
     setFilterOpen(false)
   }
@@ -120,7 +128,7 @@ const AlertListPage = () => {
     {
       title: 'Abnormal Alert',
       dataIndex: 'status',
-      width: 180,
+      width: 210,
       align: 'left',
       fixed: 'left',
       render: (_, record) => {

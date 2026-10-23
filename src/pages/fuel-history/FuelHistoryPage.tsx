@@ -1,8 +1,14 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Button, Card, Select, Spin } from 'antd'
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons'
-import { Marker, Tooltip, useMap } from 'react-leaflet'
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  PauseOutlined,
+  PlayCircleOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons'
+import { Marker, Polyline, Tooltip, useMap } from 'react-leaflet'
 import dayjs from 'dayjs'
 import L from 'leaflet'
 
@@ -16,7 +22,7 @@ import EquipmentSearch from '@/pages/tracking/components/EquipmentSearch'
 import useEquipmentLogs, { useEquipmentLogsByDateShift } from '@/hooks/useEquipmentLogs'
 import FuelHistoryChart from './components/FuelHistoryChart'
 import FuelHistoryList from './components/FuelHistoryList'
-import type { AlertDataPoint } from './components/FuelHistoryChart'
+import type { FuelHistoryDataPoint } from './components/FuelHistoryChart'
 import type { EquipmentLog } from '@/types/equipment-logs.types'
 import type { EquipmentMarkerData } from '@/types/map.types'
 import { getMarkerIcon } from '@/utils/marker-icon'
@@ -35,7 +41,8 @@ const toMarkerData = (log: EquipmentLog): EquipmentMarkerData => ({
   vessel: Number(log.vessel) || 0,
   status: log.status ?? '',
   gsm_signal: log.gsm_signal ?? 0,
-  breakdown: false,
+  breakdown: log.breakdown ?? false,
+  breakdown_desc: log.breakdown_desc ?? undefined,
   engine_status: log.engine_status ?? false,
   alert_count: log.alerts?.length ?? 0,
   fuel_level: Number(log.fuel_level) || 0,
@@ -55,11 +62,14 @@ const LogMarker = ({ log, selected = false }: { log: EquipmentLog; selected?: bo
       <div>
         <strong>Jam:</strong> {dayjs(log.created_at).format('HH:mm')}
         {' - '}
-        <strong>Speed:</strong> {markerData.speed.toFixed(2)}
-        {' - '}
         <strong>Fuel:</strong> {markerData.fuel_percentage.toFixed(0)}%
       </div>
       <div><strong>MapSegment:</strong> {markerData.segment || '-'}</div>
+      {markerData.breakdown && (
+        <div>
+          <strong>BD Status:</strong> {markerData.breakdown_desc || '-'}
+        </div>
+      )}
       <div>
         <strong>Coordinat:</strong>{' '}
         <a
@@ -124,7 +134,7 @@ const FlyToLogMarker = ({ lat, lng, trigger }: { lat: number; lng: number; trigg
     if (lat !== 0 && lng !== 0) {
       map.flyTo([lat, lng], 17, { animate: true, duration: 0.5 })
     }
-  }, [lat, lng, trigger])
+  }, [lat, lng, map, trigger])
   return null
 }
 
@@ -158,6 +168,8 @@ const FuelHistoryPage = () => {
 
   const [showPanel, setShowPanel] = useState(true)
   const [search, setSearch] = useState<string>(initialCode || '')
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playbackIndex, setPlaybackIndex] = useState(0)
 
   const [dateOverride, setDateOverride] = useState<dayjs.Dayjs | null>(
     initialDate && dayjs(initialDate).isValid() ? dayjs(initialDate) : null,
@@ -248,31 +260,75 @@ const FuelHistoryPage = () => {
     return [...filteredLogs.slice(anchorIndex), ...filteredLogs.slice(0, anchorIndex)]
   }, [filteredLogs, shiftList, shift])
 
-  const focusLog = useCallback(
-    (log: EquipmentLog | undefined) => {
-      if (!log) return
-      const idx = orderedLogs.findIndex((l) => l.id === log.id)
-      if (idx < 0) return
-      setSelectedLogId(log.id)
-      setFlyToIndex(idx)
-      setFlyToTrigger((prev) => prev + 1)
-    },
+  const routePoints = useMemo(
+    () =>
+      orderedLogs.flatMap((log, index) => {
+        const latitude = Number(log.latitude)
+        const longitude = Number(log.longitude)
+        if (
+          !Number.isFinite(latitude) ||
+          !Number.isFinite(longitude) ||
+          (latitude === 0 && longitude === 0)
+        ) {
+          return []
+        }
+        return [{ index, position: [latitude, longitude] as [number, number] }]
+      }),
     [orderedLogs],
   )
+  const routePositions = routePoints.map((point) => point.position)
+  const completedRoutePositions = routePoints
+    .filter((point) => point.index <= playbackIndex)
+    .map((point) => point.position)
+  const currentPlaybackLog = orderedLogs[playbackIndex]
 
-  const chartData: AlertDataPoint[] = useMemo(() => {
+  const resetPlaybackForFilter = () => {
+    setIsPlaying(false)
+    setPlaybackIndex(0)
+    setSelectedLogId(null)
+  }
+
+  useEffect(() => {
+    if (!isPlaying || orderedLogs.length === 0) return
+
+    const timer = window.setTimeout(() => {
+      if (playbackIndex >= orderedLogs.length - 1) {
+        setIsPlaying(false)
+        return
+      }
+
+      const nextIndex = playbackIndex + 1
+      const nextLog = orderedLogs[nextIndex]
+      setPlaybackIndex(nextIndex)
+      setSelectedLogId(nextLog.id)
+      setFlyToIndex(nextIndex)
+      setFlyToTrigger((previous) => previous + 1)
+      if (nextIndex === orderedLogs.length - 1) setIsPlaying(false)
+    }, 850)
+
+    return () => window.clearTimeout(timer)
+  }, [isPlaying, orderedLogs, playbackIndex])
+
+  const focusLog = (log: EquipmentLog | undefined) => {
+    if (!log) return
+    const idx = orderedLogs.findIndex((l) => l.id === log.id)
+    if (idx < 0) return
+    setIsPlaying(false)
+    setPlaybackIndex(idx)
+    setSelectedLogId(log.id)
+    setFlyToIndex(idx)
+    setFlyToTrigger((prev) => prev + 1)
+  }
+
+  const chartData: FuelHistoryDataPoint[] = useMemo(() => {
     const logs = orderedLogs
 
     return logs.map((log) => {
-      const speed = Number(log.speed) || 0
       const fuel = Number(log.fuel_percentage) || 0
       const alertStatus = getAlertStatus(log)
       return {
         time: dayjs(log.created_at).format('HH:mm'),
-        speed,
         fuel,
-        speedMin: speed,
-        speedMax: speed,
         fuelMin: fuel,
         fuelMax: fuel,
         count: 1,
@@ -381,6 +437,18 @@ const FuelHistoryPage = () => {
               <MapResize deps={showPanel} />
               <GeofenceLayer geoJson={geoJson} />
               <ResetViewButton />
+              {routePositions.length > 1 && (
+                <Polyline
+                  positions={routePositions}
+                  pathOptions={{ color: '#64748b', weight: 4, opacity: 0.65 }}
+                />
+              )}
+              {completedRoutePositions.length > 1 && (
+                <Polyline
+                  positions={completedRoutePositions}
+                  pathOptions={{ color: '#1677ff', weight: 5, opacity: 0.9 }}
+                />
+              )}
               <FlyToLogMarker
                 lat={Number(orderedLogs[flyToIndex]?.latitude ?? 0)}
                 lng={Number(orderedLogs[flyToIndex]?.longitude ?? 0)}
@@ -394,6 +462,69 @@ const FuelHistoryPage = () => {
                 />
               ))}
             </BaseMap>
+            <div
+              style={{
+                position: 'absolute',
+                left: 12,
+                bottom: 12,
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: 'min(440px, calc(100% - 24px))',
+                padding: '8px 10px',
+                border: '1px solid #d9e2ef',
+                borderRadius: 8,
+                background: 'rgba(255,255,255,0.96)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+              }}
+            >
+              <Button
+                type="primary"
+                size="small"
+                icon={isPlaying ? <PauseOutlined /> : <PlayCircleOutlined />}
+                disabled={orderedLogs.length === 0}
+                onClick={() => {
+                  if (isPlaying) {
+                    setIsPlaying(false)
+                    return
+                  }
+                  const startIndex =
+                    playbackIndex >= orderedLogs.length - 1 ? 0 : playbackIndex
+                  focusLog(orderedLogs[startIndex])
+                  setIsPlaying(true)
+                }}
+              >
+                {isPlaying ? 'Pause' : 'Play'}
+              </Button>
+              <Button
+                size="small"
+                icon={<ReloadOutlined />}
+                disabled={orderedLogs.length === 0}
+                onClick={() => {
+                  setIsPlaying(false)
+                  focusLog(orderedLogs[0])
+                }}
+              >
+                Reset
+              </Button>
+              <span style={{ minWidth: 42, fontSize: 12, color: '#64748b' }}>
+                {currentPlaybackLog ? dayjs(currentPlaybackLog.created_at).format('HH:mm') : '--:--'}
+              </span>
+              <input
+                aria-label="Playback timeline"
+                type="range"
+                min={0}
+                max={Math.max(orderedLogs.length - 1, 0)}
+                value={Math.min(playbackIndex, Math.max(orderedLogs.length - 1, 0))}
+                disabled={orderedLogs.length === 0}
+                onChange={(event) => {
+                  const index = Number(event.target.value)
+                  focusLog(orderedLogs[index])
+                }}
+                style={{ flex: 1, minWidth: 32, accentColor: '#1677ff', cursor: 'pointer' }}
+              />
+            </div>
           </Card>
 
           <FuelHistoryChart
@@ -427,17 +558,26 @@ const FuelHistoryPage = () => {
               <EquipmentSearch
                 value={search}
                 options={equipmentOptions}
-                onChange={(code) => setSearch(code ?? '')}
+                onChange={(code) => {
+                  resetPlaybackForFilter()
+                  setSearch(code ?? '')
+                }}
               />
               <CurrentDateDisplay
                 value={selectedDate}
-                onChange={setDateOverride}
+                onChange={(date) => {
+                  resetPlaybackForFilter()
+                  setDateOverride(date)
+                }}
               />
               <Select
                 size="large"
                 value={shift}
                 loading={currentShift.isLoading}
-                onChange={(val: string) => setShiftOverride(val)}
+                onChange={(val: string) => {
+                  resetPlaybackForFilter()
+                  setShiftOverride(val)
+                }}
                 options={[
                   { label: 'Shift 1', value: '1' },
                   { label: 'Shift 2', value: '2' },
